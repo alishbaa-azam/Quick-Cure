@@ -1,0 +1,13 @@
+body{
+  margin:0;
+}
+
+  :root {
+  --primary-color: #2c6774;        
+  --secondary-color: #174047;      
+  --accent-color: #5c878f;         
+  --hover-color: #1e4e56;          
+  --bg-light: #9fbfc5;            
+  --text-light: #c0d3dc;           
+  --white: #ffffff;
+}

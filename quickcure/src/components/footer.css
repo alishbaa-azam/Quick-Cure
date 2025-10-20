@@ -1,0 +1,292 @@
+.footer {
+  background-color: var(--primary-color);
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  width: 100%;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+}
+
+/* ===== Social Section ===== */
+.footer-social {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.footer-social h2 {
+  font-size: clamp(20px, 4vw, 28px);
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.social-icons a {
+  background: var(--secondary-color);
+  color: #fff;
+  font-size: clamp(18px, 4vw, 24px);
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  min-height: 50px;
+}
+
+.social-icons a:hover {
+  background: var(--accent-color);
+  transform: translateY(-3px);
+}
+
+/* ===== Services Section ===== */
+.service{
+      background-color: var(--secondary-color);
+}
+.footer-services {
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  padding: 50px 20px;
+  margin: 0%;
+}
+
+.service-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  transition: transform 0.3s ease;
+}
+
+.service-item:hover {
+  transform: translateY(-5px);
+}
+
+.service-item .icon {
+  font-size: clamp(32px, 5vw, 45px);
+  padding-top: 5px;
+  flex-shrink: 0;
+  /* color: var(--accent-color); */
+}
+
+.service-item-content h3 {
+  font-size: clamp(16px, 3vw, 18px);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.service-item-content p {
+  color: #c0d3dc;
+  font-size: clamp(13px, 2.5vw, 15px);
+  line-height: 1.5;
+}
+
+/* ===== Links Section ===== */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(15px, 4vw, 25px);
+  padding: 30px 20px;
+  border-top: 1px solid #2f6d83;
+}
+
+.footer-links a {
+  color: var(--white);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: clamp(13px, 3vw, 15px);
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.footer-links a:hover {
+  color: var(--bg-light);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Bottom Section ===== */
+.footer-bottom {
+  background-color: var(--secondary-color);
+  text-align: center;
+  padding: 20px 15px;
+  font-size: clamp(12px, 2.5vw, 14px);
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+/* ===== WhatsApp Button ===== */
+.whatsapp-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: #25D366;
+  color: white;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.whatsapp-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+/* ===== Responsive Design ===== */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .footer-services {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 40px 20px;
+  }
+  
+  .footer-social {
+    padding: 30px 20px;
+  }
+}
+
+/* Mobile Landscape */
+@media (max-width: 768px) {
+  .footer-services {
+    grid-template-columns: 1fr;
+    gap: 25px;
+    padding: 30px 20px;
+    text-align: center;
+  }
+
+  .service-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .service-item .icon {
+    padding-top: 0;
+  }
+
+  .footer-links {
+    gap: 12px;
+    padding: 25px 15px;
+  }
+
+  .footer-links a {
+    padding: 8px 12px;
+    flex: 1 0 calc(50% - 24px);
+    text-align: center;
+    max-width: calc(50% - 24px);
+  }
+
+  .social-icons {
+    gap: 12px;
+  }
+
+  .social-icons a {
+    min-width: 45px;
+    min-height: 45px;
+    padding: 10px 12px;
+  }
+
+  .whatsapp-btn {
+    width: 55px;
+    height: 55px;
+    font-size: 24px;
+    right: 15px;
+    bottom: 15px;
+  }
+}
+
+/* Mobile Portrait */
+@media (max-width: 480px) {
+  .footer-social {
+    padding: 25px 15px;
+  }
+
+  .footer-services {
+    padding: 25px 15px;
+    gap: 20px;
+  }
+
+  .footer-links {
+    gap: 8px;
+    padding: 20px 10px;
+  }
+
+  .footer-links a {
+    flex: 1 0 calc(50% - 16px);
+    max-width: calc(50% - 16px);
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .footer-bottom {
+    padding: 15px 10px;
+  }
+
+  .social-icons {
+    gap: 10px;
+  }
+
+  .social-icons a {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 16px;
+  }
+
+  .whatsapp-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+    right: 10px;
+    bottom: 10px;
+  }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 360px) {
+  .footer-links a {
+    flex: 1 0 100%;
+    max-width: 100%;
+  }
+  
+  .service-item {
+    gap: 12px;
+  }
+  
+  .service-item .icon {
+    font-size: 28px;
+  }
+}
+
+/* Large Screens */
+@media (min-width: 1440px) {
+  .footer-services {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
