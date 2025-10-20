@@ -360,6 +360,10 @@ button.login-btn:hover {
   background-color: #f8f9fa;
   color: #174047;
 }
+  .dropdown:hover .dropdown-content,
+  .dropdown.active .dropdown-content {
+    display: block;
+  }
 
 /* .dropdown:hover .dropdown-content {
   display: block;

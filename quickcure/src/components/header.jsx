@@ -46,7 +46,7 @@ export default function Header() {
             <a href="#!" onClick={closeMenu}>Pychiatrist</a>
             <a href="#!" onClick={closeMenu}>Psycologist</a>
             <a href="#!" onClick={closeMenu}>Urologist</a>
-            <a href="#!" onClick={closeMenu}>General Physician</a>
+            {/* <a href="#!" onClick={closeMenu}>General Physician</a>/ */}
             <a href="#!" onClick={closeMenu}>Gestroentrologist</a>
             <a href="#!" onClick={closeMenu}>Pediatrician</a>
             <a href="#!" onClick={closeMenu}>General Practitioner</a>
