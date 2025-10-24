@@ -40,7 +40,7 @@ export default function Home() {
               trusted pharmacies anytime, anywhere.
             </p>
 
-            <form className="search-bar" onSubmit={handleSearch}>
+            <form className="search" onSubmit={handleSearch}>
               <input
                 type="text"
                 placeholder="Search for doctors..."

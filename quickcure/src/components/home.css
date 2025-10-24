@@ -60,7 +60,7 @@
 }
 
 /* ======= Search Bar ======= */
-.search-bar {
+.hero-content .search {
   display: flex;
   align-items: center;
   width: 100%;
@@ -73,7 +73,7 @@
 }
 
 
-.search-bar input {
+.hero-content .search input {
   flex: 1;
   border: none;
   outline: none;
@@ -83,7 +83,7 @@
   color: #333;
 }
 
-.search-bar button {
+.hero-content .search button {
   border: none;
   background: var(--secondary-color);
   color: white;
@@ -97,7 +97,7 @@
   transition: 0.3s ease;
 }
 
-.search-bar button:hover {
+.hero-content .search button:hover {
   background: var(--primary-color);
 }
 
@@ -245,7 +245,7 @@ button span {
     font-size: 1rem;
   }
 
-  .search-bar {
+  .hero-content .search-bar {
     margin: 0 auto;
   }
  .eco{
@@ -277,17 +277,17 @@ button span {
     font-size: 0.95rem;
   }
 
-  .search-bar {
+  .hero-content .search {
     flex-direction: row;
     padding: 0.3rem 0.5rem;
     max-width: 100%;
   }
 
-  .search-bar input {
+  .hero-content .search input {
     font-size: 0.9rem;
   }
 
-  .search-bar button {
+  .hero-content .search button {
     width: 34px;
     height: 34px;
   }

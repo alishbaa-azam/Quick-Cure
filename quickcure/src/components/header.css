@@ -333,7 +333,7 @@ button.login-btn:hover {
   position: absolute;
   text-align: left;
   background-color: white;
-  width: 200px;
+  width: 150px;
   box-shadow: 0px 2px 16px rgba(0, 0, 0, 0.1);
   border-top: 3px solid var(--primary-color);
   z-index: 10;
