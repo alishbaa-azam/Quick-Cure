@@ -9,11 +9,12 @@
 }
 
 body {
-  margin: 0;
+  margin: 70px 0px;
   padding: 0;
   box-sizing: border-box;
   font-family: Arial, sans-serif;
   background-color: #f8f9fa;
+  background-color:var(--white);
 }
 
 .doctors-page {
@@ -48,6 +49,7 @@ body {
   margin: 0 auto;
   padding: 10px 15px;
   border-radius: 6px;
+  color: grey;
 }
 
 .search-bar input {
@@ -55,6 +57,7 @@ body {
   font-size: 14px;
   border: none;
   outline: none;
+  color:#777 ;
 }
 
 .search-icon {

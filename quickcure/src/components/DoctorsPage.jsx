@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "./DoctorsPage.css";
-import { Search } from "lucide-react";
+// import { Search } from "lucide-react";
+import { FaSearch } from "react-icons/fa";
+
 
 import dermatologistIcon from "../images/Dermatologist.png";
 import gynecologistIcon from "../images/Gynecologist.png";
@@ -82,7 +84,8 @@ export default function DoctorsPage() {
       <div className="header-section">
         <h1>Find The Best Doctors Near You</h1>
         <div className="search-bar">
-          <Search className="search-icon" />
+          {/* <Search className="search-icon" /> */}
+          <FaSearch className="search-icon"/>
           <input
             type="text"
             placeholder="Search medical specialties..."
