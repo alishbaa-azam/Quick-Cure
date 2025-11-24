@@ -1,0 +1,178 @@
+:root {
+  --primary-color: #2c6774;
+  --secondary-color: #174047;
+  --accent-color: #5c878f;
+  --hover-color: #1e4e56;
+  --bg-light: #9fbfc5;
+  --text-light: #c0d3dc;
+  --white: #ffffff;
+}
+
+/* Page Layout */
+.speciality-page {
+  padding: 20px 60px;
+  background-color: var(--bg-light);
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+.page-title {
+  color: var(--secondary-color);
+  margin-bottom: 30px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+/* Doctor Cards */
+.doctor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.doctor-card {
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.doctor-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 100px;
+  object-fit: cover;
+  border: 3px solid var(--accent-color);
+}
+
+.doctor-main {
+  flex: 1;
+}
+
+.doctor-name {
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.pmdc {
+  color: green;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.qualification {
+  color: #333;
+  font-size: 14px;
+  margin-top: 3px;
+}
+
+.doctor-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 10px;
+}
+
+.stat-title {
+  font-weight: 600;
+  color: var(--secondary-color);
+  margin: 0;
+}
+
+.stat-value {
+  color: black;
+  margin: 0;
+  font-weight: bold;
+}
+
+/* Services */
+.doctor-services {
+  margin: 15px 0;
+}
+
+.service-tag {
+  display: inline-block;
+  background-color: var(--text-light);
+  color: var(--secondary-color);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  margin: 5px;
+}
+
+/* Hospitals */
+.doctor-hospitals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.hospital-card {
+  background-color: #f2f9fa;
+  border: 1px solid var(--accent-color);
+  border-radius: 10px;
+  padding: 10px 15px;
+  flex: 1;
+  min-width: 250px;
+}
+
+.hospital-card h4 {
+  color: var(--secondary-color);
+  margin-bottom: 5px;
+  font-size: 15px;
+}
+
+.fee {
+  font-weight: 600;
+  color: #000;
+}
+
+/* Buttons */
+.doctor-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.video-call-btn {
+  background-color: #4fa387;
+  color: var(--white);
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.video-call-btn:hover {
+  background-color: #3b8c73;
+}
+
+.view-profile-btn {
+  background-color: var(--secondary-color);
+  color: var(--white);
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.view-profile-btn:hover {
+  background-color: var(--hover-color);
+}
+
+.no-speciality {
+  text-align: center;
+  color: red;
+  margin-top: 80px;
+  font-size: 22px;
+}
