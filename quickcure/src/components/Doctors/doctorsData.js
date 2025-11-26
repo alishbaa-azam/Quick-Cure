@@ -1,554 +1,1051 @@
-// const doctorsData = [
-//  {
-//     name: "Dermatologist",
-//     doctors: [
-//       {
-//         id: 1,
-//         name: "Assoc. Prof. Dr. Zareen Saqib Suleri",
-//         // image: "/images/doctor1.jpg",
-//         // image: require("../images/doctor1.jpg"),
-//         qualification: "MBBS, FCPS (Dermatology)",
-//         experience: "13 Yrs",
-//         satisfaction: "97%",
-//         services: ["PRP", "Laser For Hair Removal", "Acne And Acne Scars", "Vampire Facelift"],
-//         hospitals: [
-//           {
-//             name: "Video Consultation",
-//             availability: "Available from Oct 27",
-//             fee: 1500,
-//           },
-//           {
-//             name: "Suleri Children and General Hospital, Sialkot",
-//             availability: "Available Tomorrow",
-//             fee: 1500,
-//           },
-//         ],
-//       },
-//     ],
-//   },
+import doctor1 from "../../images/doctor1.jpg";
+import doctor2 from "../../images/doctor2.jpg";
+import doctor3 from "../../images/doctor3.webp";
+import doctor4 from "../../images/doctor4.jpg";
+import doctor5 from "../../images/doctor5.jpg";
+import doctor6 from "../../images/doctor6.jpg";
+import doctor7 from "../../images/doctor7.jpg";
+import doctor8 from "../../images/doctor8.jpg";
+import doctor9 from "../../images/doctor9.jpg";
+import doctor10 from "../../images/doctor10.jpg";
+import doctor11 from "../../images/doctor11.jpg";
+import doctor12 from "../../images/doctor12.jpg";
+import doctor13 from "../../images/doctor13.jpg";
+import doctor14 from "../../images/doctor14.jpg";
+import doctor15 from "../../images/doctor15.jpg";
+import doctor16 from "../../images/doctor16.jpeg";
+import doctor17 from "../../images/doctor17.jpeg";
+import doctor18 from "../../images/doctor18.jpeg";
+import doctor19 from "../../images/doctor19.jpeg";
+import doctor20 from "../../images/doctor20.jpeg";
+import doctor21 from "../../images/doctor21.jpeg";
+import doctor22 from "../../images/doctor22.jpeg";
+import doctor23 from "../../images/doctor23.jpeg";
+import doctor24 from "../../images/doctor24.jpg";
+import doctor25 from "../../images/doctor25.jpg";
+import doctor26 from "../../images/doctor26.webp";
+import doctor27 from "../../images/doctor27.jpg";
+import doctor28 from "../../images/doctor28.jpg";
+import doctor29 from "../../images/doctor29.jpeg";
+import doctor30 from "../../images/doctor30.jpg";
 
-//   {
-//     id: 2,
-//     name: "Gynecologist",
-//     description: "Expert in women's reproductive health and pregnancy.",
-//     link: "/specialities/gynecologist",
-//     doctors: [
-//       {
-//         id: "g1",
-//         name: "Dr. Ayesha Noor",
-//         qualification: "MBBS, FCPS (Gynecology)",
-//         experience: "9 years",
-//         hospital: "Mother & Child Care Hospital",
-//         contact: "0302-9988775",
-//         // image: "/images/doctor2.jpg",
-//         image: require("../images/doctor2.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 3,
-//     name: "Urologist",
-//     description: "Specialist in urinary tract and male reproductive organs.",
-//     link: "/specialities/urologist",
-//     doctors: [
-//       {
-//         id: "u1",
-//         name: "Dr. Bilal Qureshi",
-//         qualification: "MBBS, FCPS (Urology)",
-//         experience: "9 years",
-//         hospital: "Kidney Care Hospital",
-//         contact: "0301-2223344",
-//         // image: "/images/doctor3.webp",
-//         // image: require("../images/doctor3.webp")
-//       },
-//     ],
-//   },
-//   {
-//     id: 4,
-//     name: "Gastroenterologist",
-//     description: "Expert in digestive system and liver disorders.",
-//     link: "/specialities/gastroenterologist",
-//     doctors: [
-//       {
-//         id: "ga1",
-//         name: "Dr. Taha Malik",
-//         qualification: "MBBS, FCPS (Gastroenterology)",
-//         experience: "10 years",
-//         hospital: "Digestive Health Center",
-//         contact: "0311-6677880",
-//         // image: "/images/doctor4.jpg",
-//         image: require("../images/doctor4.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 5,
-//     name: "General Physician",
-//     description: "Provides general medical care for all age groups.",
-//     link: "/specialities/general-physician",
-//     doctors: [
-//       {
-//         id: "gp1",
-//         name: "Dr. Usman Rafiq",
-//         qualification: "MBBS, FCPS (Medicine)",
-//         experience: "14 years",
-//         hospital: "City Medical Complex",
-//         contact: "0305-6655442",
-//         // image: "/images/doctor5.jpg",
-//         image: require("../images/doctor5.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 6,
-//     name: "Psychiatrist",
-//     description: "Deals with mental health and emotional disorders.",
-//     link: "/specialities/psychiatrist",
-//     doctors: [
-//       {
-//         id: "ps1",
-//         name: "Dr. Nadeem Ahmed",
-//         qualification: "MBBS, FCPS (Psychiatry)",
-//         experience: "12 years",
-//         hospital: "Mind Care Hospital",
-//         contact: "0322-5566778",
-//         // image: "/images/doctor6.jpg",
-//         image: require("../images/doctor6.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 7,
-//     name: "Psychologist",
-//     description: "Helps patients with behavior and mental health issues.",
-//     link: "/specialities/psychologist",
-//     doctors: [
-//       {
-//         id: "psyc1",
-//         name: "Dr. Huma Naz",
-//         qualification: "PhD (Clinical Psychology)",
-//         experience: "11 years",
-//         hospital: "Hope Psychology Center",
-//         contact: "0343-6677880",
-//         // image: "/images/doctor7.jpg",
-//         image: require("../images/doctor7.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 8,
-//     name: "Orthopedic Surgeon",
-//     description: "Specialist in bone, joint, and spine surgery.",
-//     link: "/specialities/orthopedic-surgeon",
-//     doctors: [
-//       {
-//         id: "o1",
-//         name: "Dr. Saad Javed",
-//         qualification: "MBBS, FCPS (Orthopedics)",
-//         experience: "13 years",
-//         hospital: "Bone & Joint Hospital",
-//         contact: "0321-9876543",
-//         // image: "/images/doctor8.jpg",
-//         image: require("../images/doctor8.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 9,
-//     name: "Dentist",
-//     description: "Specializes in diagnosis, prevention, and treatment of oral diseases.",
-//     link: "/specialities/dentist",
-//     doctors: [
-//       {
-//         id: "de1",
-//         name: "Dr. Ayesha Malik",
-//         qualification: "BDS, FCPS (Operative Dentistry)",
-//         experience: "10 years",
-//         hospital: "Smile Care Dental Clinic",
-//         contact: "0321-5566778",
-//         // image: "/images/doctor9.jpg",
-//         image: require("../images/doctor9.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 10,
-//     name: "General Surgeon",
-//     description: "Performs general surgeries including abdomen, breast, and skin.",
-//     link: "/specialities/general-surgeon",
-//     doctors: [
-//       {
-//         id: "gs1",
-//         name: "Dr. Zafar Iqbal",
-//         qualification: "MBBS, FCPS (Surgery)",
-//         experience: "15 years",
-//         hospital: "Surgical Care Hospital",
-//         contact: "0308-9988776",
-//         // image: "/images/doctor10.jpg",
-//         image: require("../images/doctor10.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 11,
-//     name: "Pediatrician",
-//     description: "Specializes in medical care of infants, children, and adolescents.",
-//     link: "/specialities/pediatrician",
-//     doctors: [
-//       {
-//         id: "pe1",
-//         name: "Dr. Maria Zahid",
-//         qualification: "MBBS, FCPS (Pediatrics)",
-//         experience: "9 years",
-//         hospital: "Children’s Health Center",
-//         contact: "0331-4455667",
-//         // image: "/images/doctor11.jpg",
-//         image: require("../images/doctor11.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 12,
-//     name: "Neurologist",
-//     description: "Specialist in brain, spinal cord, and nerve disorders.",
-//     link: "/specialities/neurologist",
-//     doctors: [
-//       {
-//         id: "n1",
-//         name: "Dr. Imran Zia",
-//         qualification: "MBBS, FCPS (Neurology)",
-//         experience: "11 years",
-//         hospital: "Brain & Spine Hospital",
-//         contact: "0323-8877665",
-//         // image: "/images/doctor12.jpg",
-//         image: require("../images/doctor12.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 13,
-//     name: "Physiotherapist",
-//     description: "Helps patients recover physical mobility after injury or illness.",
-//     link: "/specialities/physiotherapist",
-//     doctors: [
-//       {
-//         id: "ph1",
-//         name: "Dr. Alina Saeed",
-//         qualification: "DPT, MSPT",
-//         experience: "6 years",
-//         hospital: "Rehab & Recovery Clinic",
-//         contact: "0309-9988772",
-//         // image: "/images/doctor13.jpg",
-//         image: require("../images/doctor13.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 14,
-//     name: "Cardiologist",
-//     description: "Specializes in diagnosing and treating heart and blood vessel disorders.",
-//     link: "/specialities/cardiologist",
-//     doctors: [
-//       {
-//         id: "c1",
-//         name: "Dr. Ali Raza",
-//         qualification: "MBBS, FCPS (Cardiology)",
-//         experience: "12 years",
-//         hospital: "Punjab Institute of Cardiology, Lahore",
-//         contact: "0321-5678901",
-//         // image: "/images/doctor14.jpg",
-//         image: require("../images/doctor14.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 15,
-//     name: "Pulmonologist / Lung Specialist",
-//     description: "Treats diseases of the lungs and respiratory tract.",
-//     link: "/specialities/pulmonologist",
-//     doctors: [
-//       {
-//         id: "pl1",
-//         name: "Dr. Hina Abbas",
-//         qualification: "MBBS, FCPS (Pulmonology)",
-//         experience: "10 years",
-//         hospital: "BreatheWell Hospital",
-//         contact: "0314-4455667",
-//         // image: "/images/doctor15.jpg",
-//         image: require("../images/doctor15.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 16,
-//     name: "Eye Specialist",
-//     description: "Treats vision problems and eye diseases.",
-//     link: "/specialities/eye-specialist",
-//     doctors: [
-//       {
-//         id: "e1",
-//         name: "Dr. Maham Tariq",
-//         qualification: "MBBS, FCPS (Ophthalmology)",
-//         experience: "9 years",
-//         hospital: "Vision Care Hospital",
-//         contact: "0322-4455667",
-//         // image: "/images/doctor16.jpeg",
-//         image: require("../images/doctor16.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 17,
-//     name: "Oncologist",
-//     description: "Specializes in diagnosing and treating cancer.",
-//     link: "/specialities/oncologist",
-//     doctors: [
-//       {
-//         id: "o3",
-//         name: "Dr. Bilquis Rehman",
-//         qualification: "MBBS, FCPS (Oncology)",
-//         experience: "15 years",
-//         hospital: "Hope Cancer Hospital",
-//         contact: "0312-8899776",
-//         // image: "/images/doctor17.jpeg",
-//         image: require("../images/doctor17.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 18,
-//     name: "Liver Specialist",
-//     description: "Focuses on liver diseases such as hepatitis and cirrhosis.",
-//     link: "/specialities/liver-specialist",
-//     doctors: [
-//       {
-//         id: "l1",
-//         name: "Dr. Adeel Mirza",
-//         qualification: "MBBS, FCPS (Gastroenterology)",
-//         experience: "14 years",
-//         hospital: "Liver Care Clinic",
-//         contact: "0336-9988772",
-//         // image: "/images/doctor18.jpeg",
-//         image: require("../images/doctor18.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 19,
-//     name: "Counselor",
-//     description: "Provides psychological and emotional support.",
-//     link: "/specialities/counselor",
-//     doctors: [
-//       {
-//         id: "co1",
-//         name: "Dr. Mehwish Tariq",
-//         qualification: "MS Clinical Psychology, Counselor",
-//         experience: "6 years",
-//         hospital: "Mind Relief Center",
-//         contact: "0331-6677885",
-//         // image: "/images/doctor19.jpeg",
-//         image: require("../images/doctor19.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 20,
-//     name: "Audiologist",
-//     description: "Diagnoses and treats hearing and balance disorders.",
-//     link: "/specialities/audiologist",
-//     doctors: [
-//       {
-//         id: "a1",
-//         name: "Dr. Noor Fatima",
-//         qualification: "MS (Audiology)",
-//         experience: "5 years",
-//         hospital: "Hearing Plus Center",
-//         contact: "0322-4455668",
-//         // image: "/images/doctor20.jpeg",
-//         image: require("../images/doctor20.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 21,
-//     name: "Immunologist",
-//     description: "Deals with immune system disorders and allergies.",
-//     link: "/specialities/immunologist",
-//     doctors: [
-//       {
-//         id: "im1",
-//         name: "Dr. Sameer Aftab",
-//         qualification: "MBBS, FCPS (Immunology)",
-//         experience: "11 years",
-//         hospital: "Allergy & Immune Clinic",
-//         contact: "0341-6655447",
-//         // image: "/images/doctor21.jpeg",
-//         image: require("../images/doctor21.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 22,
-//     name: "Nutritionist",
-//     description: "Advises on food, diet, and nutrition plans.",
-//     link: "/specialities/nutritionist",
-//     doctors: [
-//       {
-//         id: "nu1",
-//         name: "Dr. Misha Khan",
-//         qualification: "BS (Human Nutrition), MS (Food Science)",
-//         experience: "6 years",
-//         hospital: "FitLife Nutrition Center",
-//         contact: "0340-9988772",
-//         // image: "/images/doctor22.jpeg",
-//         image: require("../images/doctor22.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 23,
-//     name: "Endocrinologist",
-//     description: "Treats hormone-related disorders like diabetes and thyroid.",
-//     link: "/specialities/endocrinologist",
-//     doctors: [
-//       {
-//         id: "en1",
-//         name: "Dr. Bilal Arif",
-//         qualification: "MBBS, FCPS (Endocrinology)",
-//         experience: "12 years",
-//         hospital: "Hormone Health Center",
-//         contact: "0320-6677885",
-//         // image: "/images/doctor23.jpeg",
-//         image: require("../images/doctor23.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 24,
-//     name: "Hematologist",
-//     description: "Specialist in blood and bone marrow disorders.",
-//     link: "/specialities/hematologist",
-//     doctors: [
-//       {
-//         id: "h1",
-//         name: "Dr. Nida Iqbal",
-//         qualification: "MBBS, FCPS (Hematology)",
-//         experience: "9 years",
-//         hospital: "Blood Care Center",
-//         contact: "0315-4455667",
-//         // image: "/images/doctor24.jpg",
-//         image: require("../images/doctor24.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 25,
-//     name: "Pain Specialist",
-//     description: "Focuses on managing chronic and nerve pain.",
-//     link: "/specialities/pain-specialist",
-//     doctors: [
-//       {
-//         id: "pa1",
-//         name: "Dr. Amna Tariq",
-//         qualification: "MBBS, MD (Pain Management)",
-//         experience: "8 years",
-//         hospital: "Pain Relief Center",
-//         contact: "0345-8899776",
-//         // image: "/images/doctor25.jpg",
-//         image: require("../images/doctor25.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 26,
-//     name: "Sonologist",
-//     description: "Performs ultrasound imaging for diagnosis.",
-//     link: "/specialities/sonologist",
-//     doctors: [
-//       {
-//         id: "so1",
-//         name: "Dr. Rimsha Tariq",
-//         qualification: "MBBS, Diploma in Ultrasonography",
-//         experience: "7 years",
-//         hospital: "UltraScan Center",
-//         contact: "0330-4455662",
-//         // image: "/images/doctor26.webp",
-//         image: require("../images/doctor26.webp")
-//       },
-//     ],
-//   },
-//   {
-//     id: 27,
-//     name: "Pathologist",
-//     description: "Examines tissues, cells, and blood for diagnosis.",
-//     link: "/specialities/pathologist",
-//     doctors: [
-//       {
-//         id: "pa2",
-//         name: "Dr. Rukhsar Khan",
-//         qualification: "MBBS, FCPS (Pathology)",
-//         experience: "11 years",
-//         hospital: "LabPro Diagnostics",
-//         contact: "0321-5566774",
-//         // image: "/images/doctor27.jpg",
-//         image: require("../images/doctor27.jpg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 28,
-//     name: "Fitness Trainer",
-//     description: "Helps clients improve their physical fitness through exercise, nutrition, and lifestyle guidance.",
-//     link: "/specialities/fitness-trainer",
-//     doctors: [
-//       {
-//         id: "f2",
-//         name: "Adeel Khan",
-//         qualification: "Certified Personal Trainer (ACE, ISSA)",
-//         experience: "8 years",
-//         hospital: "ShapeUp Fitness Center, Lahore",
-//         contact: "0323-9988776",
-//         // image: "/images/doctor28.webp",
-//         image: require("../images/doctor28.webp")
-//       },
-//     ],
-//   },
-//   {
-//     id: 29,
-//     name: "Geneticist",
-//     description: "Studies genes and inherited diseases to diagnose and manage genetic disorders.",
-//     link: "/specialities/geneticist",
-//     doctors: [
-//       {
-//         id: "ge1",
-//         name: "Dr. Saira Nadeem",
-//         qualification: "PhD (Medical Genetics)",
-//         experience: "10 years",
-//         hospital: "Genome Research Center",
-//         contact: "0333-4455669",
-//         // image: "/images/doctor29.jpeg",
-//         image: require("../images/doctor29.jpeg")
-//       },
-//     ],
-//   },
-//   {
-//     id: 30,
-//     name: "Chiropractor",
-//     description: "Specializes in spinal adjustment and musculoskeletal health.",
-//     link: "/specialities/chiropractor",
-//     doctors: [
-//       {
-//         id: "ch1",
-//         name: "Dr. Hammad Zafar",
-//         qualification: "Doctor of Chiropractic (DC)",
-//         experience: "9 years",
-//         hospital: "Spine Care Clinic",
-//         contact: "0321-7788996",
-//         // image: "/images/doctor30.webp",
-//         image: require("../images/doctor30.webp")
-//       },
-//     ],
-//   },
-// ];
+const doctorsData = [
+ {
+    name: "Dermatologist",
+    doctors: [
+      {
+        id: 1,
+        name: "Assoc. Prof. Dr. Zareen Saqib Suleri",
+        // image: "/images/doctor1.jpg",
+        // image: require("../images/doctor1.jpg"),
+        image:doctor1,
+        qualification: "MBBS, FCPS (Dermatology)",
+        experience: "13 Yrs",
+        satisfaction: "97%",
+        services: ["PRP", "Laser For Hair Removal", "Acne And Acne Scars", "Vampire Facelift"],
+        hospitals: [
+          {
+            name: "Video Consultation",
+            availability: "Available from Oct 27",
+            fee: 1500,
+          },
+          {
+            name: "Suleri Children and General Hospital, Sialkot",
+            availability: "Available Tomorrow",
+            fee: 1500,
+          },
+        ],
+      },
+    ],
+  },
 
-// export default doctorsData;
+  {
+  name: "Gynecologist",
+  doctors: [
+    {
+      id: 2,
+      name: "Dr. Sana Khalid",
+      // image: require("../images/doctor2.jpg"),
+      image:doctor2,
+      qualification: "MBBS, FCPS (Gynecology & Obstetrics)",
+      experience: "12 Yrs",
+      satisfaction: "95%",
+      services: [
+        "Pregnancy Care",
+        "Normal Delivery",
+        "C-Section",
+        "Infertility Treatment",
+        "Polycystic Ovary Syndrome (PCOS)",
+        "Menstrual Disorders"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 28",
+          fee: 2000,
+        },
+        {
+          name: "City Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2000,
+        },
+      ],
+    },
+  ],
+},
+
+  {
+  name: "Urologist",
+  doctors: [
+    {
+      id: 3,
+      name: "Dr. Hassan Raza",
+      // image: require("../images/doctor3.webp"),
+      image:doctor3,
+      qualification: "MBBS, FCPS (Urology)",
+      experience: "10 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Kidney Stone Treatment",
+        "Urinary Tract Infection (UTI)",
+        "Male Infertility",
+        "Prostate Enlargement",
+        "Bladder Problems",
+        "Kidney and Bladder Tumors"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 28",
+          fee: 1800,
+        },
+        {
+          name: "National Hospital, Islamabad",
+          availability: "Available Tomorrow",
+          fee: 1800,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Gastroenterologist",
+  doctors: [
+    {
+      id: 4,
+      name: "Dr. Ahmed Shehzad",
+      // image: require("../images/doctor4.jpg"),
+      image:doctor4,
+      qualification: "MBBS, FCPS (Gastroenterology)",
+      experience: "14 Yrs",
+      satisfaction: "98%",
+      services: [
+        "Stomach Pain Treatment",
+        "Liver Diseases",
+        "Hepatitis B & C",
+        "Endoscopy",
+        "Acid Reflux (GERD)",
+        "Irritable Bowel Syndrome (IBS)"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 29",
+          fee: 2200,
+        },
+        {
+          name: "Gastro Liver Center, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2200,
+        },
+      ],
+    },
+  ],
+},
+ {
+  name: "General Physician",
+  doctors: [
+    {
+      id: 5,
+      name: "Dr. Iqbal Ahmad",
+      // image: require("../images/doctor5.jpg"),
+      image:doctor5,
+      qualification: "MBBS, FCPS (Medicine)",
+      experience: "11 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Fever & Viral Infections",
+        "Blood Pressure Management",
+        "Diabetes Management",
+        "Flu, Cough & Cold",
+        "General Health Checkup",
+        "Stomach & Digestive Issues"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 29",
+          fee: 1500,
+        },
+        {
+          name: "City General Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Psychiatrist",
+  doctors: [
+    {
+      id: 6,
+      name: "Dr. Mansoor Ali",
+      // image: require("../images/doctor6.jpg"),
+      image:doctor6,
+      qualification: "MBBS, FCPS (Psychiatry)",
+      experience: "9 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Depression Treatment",
+        "Anxiety Disorders",
+        "Stress Management",
+        "Bipolar Disorder",
+        "Schizophrenia",
+        "Sleep Disorders"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 29",
+          fee: 2500,
+        },
+        {
+          name: "Mind Care Clinic, Karachi",
+          availability: "Available Tomorrow",
+          fee: 2500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Psychologist",
+  doctors: [
+    {
+      id: 7,
+      name: "Dr. Nadia Iqbal",
+      // image: require("../images/doctor7.jpg"),
+      image:doctor7,
+      qualification: "M.A Clinical Psychology, Certified Psychologist",
+      experience: "8 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Depression & Anxiety Counseling",
+        "Stress Management",
+        "Behavioral Therapy",
+        "Cognitive Behavioral Therapy (CBT)",
+        "Relationship & Family Counseling",
+        "Personal Development & Self-esteem Coaching"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 10",
+          fee: 1500,
+        },
+        {
+          name: "Mind Wellness Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Orthopedic Surgeon",
+  doctors: [
+    {
+      id: 8,
+      name: "Dr. Usman Tariq",
+      // image: require("../images/doctor8.jpg"),
+      image:doctor8,
+      qualification: "MBBS, FCPS (Orthopedic Surgery)",
+      experience: "15 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Bone & Joint Pain Treatment",
+        "Fracture Management",
+        "Knee Replacement",
+        "Hip Replacement",
+        "Arthritis Treatment",
+        "Sports Injuries"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 30",
+          fee: 2000,
+        },
+        {
+          name: "Ortho Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2000,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Dentist",
+  doctors: [
+    {
+      id: 9,
+      name: "Dr. Ayesha Rehman",
+      // image: require("../images/doctor9.jpg"),
+      image:doctor9,
+      qualification: "BDS, FCPS (Prosthodontics)",
+      experience: "8 Yrs",
+      satisfaction: "98%",
+      services: [
+        "Teeth Cleaning & Scaling",
+        "Root Canal Treatment",
+        "Braces (Orthodontics)",
+        "Tooth Extraction",
+        "Dental Implants",
+        "Teeth Whitening"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 30",
+          fee: 1200,
+        },
+        {
+          name: "Smile Dental Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1200,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "General Surgeon",
+  doctors: [
+    {
+      id: 10,
+      name: "Dr. Khalid Mehmood",
+      // image: require("../images/doctor10.jpg"),
+      image:doctor10,
+      qualification: "MBBS, FCPS (General Surgery)",
+      experience: "16 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Appendix Surgery",
+        "Gallbladder Surgery",
+        "Hernia Repair",
+        "Piles (Hemorrhoids) Treatment",
+        "Thyroid Surgery",
+        "Breast Lump Removal"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Oct 31",
+          fee: 2500,
+        },
+        {
+          name: "Surgicare Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Pediatrician",
+  doctors: [
+    {
+      id: 11,
+      name: "Dr. Rabia Nadeem",
+      // image: require("../images/doctor11.jpg"),
+      image:doctor11,
+      qualification: "MBBS, FCPS (Pediatrics)",
+      experience: "10 Yrs",
+      satisfaction: "98%",
+      services: [
+        "Newborn Checkup",
+        "Child Growth & Development",
+        "Vaccination & Immunization",
+        "Fever & Infections",
+        "Asthma & Allergies",
+        "Stomach & Digestive Issues in Children"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 1",
+          fee: 1500,
+        },
+        {
+          name: "Kids Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Neurologist",
+  doctors: [
+    {
+      id: 12,
+      name: "Dr. Farhan Javed",
+      // image: require("../images/doctor12.jpg"),
+      image:doctor12,
+      qualification: "MBBS, FCPS (Neurology)",
+      experience: "14 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Migraine & Headache Treatment",
+        "Stroke Management",
+        "Epilepsy (Fits)",
+        "Nerve & Muscle Disorders",
+        "Parkinson’s Disease",
+        "Memory Problems & Dementia"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 1",
+          fee: 3000,
+        },
+        {
+          name: "Neuro Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 3000,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Physiotherapist",
+  doctors: [
+    {
+      id: 13,
+      name: "Dr. Aliya Khan",
+      // image: require("../images/doctor13.jpg"),
+      image:doctor13,
+      qualification: "BPT, MPT (Physiotherapy)",
+      experience: "9 Yrs",
+      satisfaction: "95%",
+      services: [
+        "Back & Neck Pain Treatment",
+        "Sports Injury Rehabilitation",
+        "Post-Surgery Rehabilitation",
+        "Joint & Muscle Pain Management",
+        "Stroke Rehabilitation",
+        "Arthritis Pain Relief"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 2",
+          fee: 1200,
+        },
+        {
+          name: "Advanced Physiotherapy Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1200,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Cardiologist",
+  doctors: [
+    {
+      id: 14,
+      name: "Dr. Asad Iqbal",
+      // image: require("../images/doctor14.jpg"),
+      image:doctor14,
+      qualification: "MBBS, FCPS (Cardiology)",
+      experience: "15 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Heart Disease Treatment",
+        "Hypertension Management",
+        "Arrhythmia Treatment",
+        "Heart Failure Management",
+        "Cholesterol & Lipid Disorders",
+        "ECG & Echocardiography"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 2",
+          fee: 3000,
+        },
+        {
+          name: "Heart Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 3000,
+        },
+      ],
+    },
+  ],
+},
+ {
+  name: "Pulmonologist",
+  doctors: [
+    {
+      id: 15,
+      name: "Dr. Samina Tariq",
+      // image: require("../images/doctor15.jpg"),
+      image:doctor15,
+      qualification: "MBBS, FCPS (Pulmonology)",
+      experience: "12 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Asthma Treatment",
+        "Chronic Obstructive Pulmonary Disease (COPD)",
+        "Pneumonia & Lung Infections",
+        "Sleep Apnea Management",
+        "Tuberculosis (TB) Treatment",
+        "Lung Function Testing"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 3",
+          fee: 2000,
+        },
+        {
+          name: "Lung Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2000,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Eye Specialist",
+  doctors: [
+    {
+      id: 16,
+      name: "Dr. Sana Anwar",
+      // image: require("../images/doctor16.jpeg"),
+      image:doctor16,
+      qualification: "MBBS, FCPS (Ophthalmology)",
+      experience: "11 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Cataract Surgery",
+        "Glaucoma Treatment",
+        "Laser Vision Correction",
+        "Diabetic Retinopathy Management",
+        "Eye Infection Treatment",
+        "Routine Eye Checkup"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 3",
+          fee: 1800,
+        },
+        {
+          name: "Vision Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1800,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Oncologist",
+  doctors: [
+    {
+      id: 17,
+      name: "Dr. Sarah Mahmood",
+      // image: require("../images/doctor17.jpeg"),
+      image:doctor17,
+      qualification: "MBBS, FCPS (Medical Oncology)",
+      experience: "13 Yrs",
+      satisfaction: "95%",
+      services: [
+        "Chemotherapy",
+        "Radiation Therapy Guidance",
+        "Cancer Screening & Diagnosis",
+        "Palliative Care",
+        "Breast & Lung Cancer Treatment",
+        "Follow-up & Survivorship Care"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 4",
+          fee: 3500,
+        },
+        {
+          name: "Cancer Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 3500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Liver Specialist",
+  doctors: [
+    {
+      id: 18,
+      name: "Dr. Khalid Akhtar",
+      // image: require("../images/doctor18.jpeg"),
+      image:doctor18,
+      qualification: "MBBS, FCPS (Hepatology & Gastroenterology)",
+      experience: "12 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Hepatitis B & C Treatment",
+        "Fatty Liver Management",
+        "Cirrhosis Care",
+        "Liver Function Testing",
+        "Liver Fibrosis Assessment",
+        "Liver Disease Consultation & Follow-up"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 4",
+          fee: 2500,
+        },
+        {
+          name: "Liver Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Counselor",
+  doctors: [
+    {
+      id: 19,
+      name: "Ms. Hina Riaz",
+      // image: require("../images/doctor19.jpeg"),
+      image:doctor19,
+      qualification: "M.A Psychology, Certified Counselor",
+      experience: "8 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Stress Management",
+        "Anxiety & Depression Counseling",
+        "Relationship & Marital Counseling",
+        "Career Guidance",
+        "Behavioral Therapy",
+        "Personal Growth & Self-esteem Coaching"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 5",
+          fee: 1500,
+        },
+        {
+          name: "Mind Wellness Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Audiologist",
+  doctors: [
+    {
+      id: 20,
+      name: "Dr. Faiza Ahmed",
+      // image: require("../images/doctor20.jpeg"),
+      image:doctor20,
+      qualification: "M.Sc Audiology, Certified Audiologist",
+      experience: "7 Yrs",
+      satisfaction: "95%",
+      services: [
+        "Hearing Assessment",
+        "Hearing Aid Fitting & Counseling",
+        "Tinnitus Management",
+        "Balance & Vertigo Evaluation",
+        "Speech & Language Therapy Support",
+        "Pediatric Hearing Evaluation"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 5",
+          fee: 1800,
+        },
+        {
+          name: "Hearing Care Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1800,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Immunologist",
+  doctors: [
+    {
+      id: 21,
+      name: "Dr. Usman Qureshi",
+      // image: require("../images/doctor21.jpeg"),
+      image:doctor21,
+      qualification: "MBBS, FCPS (Allergy & Immunology)",
+      experience: "10 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Allergy Testing & Management",
+        "Autoimmune Disease Treatment",
+        "Immunodeficiency Disorders",
+        "Vaccination & Immunotherapy",
+        "Asthma & Respiratory Allergies",
+        "Chronic Inflammatory Conditions"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 6",
+          fee: 2000,
+        },
+        {
+          name: "Immune Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2000,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Nutritionist",
+  doctors: [
+    {
+      id: 22,
+      name: "Ms. Sana Akhtar",
+      // image: require("../images/doctor22.jpeg"),
+      image:doctor22,
+      qualification: "M.Sc Nutrition & Dietetics, Certified Nutritionist",
+      experience: "8 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Weight Management",
+        "Diet Planning & Consultation",
+        "Diabetes & Hypertension Diet",
+        "Sports Nutrition",
+        "Child & Maternal Nutrition",
+        "Nutritional Counseling for Lifestyle Diseases"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 6",
+          fee: 1200,
+        },
+        {
+          name: "Healthy Life Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1200,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Endocrinologist",
+  doctors: [
+    {
+      id: 23,
+      name: "Dr. Sameer Malik",
+      // image: require("../images/doctor23.jpeg"),
+      image:doctor23,
+      qualification: "MBBS, FCPS (Endocrinology)",
+      experience: "12 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Diabetes Management",
+        "Thyroid Disorders Treatment",
+        "Hormonal Imbalance Management",
+        "Polycystic Ovary Syndrome (PCOS)",
+        "Osteoporosis Management",
+        "Pituitary & Adrenal Disorders"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 7",
+          fee: 2000,
+        },
+        {
+          name: "Endocrine Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2000,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Hematologist",
+  doctors: [
+    {
+      id: 24,
+      name: "Dr. Aiman Riaz",
+      // image: require("../images/doctor24.jpg"),
+      image:doctor24,
+      qualification: "MBBS, FCPS (Hematology)",
+      experience: "11 Yrs",
+      satisfaction: "95%",
+      services: [
+        "Anemia Management",
+        "Blood Disorder Diagnosis",
+        "Leukemia & Lymphoma Care",
+        "Coagulation Disorders",
+        "Bone Marrow Testing",
+        "Follow-up & Monitoring of Blood Diseases"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 7",
+          fee: 2500,
+        },
+        {
+          name: "Blood Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2500,
+        },
+      ],
+    },
+  ],
+},
+ {
+  name: "Pain Specialist",
+  doctors: [
+    {
+      id: 25,
+      name: "Dr. Farah Naveed",
+      // image: require("../images/doctor25.jpg"),
+      image:doctor25, 
+      qualification: "MBBS, FCPS (Anesthesiology & Pain Management)",
+      experience: "10 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Chronic Back & Neck Pain Management",
+        "Arthritis Pain Relief",
+        "Migraine & Headache Management",
+        "Post-Surgical Pain Care",
+        "Joint Pain & Sports Injuries",
+        "Neuropathic Pain Treatment"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 8",
+          fee: 2000,
+        },
+        {
+          name: "Pain Care Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2000,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Sonologist",
+  doctors: [
+    {
+      id: 26,
+      name: "Dr. Sana Iftikhar",
+      // image: require("../images/doctor26.webp"),
+      image:doctor26,
+      qualification: "MBBS, FCPS (Radiology & Sonology)",
+      experience: "9 Yrs",
+      satisfaction: "97%",
+      services: [
+        "Abdominal Ultrasound",
+        "Pelvic Ultrasound",
+        "Pregnancy Ultrasound & Fetal Monitoring",
+        "Thyroid & Neck Ultrasound",
+        "Breast Ultrasound",
+        "Doppler & Vascular Ultrasound"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 8",
+          fee: 1800,
+        },
+        {
+          name: "Diagnostic Care Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1800,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Pathologist",
+  doctors: [
+    {
+      id: 27,
+      name: "Dr. Asma Qadir",
+      // image: require("../images/doctor27.jpg"),
+      image:doctor27,
+      qualification: "MBBS, FCPS (Pathology)",
+      experience: "12 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Blood Tests & Analysis",
+        "Urine & Stool Tests",
+        "Histopathology",
+        "Cytology",
+        "Microbiology Testing",
+        "Biopsy & Lab Diagnostics"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 9",
+          fee: 1500,
+        },
+        {
+          name: "Lab Care Hospital, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Fitness Trainer",
+  doctors: [
+    {
+      id: 28,
+      name: "Mr. Ali Hassan",
+      // image: require("../images/doctor28.jpg"),
+      image:doctor28,
+      qualification: "Certified Personal Trainer (CPT), Nutrition Specialist",
+      experience: "7 Yrs",
+      satisfaction: "98%",
+      services: [
+        "Personal Fitness Training",
+        "Weight Loss & Muscle Gain Programs",
+        "Strength & Conditioning",
+        "Cardio & Endurance Training",
+        "Flexibility & Mobility Training",
+        "Customized Diet & Workout Plans"
+      ],
+      hospitals: [
+        {
+          name: "Online/Video Consultation",
+          availability: "Available from Nov 9",
+          fee: 1000,
+        },
+        {
+          name: "FitLife Gym, Lahore",
+          availability: "Available Tomorrow",
+          fee: 1500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Geneticist",
+  doctors: [
+    {
+      id: 29,
+      name: "Dr. Samina Khalid",
+      // image: require("../images/doctor29.jpeg"),
+      image:doctor29,
+      qualification: "MBBS, FCPS (Medical Genetics)",
+      experience: "10 Yrs",
+      satisfaction: "95%",
+      services: [
+        "Genetic Counseling",
+        "Prenatal Genetic Screening",
+        "Inherited Disorder Diagnosis",
+        "Carrier Testing",
+        "Molecular & Chromosomal Testing",
+        "Family Risk Assessment"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 10",
+          fee: 2500,
+        },
+        {
+          name: "Genetic Care Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2500,
+        },
+      ],
+    },
+  ],
+},
+  {
+  name: "Chiropractor",
+  doctors: [
+    {
+      id: 30,
+      name: "Dr. Asif Riaz",
+      // image: require("../images/doctor30.jpg"),
+      image:doctor30,
+      qualification: "Doctor of Chiropractic (DC), Certified Manual Therapist",
+      experience: "9 Yrs",
+      satisfaction: "96%",
+      services: [
+        "Spinal Adjustment & Alignment",
+        "Back & Neck Pain Relief",
+        "Posture Correction",
+        "Sports Injury Rehabilitation",
+        "Joint & Muscle Pain Management",
+        "Chronic Pain Therapy"
+      ],
+      hospitals: [
+        {
+          name: "Video Consultation",
+          availability: "Available from Nov 10",
+          fee: 1800,
+        },
+        {
+          name: "Chiro Care Clinic, Lahore",
+          availability: "Available Tomorrow",
+          fee: 2000,
+        },
+      ],
+    },
+  ],
+},
+];
+
+export default doctorsData;

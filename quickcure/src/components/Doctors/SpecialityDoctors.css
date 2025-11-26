@@ -1,4 +1,4 @@
-:root {
+ :root {
   --primary-color: #2c6774;
   --secondary-color: #174047;
   --accent-color: #5c878f;
@@ -8,33 +8,35 @@
   --white: #ffffff;
 }
 
-/* Page Layout */
 .speciality-page {
   padding: 20px 60px;
-  background-color: var(--bg-light);
+  background-color: var(--white);
   min-height: 100vh;
   font-family: "Poppins", sans-serif;
 }
 
+
+
 .page-title {
   color: var(--secondary-color);
   margin-bottom: 30px;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 600;
 }
 
-/* Doctor Cards */
 .doctor-list {
   display: flex;
   flex-direction: column;
   gap: 30px;
 }
 
+
 .doctor-card {
-  background-color: var(--white);
-  border-radius: 12px;
+  position: relative;   
   padding: 25px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background-color: var(--white);
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
 }
 
 .doctor-header {
@@ -45,23 +47,31 @@
 
 .doctor-image {
   width: 120px;
-  height: 120px;
-  border-radius: 100px;
-  object-fit: cover;
+  height: auto;      
+  max-height: 120px;  
+  border-radius: 50%; 
+  object-fit: cover; 
+  object-position: top center;
   border: 3px solid var(--accent-color);
 }
+
 
 .doctor-main {
   flex: 1;
 }
 
+
 .doctor-name {
   color: var(--primary-color);
   margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .pmdc {
-  color: green;
+  color: var(--accent-color);
   font-weight: 500;
   margin-bottom: 4px;
 }
@@ -90,7 +100,7 @@
   font-weight: bold;
 }
 
-/* Services */
+
 .doctor-services {
   margin: 15px 0;
 }
@@ -105,11 +115,11 @@
   margin: 5px;
 }
 
-/* Hospitals */
 .doctor-hospitals {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
+  cursor: pointer;
 }
 
 .hospital-card {
@@ -117,8 +127,7 @@
   border: 1px solid var(--accent-color);
   border-radius: 10px;
   padding: 10px 15px;
-  flex: 1;
-  min-width: 250px;
+  width:350px;
 }
 
 .hospital-card h4 {
@@ -132,16 +141,18 @@
   color: #000;
 }
 
-/* Buttons */
 .doctor-buttons {
+  position: absolute;      
+  right: 20px;
+  top:40px;
   display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  margin-top: 20px;
+  flex-direction: column;  
+  gap: 10px;
+  width: 250px;             
 }
 
 .video-call-btn {
-  background-color: #4fa387;
+  background-color: var(--primary-color);
   color: var(--white);
   border: none;
   padding: 10px 25px;
@@ -149,26 +160,22 @@
   font-size: 14px;
   cursor: pointer;
   transition: 0.3s;
-}
-
-.video-call-btn:hover {
-  background-color: #3b8c73;
+  min-width: 160px;
+  text-align: center;
 }
 
 .view-profile-btn {
   background-color: var(--secondary-color);
   color: var(--white);
   border: none;
-  padding: 10px 25px;
+  padding: 10px 0;          
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
   transition: 0.3s;
+  width: 100%;              
 }
 
-.view-profile-btn:hover {
-  background-color: var(--hover-color);
-}
 
 .no-speciality {
   text-align: center;
@@ -176,3 +183,89 @@
   margin-top: 80px;
   font-size: 22px;
 }
+
+@media (max-width: 768px) {
+
+  .speciality-page {
+    padding: 15px 20px;
+  }
+
+  .doctor-card {
+    padding: 20px;
+  }
+
+  .doctor-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .doctor-image {
+    width: 100px;
+    max-height: 100px;
+  }
+
+  .doctor-main {
+    text-align: center;
+  }
+
+  .doctor-stats {
+    justify-content: center;
+    gap: 25px;
+  }
+
+  .doctor-buttons {
+    position: static;  
+    margin-top: 15px;
+    width: 100%;  
+    align-items: center;
+  }
+
+  .video-call-btn,
+  .view-profile-btn {
+    width: 100%;       
+    min-width: unset;
+  }
+
+  .doctor-hospitals {
+    flex-direction: column;
+  }
+
+  .hospital-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .speciality-page {
+    padding: 10px 15px;
+  }
+
+  .page-title {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .doctor-card {
+    padding: 15px;
+  }
+
+  .doctor-image {
+    width: 90px;
+  }
+
+  .doctor-buttons {
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .doctor-services .service-tag {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .hospital-card {
+    padding: 10px;
+  }
+} 
