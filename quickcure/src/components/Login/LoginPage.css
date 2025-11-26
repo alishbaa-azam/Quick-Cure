@@ -238,7 +238,7 @@
 }
 
 
-.close-btn {
+.auth-box .close-btn {
   position: absolute;
   top: 5px;
   right: 15px;
@@ -251,7 +251,7 @@
   z-index: 10;
 }
 
-.close-btn:hover {
+.auth-box .close-btn:hover {
   color: var(--primary-color);
 }
 

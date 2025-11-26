@@ -59,6 +59,13 @@
 .doctor-main {
   flex: 1;
 }
+.speciality-text {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  color: #2c6774;
+  display: inline-block;
+}
 
 
 .doctor-name {

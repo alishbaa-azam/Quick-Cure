@@ -51,7 +51,8 @@ export default function SpecialityDoctors() {
               <div className="doctor-main">
                 <h2 className="doctor-name">{doctor.name}</h2>
                 <p className="pmdc">PMDC Verified</p>
-                <p className="speciality">{speciality.name}</p>
+                {/* <p className="speciality">{speciality.name}</p> */}
+                <p>{speciality.name}</p>
                 <p className="qualification">{doctor.qualification}</p>
                 <div className="doctor-stats">
                   <div>
