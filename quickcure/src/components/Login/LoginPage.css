@@ -8,11 +8,6 @@
   --white: #ffffff;
 }
 
-* {
-  margin: 0;
-  box-sizing: border-box;
-}
-
 .auth-container {
   min-height: 100vh;
   width: 100%;
@@ -45,7 +40,6 @@
   position: relative;
   z-index: 2;
   width: 400px;
-  /* max-width: 95%; */
   background-color: rgba(255, 255, 255, 0.95);
   padding: 35px 30px;
   border-radius: 16px;
@@ -257,14 +251,12 @@
 
 @media (max-width: 1024px) {
   .auth-box {
-    /* width: 80%; */
     padding: 30px;
   }
 }
 
 @media (max-width: 768px) {
   .auth-box {
-    /* width: 90%; */
     padding: 25px 20px;
     height: auto;
   }
@@ -305,7 +297,6 @@
   }
 
   .auth-box {
-    /* width: 95%; */
     border-radius: 12px;
     padding: 20px 18px;
   }
@@ -330,4 +321,5 @@
   .terms-text {
     font-size: 11px;
   }
-}
+} 
+

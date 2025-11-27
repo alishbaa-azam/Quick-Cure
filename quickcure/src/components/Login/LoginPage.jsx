@@ -777,6 +777,7 @@ export default function LoginPage({ onLogin }) {
     setPassword("");
   };
 
+  
   // ---------------------------
   // HANDLE LOGIN & SIGNUP
   // ---------------------------
