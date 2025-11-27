@@ -12,7 +12,6 @@ import Home from "./components/Home/home";
 import DoctorsPage from "./components/Doctors/DoctorsPage";
 import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
 import VideoConsultation from "./components/Doctors/VideoConsultation";
-import HospitalAppointment from "./components/Doctors/HospitalAppointment";
 import LabsPage from "./components/Lab/lab";
 import LabDetail from "./components/Lab/LabDetail";
 import LoginPage from "./components/Login/LoginPage";
@@ -40,7 +39,6 @@ function Layout() {
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/specialities/:specialityName" element={<SpecialityDoctors />} />
         <Route path="/video-consultation" element={<VideoConsultation />} />
-        <Route path="/hospital-appointment" element={<HospitalAppointment />} />
         <Route path="/registration" element={<DoctorRegistration />} /> 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/labs" element={<LabsPage />} />
