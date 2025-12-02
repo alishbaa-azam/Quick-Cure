@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import doctorsData from "./doctorsData";
 import VideoConsultation from "./VideoConsultation";
-import HospitalAppointment from "./HospitalAppointment"; 
 import "./SpecialityDoctors.css";
+
 export default function SpecialityDoctors() {
   const { specialityName } = useParams();
   const speciality = doctorsData.find(
@@ -12,29 +12,19 @@ export default function SpecialityDoctors() {
 
   const [modalDoctor, setModalDoctor] = useState(null);
   const [modalHospital, setModalHospital] = useState(null);
-  const [hospitalModalType, setHospitalModalType] = useState(null); // 'video' or 'hospital'
 
   if (!speciality) {
     return <h2 className="no-speciality">Invalid speciality</h2>;
   }
 
-  const handleHospitalCardClick = (doctor, hospital) =>{ 
-    if (hospital.name.toLowerCase().includes("video")) {
-      setModalDoctor(doctor);
-      setModalHospital(hospital);
-      setHospitalModalType('video');
-    }
-    else {
-      setModalDoctor(doctor);
-      setModalHospital(hospital);
-      setHospitalModalType('hospital');
-    }
+  const handleHospitalCardClick = (doctor, hospital) => { 
+    setModalDoctor(doctor);
+    setModalHospital(hospital);
   };
 
   const handleCloseModal = () => {
     setModalDoctor(null);
     setModalHospital(null);
-    setHospitalModalType(null);
   };
 
   return (
@@ -51,8 +41,7 @@ export default function SpecialityDoctors() {
               <div className="doctor-main">
                 <h2 className="doctor-name">{doctor.name}</h2>
                 <p className="pmdc">PMDC Verified</p>
-                {/* <p className="speciality">{speciality.name}</p> */}
-                <p>{speciality.name}</p>
+                <p className="speciality-text">{speciality.name}</p>
                 <p className="qualification">{doctor.qualification}</p>
                 <div className="doctor-stats">
                   <div>
@@ -74,19 +63,21 @@ export default function SpecialityDoctors() {
               ))}
             </div>
 
-            {/* Hospitals */}
+            {/* Hospitals - Only Video Consultation */}
             <div className="doctor-hospitals">
-              {doctor.hospitals?.map((hospital, index) => (
-                <div
-                  key={index}
-                  className={`hospital-card ${hospital.name.includes("Video Consultation") ? "video-consultation-card" : ""}`}
-                  onClick={() => handleHospitalCardClick(doctor, hospital)}
-                >
-                  <h4>{hospital.name}</h4>
-                  <p>{hospital.availability}</p>
-                  <p className="fee">Rs. {hospital.fee}</p>
-                </div>
-              ))}
+              {doctor.hospitals
+                ?.filter(hospital => hospital.name.toLowerCase().includes("video consultation"))
+                .map((hospital, index) => (
+                  <div
+                    key={index}
+                    className="hospital-card video-consultation-card"
+                    onClick={() => handleHospitalCardClick(doctor, hospital)}
+                  >
+                    <h4>{hospital.name}</h4>
+                    <p>{hospital.availability}</p>
+                    <p className="fee">Rs. {hospital.fee}</p>
+                  </div>
+                ))}
             </div>
 
             {/* Buttons */}
@@ -99,18 +90,8 @@ export default function SpecialityDoctors() {
       </div>
 
       {/* Video Consultation Modal */}
-      {modalDoctor && modalHospital && hospitalModalType === 'video' && (
+      {modalDoctor && modalHospital && (
         <VideoConsultation
-          doctor={modalDoctor}
-          hospital={modalHospital}
-          speciality={speciality.name}
-          onClose={handleCloseModal}
-        />
-      )}
-
-      {/* Hospital Appointment Modal */}
-      {modalDoctor && modalHospital && hospitalModalType === 'hospital' && (
-        <HospitalAppointment
           doctor={modalDoctor}
           hospital={modalHospital}
           speciality={speciality.name}
@@ -120,6 +101,3 @@ export default function SpecialityDoctors() {
     </div>
   );
 }
-
-
-
