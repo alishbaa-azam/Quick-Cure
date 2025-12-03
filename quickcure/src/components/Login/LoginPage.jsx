@@ -831,7 +831,7 @@ export default function LoginPage({ onLogin }) {
         onLogin(data.user || { email, username });
       }
 
-      // ✅ RESET FORM FIELDS AFTER SUCCESSFUL LOGIN/REGISTRATION
+      //  RESET FORM FIELDS AFTER SUCCESSFUL LOGIN/REGISTRATION
       resetForm();
 
       // Reset to sign in form after registration
@@ -873,7 +873,7 @@ export default function LoginPage({ onLogin }) {
         onLogin(userInfo);
       }
 
-      // ✅ RESET FORM FIELDS AFTER SUCCESSFUL GOOGLE LOGIN
+      // RESET FORM FIELDS AFTER SUCCESSFUL GOOGLE LOGIN
       resetForm();
 
       alert(`Welcome, ${user.displayName}!`);
