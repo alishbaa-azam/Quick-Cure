@@ -179,6 +179,7 @@ export default function DoctorsPage() {
   // =========================
   // FILTER + SORT
   // =========================
+  
   const filteredSpecialties = specialties
     .filter((item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -247,7 +248,8 @@ export default function DoctorsPage() {
               <p>{item.desc}</p>
 
               <div className="card-footer">
-                <span>{item.doctors} doctors</span>
+                {/* <span>{item.doctors} doctor(s)</span> */}
+                <Link to={item.link}>1 doctor(s)</Link>
                 <Link to={item.link}>Learn More</Link>
               </div>
             </div>

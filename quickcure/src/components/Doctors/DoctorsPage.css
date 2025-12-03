@@ -191,6 +191,16 @@ body {
   text-decoration: underline;
 }
 
+.card-footer span{
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+.card-footer span:hover{
+  text-decoration: underline;
+  cursor:pointer;
+}
+
 @media (max-width: 600px) {
   .header-section h1 {
     font-size: 22px;
