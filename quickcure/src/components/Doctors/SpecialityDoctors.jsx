@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import doctorsData from "./doctorsData";
 import VideoConsultation from "./VideoConsultation";
 import "./SpecialityDoctors.css";
 
 export default function SpecialityDoctors() {
   const { specialityName } = useParams();
+  const navigate = useNavigate();
   const speciality = doctorsData.find(
     (spec) => spec.name.toLowerCase().replace(/\s+/g, "-") === specialityName.toLowerCase()
   );
@@ -82,8 +83,11 @@ export default function SpecialityDoctors() {
 
             {/* Buttons */}
             <div className="doctor-buttons">
-              <button className="video-call-btn">Video Call</button>
-              <button className="view-profile-btn">View Profile</button>
+              {/* <button className="video-call-btn">Video Call</button> */}
+              <button className="video-call-btn" onClick={() => navigate(`/video-consultation/${doctor.id}`)}>
+               Video Call
+               </button>
+               <button className="view-profile-btn">View Profile</button>
             </div>
           </div>
         ))}
@@ -101,3 +105,4 @@ export default function SpecialityDoctors() {
     </div>
   );
 }
+

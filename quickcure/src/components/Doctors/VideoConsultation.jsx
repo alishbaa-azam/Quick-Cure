@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./VideoConsultation.css";
 
 export default function VideoConsultation({ doctor, hospital, speciality, onClose }) {
@@ -7,6 +8,8 @@ export default function VideoConsultation({ doctor, hospital, speciality, onClos
   const [promoCode, setPromoCode] = useState("");
   const [selectedDate, setSelectedDate] = useState("21 Nov");
   const [selectedTime, setSelectedTime] = useState("06:00 PM");
+  const navigate = useNavigate();
+
 
   const handlePhoneNumberChange = (e) => {
     const value = e.target.value;
@@ -88,7 +91,10 @@ export default function VideoConsultation({ doctor, hospital, speciality, onClos
             <div className="datetime-section">
               <div className="datetime-display">
                 <span className="date-time">{selectedDate} - {selectedTime} | </span>
-                <button className="change-datetime-btn">Change Date & Time</button>
+                {/* <button className="change-datetime-btn">Change Date & Time</button> */}
+                <button className="change-datetime-btn" onClick={() => navigate(`/video-consultation/${doctor.id}`)}>
+                 Change Date & Time
+                </button>
               </div>
             </div>
 
@@ -145,3 +151,5 @@ export default function VideoConsultation({ doctor, hospital, speciality, onClos
     </div>
   );
 }
+
+
