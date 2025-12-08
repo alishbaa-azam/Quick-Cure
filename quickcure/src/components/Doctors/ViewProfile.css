@@ -1,0 +1,813 @@
+:root {
+  --primary-color: #2c6774;
+  --secondary-color: #174047;
+  --accent-color: #5c878f;
+  --hover-color: #1e4e56;
+  --bg-light: #9fbfc5;
+  --text-light: #c0d3dc;
+  --white: #ffffff;
+}
+
+.profile-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+  background: var(--white);
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 1200px;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.profile-img {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center;
+  border: 4px solid var(--primary-color);
+}
+
+.profile-left {
+  flex-shrink: 0;
+}
+
+.profile-middle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--secondary-color);
+  margin-bottom: 8px;
+}
+
+.profile-speciality {
+  margin-top: 18px;
+  font-size: 16px;
+  color: var(--secondary-color);
+  margin-bottom: 5px;
+}
+
+.profile-experience {
+  font-size: 16px;
+  color: var(--secondary-color);
+  margin-bottom: 5px;
+}
+
+.profile-reviews {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.share-btn {
+  background: none;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-bottom: 10px;
+}
+
+.share-btn:hover {
+  background: var(--primary-color);
+  color: var(--white);
+}
+
+.profile-right {
+  margin-left: auto;
+  gap: 10px;
+  width: 300px;  
+}
+
+.consult-btn {
+  padding: 14px 30px;
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  width:250px;
+}
+
+.consult-btn:hover {
+  background: var(--hover-color);
+}
+
+.profile-main-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.reviews-column {
+  width: 100%;
+}
+
+.booking-column {
+  width: 100%;
+}
+
+.booking-section-card {
+  background: #f6fbfc;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.vc-heading {
+  font-size: 23px;
+  margin-bottom: 20px;
+  margin-top: 15px;
+  color: var(--secondary-color);
+}
+
+.vc-heading span {
+  color: var(--primary-color);
+}
+
+.vc-step {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: var(--secondary-color);
+  font-weight: bold;
+}
+
+.vc-card {
+  border: 2px solid var(--accent-color);
+  border-radius: 10px;
+  padding: 15px;
+  background: var(--white);
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.vc-card:hover {
+  border-color: var(--primary-color);
+}
+
+.vc-card.active {
+  border-color: var(--primary-color);
+}
+
+.vc-card h4 {
+  text-decoration: underline;
+  margin-bottom: 8px;
+  color: var(--secondary-color);
+}
+
+.price {
+  font-weight: bold;
+  color: var(--secondary-color);
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.available {
+  color: var(--accent-color);
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.location {
+  color: gray;
+  font-size: 14px;
+}
+
+.vc-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.vc-select,
+.vc-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--accent-color);
+  border-radius: 6px;
+  font-size: 15px;
+  min-width: 150px;
+}
+
+.promo {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.vc-book-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  color: var(--white);
+  background: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: bold;
+}
+
+.vc-row.date-time-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: nowrap; 
+  margin-bottom: 15px;
+}
+
+.vc-row.date-time-row .vc-select {
+  flex: 1;
+  min-width: 120px;
+  max-width: 100%;
+}
+
+.reviews-card {
+  padding: 20px;
+  background: var(--white);
+  margin-bottom: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 20px;
+}
+
+.reviews-header {
+  margin-bottom: 20px;
+}
+
+.reviews-title {
+  font-size: 24px;
+  color: #333;
+  font-weight: bold;
+}
+
+.rating-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.average-rating {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.star {
+  color: #ffc107;
+  font-size: 20px;
+}
+
+.rating-subtext {
+  font-size: 14px;
+  color: #666;
+}
+
+.rating-details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.rating-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.rating-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rating-category {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rating-category.vertical {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: normal;
+}
+
+.rating-value {
+  font-weight: bold;
+  color: #333;
+  font-size: 16px;
+}
+
+.divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 20px 0;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.review-item {
+  padding: 15px 0;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.reviewer-avatar {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.reviewer-initials {
+  font-weight: bold;
+  color: #333;
+  font-size: 16px;
+}
+
+.review-date {
+  color: #666;
+  font-size: 14px;
+}
+
+.review-content {
+  margin-bottom: 10px;
+  line-height: 1.5;
+  color: #333;
+  font-size: 14px;
+}
+
+.review-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.review-tag {
+  background: #c0d3dc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #5c878f;
+  border: 1px solid #5c878f;
+}
+
+.consultation-type {
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+}
+
+.review-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin-top: 15px;
+}
+
+.review-item:last-child .review-divider {
+  display: none;
+}
+
+.reviews-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.view-reviews-btn,
+.post-review-btn {
+  padding: 10px 20px;
+  border: 1px solid var(--primary-color);
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.view-reviews-btn:hover,
+.post-review-btn:hover {
+  background: var(--primary-color);
+  color: var(--white);
+}
+
+@media (max-width: 900px) {
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+    padding: 25px;
+  }
+
+  .profile-middle {
+    align-items: center;
+  }
+
+  .profile-right {
+    position: static;
+    margin-top: 15px;
+    margin-left: 0;
+  }
+
+  .consult-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .profile-main-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .booking-section-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .vc-heading {
+    font-size: 22px;
+  }
+
+  .vc-step {
+    font-size: 18px;
+  }
+
+  .vc-card {
+    padding: 12px;
+  }
+
+  .vc-select,
+  .vc-input {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .vc-row {
+    gap: 10px;
+  }
+
+  .vc-book-btn {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .reviews-title {
+    font-size: 20px;
+  }
+
+  .rating-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .rating-category.vertical {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .reviews-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .vc-row.date-time-row {
+    flex-direction: row;
+    gap: 10px;
+  }
+  
+  .vc-row.date-time-row .vc-select {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 15px;
+  }
+
+  .vc-heading {
+    font-size: 20px;
+  }
+
+  .vc-step {
+    font-size: 16px;
+  }
+
+  .vc-card h4 {
+    font-size: 16px;
+  }
+
+  .vc-card p {
+    font-size: 14px;
+  }
+
+  .vc-select,
+  .vc-input {
+    font-size: 13px;
+    padding: 7px;
+  }
+
+  .vc-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vc-book-btn {
+    font-size: 15px;
+    padding: 10px;
+  }
+  
+  .reviews-card {
+    padding: 15px;
+  }
+}
+
+.practice-timings-section {
+  margin: 30px 0;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start; 
+  max-width: 1200px;
+}
+
+.practice-timings-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  max-width: 750px;
+  width: 100%;
+  margin: 0; 
+}
+
+.practice-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 28px 0;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f2f2f2;
+  letter-spacing: -0.2px;
+}
+
+.video-consultation-section {
+  margin-bottom: 28px;
+}
+
+.video-consultation-title {
+  font-size: 19px;
+  font-weight: 600;
+  color: #2d2d2d;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.video-consultation-details {
+  display: flex;
+  flex-direction: column; 
+  align-items: flex-start;
+  padding-top: 4px;
+  gap: 8px; 
+  cursor: pointer;
+}
+
+.video-consultation-location {
+  font-size: 16px;
+  color: #666666;
+  font-weight: 500;
+  order: 1; 
+}
+
+.video-consultation-price {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: -0.3px;
+  order: 2; 
+}
+
+.available-timings-section {
+  margin-bottom: 24px;
+}
+
+.available-timings-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+}
+
+.timings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.timing-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.timing-day {
+  font-size: 16px;
+  color: #333333;
+  font-weight: 500;
+  width: 36px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.timing-time {
+  font-size: 16px;
+  color: #333333;
+  font-weight: 500;
+  flex: 1;
+  text-align: right;
+  padding-right: 4px;
+  cursor: pointer;
+}
+
+.divider-line {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 20px 0 24px 0;
+  width: 100%;
+}
+
+.video-call-section {
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  gap: 10px;
+  padding: 12px 24px;
+  background: var(--primary-color);
+  border-radius: 8px;
+  width:300px;
+  margin: 8px auto 0 auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+
+.video-call-text {
+  font-size: 16px;
+  color: var(--white);
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.practice-timings-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+}
+
+.practice-timings-card > *:not(:last-child) {
+  margin-bottom: 24px;
+  width: 100%; 
+}
+
+@media (max-width: 768px) {
+  .practice-timings-section {
+    padding: 0 16px;
+  }
+  
+  .practice-timings-card {
+    padding: 20px;
+    margin: 0;
+    width: 100%;
+  }
+  
+  .practice-title {
+    font-size: 20px;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+  }
+  
+  .video-consultation-title {
+    font-size: 18px;
+  }
+  
+  .video-consultation-price {
+    font-size: 18px;
+  }
+  
+  .timing-day,
+  .timing-time {
+    font-size: 15px;
+  }
+  
+  .video-call-section {
+    padding: 10px 20px;
+    width: 100%; 
+    max-width: 200px; 
+    margin: 8px auto 0 auto; 
+  }
+  
+  .video-call-text {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .practice-timings-section {
+    padding: 0 12px;
+  }
+  
+  .practice-timings-card {
+    padding: 18px;
+  }
+  
+  .practice-title {
+    font-size: 18px;
+  }
+  
+  .video-call-section {
+    padding: 10px 18px;
+    max-width: 180px;
+  }
+}

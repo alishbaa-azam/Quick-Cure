@@ -208,7 +208,7 @@ const handleSubmit = async () => {
     }
     
     // Send to backend API
-    const response = await fetch('http://localhost:5001/api/doctor-registration/register', {
+    const response = await fetch('http://localhost:5000/api/doctor-registration/register', {
       method: 'POST',
       body: formDataToSend,
     });
@@ -800,7 +800,7 @@ const handleSubmit = async () => {
 
         {/* Debug info (remove in production) */}
         <div className="mt-4 text-xs text-gray-500">
-          <p>Backend URL: http://localhost:5001/api/doctor-registration/register</p>
+          <p>Backend URL: http://localhost:5000/api/doctor-registration/register</p>
           <p>Step: {step} of {steps.length}</p>
         </div>
       </div>

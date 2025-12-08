@@ -87,7 +87,10 @@
 //               <button className="video-call-btn" onClick={() => navigate(`/video-consultation/${doctor.id}`)}>
 //                Video Call
 //                </button>
-//                <button className="view-profile-btn">View Profile</button>
+//                {/* <button className="view-profile-btn">View Profile</button> */}
+//               <button className="view-profile-btn" onClick={() => navigate(`/doctor/${doctor.id}`)}>
+//               View Profile
+//               </button>
 //             </div>
 //           </div>
 //         ))}
@@ -106,11 +109,15 @@
 //   );
 // }
 
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import VideoConsultation from "./VideoConsultation";
 import "./SpecialityDoctors.css";
+// Capitalize first letter of a word
+const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
 
 export default function SpecialityDoctors() {
   const { specialityName } = useParams();
@@ -159,14 +166,15 @@ export default function SpecialityDoctors() {
   return (
     <div className="speciality-page">
       <h1 className="page-title">
-        {specialityName.replace(/-/g, " ")} Specialists in Pakistan | Top {specialityName.replace(/-/g, " ")}s
+        {capitalize(specialityName.replace(/-/g, " "))} Specialists in Pakistan | Top {capitalize(specialityName.replace(/-/g, " "))}s
       </h1>
 
       <div className="doctor-list">
         {doctors.map((doctor) => (
           <div key={doctor._id} className="doctor-card">
             <div className="doctor-header">
-              <img src={doctor.image} alt={doctor.name} className="doctor-image" />
+              {/* <img src={doctor.image} alt={doctor.name} className="doctor-image" /> */}
+              <img src={`http://localhost:5000${doctor.image}`} alt={doctor.name} className="doctor-image" />
               <div className="doctor-main">
                 <h2 className="doctor-name">{doctor.name}</h2>
                 <p className="pmdc">PMDC Verified</p>
@@ -214,7 +222,7 @@ export default function SpecialityDoctors() {
               <button className="video-call-btn" onClick={() => navigate(`/video-consultation/${doctor._id}`)}>
                 Video Call
               </button>
-              <button className="view-profile-btn">View Profile</button>
+              <button className="view-profile-btn" onClick={() => navigate(`/doctor/${doctor.id}`)}>View Profile</button>
             </div>
           </div>
         ))}
@@ -232,3 +240,5 @@ export default function SpecialityDoctors() {
     </div>
   );
 }
+
+

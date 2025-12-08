@@ -35,7 +35,7 @@ const doctorsData = [
     doctors: [
       {
         id: 1,
-        name: "Assoc. Prof. Dr. Zareen Saqib Suleri",
+        name: "Dr. Zareen Saqib Suleri",
         // image: "/images/doctor1.jpg",
         // image: require("../images/doctor1.jpg"),
         image:doctor1,
@@ -47,11 +47,6 @@ const doctorsData = [
           {
             name: "Video Consultation",
             availability: "Available from Oct 27",
-            fee: 1500,
-          },
-          {
-            name: "Suleri Children and General Hospital, Sialkot",
-            availability: "Available Tomorrow",
             fee: 1500,
           },
         ],
@@ -84,11 +79,6 @@ const doctorsData = [
           availability: "Available from Oct 28",
           fee: 2000,
         },
-        {
-          name: "City Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2000,
-        },
       ],
     },
   ],
@@ -117,11 +107,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Oct 28",
-          fee: 1800,
-        },
-        {
-          name: "National Hospital, Islamabad",
-          availability: "Available Tomorrow",
           fee: 1800,
         },
       ],
@@ -153,11 +138,6 @@ const doctorsData = [
           availability: "Available from Oct 29",
           fee: 2200,
         },
-        {
-          name: "Gastro Liver Center, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2200,
-        },
       ],
     },
   ],
@@ -185,11 +165,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Oct 29",
-          fee: 1500,
-        },
-        {
-          name: "City General Hospital, Lahore",
-          availability: "Available Tomorrow",
           fee: 1500,
         },
       ],
@@ -221,11 +196,6 @@ const doctorsData = [
           availability: "Available from Oct 29",
           fee: 2500,
         },
-        {
-          name: "Mind Care Clinic, Karachi",
-          availability: "Available Tomorrow",
-          fee: 2500,
-        },
       ],
     },
   ],
@@ -253,11 +223,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 10",
-          fee: 1500,
-        },
-        {
-          name: "Mind Wellness Clinic, Lahore",
-          availability: "Available Tomorrow",
           fee: 1500,
         },
       ],
@@ -289,11 +254,6 @@ const doctorsData = [
           availability: "Available from Oct 30",
           fee: 2000,
         },
-        {
-          name: "Ortho Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2000,
-        },
       ],
     },
   ],
@@ -321,11 +281,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Oct 30",
-          fee: 1200,
-        },
-        {
-          name: "Smile Dental Clinic, Lahore",
-          availability: "Available Tomorrow",
           fee: 1200,
         },
       ],
@@ -357,11 +312,6 @@ const doctorsData = [
           availability: "Available from Oct 31",
           fee: 2500,
         },
-        {
-          name: "Surgicare Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2500,
-        },
       ],
     },
   ],
@@ -389,11 +339,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 1",
-          fee: 1500,
-        },
-        {
-          name: "Kids Care Hospital, Lahore",
-          availability: "Available Tomorrow",
           fee: 1500,
         },
       ],
@@ -425,11 +370,6 @@ const doctorsData = [
           availability: "Available from Nov 1",
           fee: 3000,
         },
-        {
-          name: "Neuro Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 3000,
-        },
       ],
     },
   ],
@@ -457,11 +397,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 2",
-          fee: 1200,
-        },
-        {
-          name: "Advanced Physiotherapy Clinic, Lahore",
-          availability: "Available Tomorrow",
           fee: 1200,
         },
       ],
@@ -493,11 +428,6 @@ const doctorsData = [
           availability: "Available from Nov 2",
           fee: 3000,
         },
-        {
-          name: "Heart Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 3000,
-        },
       ],
     },
   ],
@@ -525,11 +455,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 3",
-          fee: 2000,
-        },
-        {
-          name: "Lung Care Hospital, Lahore",
-          availability: "Available Tomorrow",
           fee: 2000,
         },
       ],
@@ -561,11 +486,6 @@ const doctorsData = [
           availability: "Available from Nov 3",
           fee: 1800,
         },
-        {
-          name: "Vision Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 1800,
-        },
       ],
     },
   ],
@@ -593,11 +513,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 4",
-          fee: 3500,
-        },
-        {
-          name: "Cancer Care Hospital, Lahore",
-          availability: "Available Tomorrow",
           fee: 3500,
         },
       ],
@@ -629,11 +544,6 @@ const doctorsData = [
           availability: "Available from Nov 4",
           fee: 2500,
         },
-        {
-          name: "Liver Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2500,
-        },
       ],
     },
   ],
@@ -663,11 +573,6 @@ const doctorsData = [
           availability: "Available from Nov 5",
           fee: 1500,
         },
-        {
-          name: "Mind Wellness Clinic, Lahore",
-          availability: "Available Tomorrow",
-          fee: 1500,
-        },
       ],
     },
   ],
@@ -694,12 +599,7 @@ const doctorsData = [
       hospitals: [
         {
           name: "Video Consultation",
-          availability: "Available from Nov 5",
-          fee: 1800,
-        },
-        {
-          name: "Hearing Care Clinic, Lahore",
-          availability: "Available Tomorrow",
+          availability: "Available from Nov 26",
           fee: 1800,
         },
       ],
@@ -731,11 +631,6 @@ const doctorsData = [
           availability: "Available from Nov 6",
           fee: 2000,
         },
-        {
-          name: "Immune Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2000,
-        },
       ],
     },
   ],
@@ -763,11 +658,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 6",
-          fee: 1200,
-        },
-        {
-          name: "Healthy Life Clinic, Lahore",
-          availability: "Available Tomorrow",
           fee: 1200,
         },
       ],
@@ -799,11 +689,6 @@ const doctorsData = [
           availability: "Available from Nov 7",
           fee: 2000,
         },
-        {
-          name: "Endocrine Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2000,
-        },
       ],
     },
   ],
@@ -831,11 +716,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 7",
-          fee: 2500,
-        },
-        {
-          name: "Blood Care Hospital, Lahore",
-          availability: "Available Tomorrow",
           fee: 2500,
         },
       ],
@@ -867,11 +747,6 @@ const doctorsData = [
           availability: "Available from Nov 8",
           fee: 2000,
         },
-        {
-          name: "Pain Care Clinic, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2000,
-        },
       ],
     },
   ],
@@ -899,11 +774,6 @@ const doctorsData = [
         {
           name: "Video Consultation",
           availability: "Available from Nov 8",
-          fee: 1800,
-        },
-        {
-          name: "Diagnostic Care Clinic, Lahore",
-          availability: "Available Tomorrow",
           fee: 1800,
         },
       ],
@@ -935,11 +805,6 @@ const doctorsData = [
           availability: "Available from Nov 9",
           fee: 1500,
         },
-        {
-          name: "Lab Care Hospital, Lahore",
-          availability: "Available Tomorrow",
-          fee: 1500,
-        },
       ],
     },
   ],
@@ -968,11 +833,6 @@ const doctorsData = [
           name: "Online/Video Consultation",
           availability: "Available from Nov 9",
           fee: 1000,
-        },
-        {
-          name: "FitLife Gym, Lahore",
-          availability: "Available Tomorrow",
-          fee: 1500,
         },
       ],
     },
@@ -1003,11 +863,6 @@ const doctorsData = [
           availability: "Available from Nov 10",
           fee: 2500,
         },
-        {
-          name: "Genetic Care Clinic, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2500,
-        },
       ],
     },
   ],
@@ -1036,11 +891,6 @@ const doctorsData = [
           name: "Video Consultation",
           availability: "Available from Nov 10",
           fee: 1800,
-        },
-        {
-          name: "Chiro Care Clinic, Lahore",
-          availability: "Available Tomorrow",
-          fee: 2000,
         },
       ],
     },
