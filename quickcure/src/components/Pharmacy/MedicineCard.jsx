@@ -1,41 +1,335 @@
+// import React from 'react';
+// import { Link } from 'react-router-dom';
+
+// const MedicineCard = ({ medicine, onAddToCart }) => {
+//   return (
+//     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+//       {/* Medicine Image */}
+//       <img
+//         src={medicine.image}
+//         alt={medicine.name}
+//         className="w-full h-48 object-cover"
+//       />
+      
+//       {/* Medicine Info */}
+//       <div className="p-4">
+//         <h3 className="text-xl font-semibold text-gray-800 mb-2">
+//           {medicine.name}
+//         </h3>
+//         <p className="text-gray-600 mb-4">{medicine.description}</p>
+//         <div className="flex justify-between items-center">
+//           <span className="text-2xl font-bold text-green-600">
+//             ${medicine.price}
+//           </span>
+//         </div>
+        
+//         {/* Buttons */}
+//         <div className="flex space-x-2 mt-4">
+//           <button
+//             onClick={() => onAddToCart(medicine)}
+//             className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+//           >
+//             Add to Cart
+//           </button>
+//           <Link
+//             to={`/medicine/${medicine.id}`}
+//             className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300 transition-colors text-center"
+//           >
+//             Learn More
+//           </Link>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MedicineCard;
+
+
+
+
+
+
+
+
+//Below code is perfect size of cards.
+// import React from 'react';
+// import { Link } from 'react-router-dom';
+
+// const MedicineCard = ({ medicine, onAddToCart }) => {
+//   return (
+//     <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto">
+//      
+// {/* Medicine Image - Ultra compact */}
+//       {/* <div className="relative h-24 bg-gray-50"> */}
+//       {/* <div className="relative h-24 bg-gray-50 flex items-center justify-center p-1"> */}
+// <div className="relative h-24 bg-gray-50 flex items-center justify-center">
+//         <img
+//           src={medicine.image}
+//           alt={medicine.name}
+//           // className="w-full h-full object-contain p-1"
+//           // className="max-w-full max-h-full object-contain"
+//           className="w-full h-full object-cover"
+//         />
+//       </div>
+      
+//       {/* Medicine Info - Ultra compact */}
+//       <div className="p-1.5">
+//         <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
+//           {medicine.name}
+//         </h3>
+//         <p className="text-[10px] text-gray-600 line-clamp-2 mb-1.5">
+//           {medicine.description}
+//         </p>
+        
+//         <div className="flex justify-between items-center mb-1.5">
+//           <span className="text-sm font-bold text-green-600">
+//             ${medicine.price}
+//           </span>
+//         </div>
+        
+//         {/* Buttons - Ultra compact */}
+//         <div className="flex space-x-1">
+//           <button
+//             onClick={() => onAddToCart(medicine)}
+//             className="flex-1 bg-[var(--primary-color)] text-white py-1 px-1.5 rounded hover:bg-[var(--secondary-color)] transition-colors text-[10px] font-medium"
+//           >
+//             Add to Cart
+//           </button>
+//           <Link
+//             to={`/medicine/${medicine.id}`}
+//             className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+//           >
+//             View Details
+//           </Link>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MedicineCard;
+
+
+
+
+
+//The below code is with backend integration
+// import React from 'react';
+// import { Link } from 'react-router-dom';
+
+// const MedicineCard = ({ medicine, onAddToCart }) => {
+//   // Calculate final price with discount
+//   const finalPrice = medicine.discountedPrice || 
+//     (medicine.discountPercentage > 0 
+//       ? medicine.price * (1 - medicine.discountPercentage / 100)
+//       : medicine.price);
+
+//   const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+
+//   return (
+//     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-150 w-full max-w-[200px] mx-auto">
+//       {/* Medicine Image */}
+//       <div className="relative h-32 bg-gray-50 flex items-center justify-center p-2">
+//         <img
+//           src={medicine.image}
+//           alt={medicine.name}
+//           className="w-full h-full object-contain"
+//           onError={(e) => {
+//             e.target.onerror = null;
+//             e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+//           }}
+//         />
+//         {isDiscounted && (
+//           <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+//             {medicine.discountPercentage > 0 
+//               ? `${medicine.discountPercentage}% OFF` 
+//               : 'SALE'}
+//           </div>
+//         )}
+//         {!medicine.inStock && (
+//           <div className="absolute top-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded">
+//             OUT OF STOCK
+//           </div>
+//         )}
+//       </div>
+      
+//       {/* Medicine Info */}
+//       <div className="p-3">
+//         <h3 className="text-sm font-semibold text-gray-800 line-clamp-1 mb-1">
+//           {medicine.name}
+//         </h3>
+//         {medicine.brand && (
+//           <p className="text-xs text-gray-500 mb-1">{medicine.brand}</p>
+//         )}
+//         <p className="text-xs text-gray-600 line-clamp-2 mb-2 min-h-[2.5rem]">
+//           {medicine.description}
+//         </p>
+        
+//         {/* Price */}
+//         <div className="flex items-center justify-between mb-3">
+//           <div>
+//             <span className="text-base font-bold text-green-600">
+//               ${finalPrice.toFixed(2)}
+//             </span>
+//             {isDiscounted && medicine.price > finalPrice && (
+//               <span className="text-xs text-gray-500 line-through ml-2">
+//                 ${medicine.price.toFixed(2)}
+//               </span>
+//             )}
+//           </div>
+//           {medicine.prescriptionRequired && (
+//             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+//               Rx
+//             </span>
+//           )}
+//         </div>
+        
+//         {/* Buttons */}
+//         <div className="flex space-x-2">
+//           <button
+//             onClick={() => onAddToCart(medicine)}
+//             disabled={!medicine.inStock}
+//             className={`flex-1 py-2 px-3 rounded text-xs font-medium transition-colors ${
+//               medicine.inStock
+//                 ? 'bg-[var(--primary-color)] text-white hover:bg-blue-700'
+//                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+//             }`}
+//           >
+//             {medicine.inStock ? 'Add to Cart' : 'Out of Stock'}
+//           </button>
+//           <Link
+//             to={`/medicine/${medicine._id}`}
+//             className="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded hover:bg-gray-200 transition-colors text-xs font-medium text-center"
+//           >
+//             Details
+//           </Link>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MedicineCard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//The below code is correct css and backen API attached
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 const MedicineCard = ({ medicine, onAddToCart }) => {
+  // Calculate final price with discount (keep your original $medicine.price format)
+  const finalPrice = medicine.discountedPrice || 
+    (medicine.discountPercentage > 0 
+      ? medicine.price * (1 - medicine.discountPercentage / 100)
+      : medicine.price);
+
+  const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Medicine Image */}
-      <img
-        src={medicine.image}
-        alt={medicine.name}
-        className="w-full h-48 object-cover"
-      />
+    <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto">
       
-      {/* Medicine Info */}
-      <div className="p-4">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">
+  {/* Medicine Image - Ultra compact */}
+      <div className="relative h-24 bg-gray-50 flex items-center justify-center">
+        <img
+          src={medicine.image}
+          alt={medicine.name}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+          }}
+        />
+        {/* Discount badge - smaller to match original style */}
+        {isDiscounted && (
+          <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+            {medicine.discountPercentage > 0 
+              ? `${medicine.discountPercentage}%` 
+              : 'SALE'}
+          </div>
+        )}
+        {/* Out of stock badge - smaller */}
+        {!medicine.inStock && (
+          <div className="absolute top-1 right-1 bg-gray-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+            OOS
+          </div>
+        )}
+      </div>
+      
+      {/* Medicine Info - Ultra compact */}
+      <div className="p-1.5">
+        <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
           {medicine.name}
         </h3>
-        <p className="text-gray-600 mb-4">{medicine.description}</p>
-        <div className="flex justify-between items-center">
-          <span className="text-2xl font-bold text-green-600">
-            ${medicine.price}
-          </span>
+        {/* {medicine.brand && (
+          <p className="text-[10px] text-gray-500 mb-0.5">{medicine.brand}</p>
+        )} */}
+        <p className="text-[10px] text-gray-600 line-clamp-2 mb-1.5">
+          {medicine.description}
+        </p>
+        
+        <div className="flex justify-between items-center mb-1.5">
+          <div className="flex items-center">
+            <span className="text-sm font-bold text-green-600">
+              Rs. {finalPrice.toFixed(2)}
+            </span>
+            {isDiscounted && medicine.price > finalPrice && (
+              <span className="text-[10px] text-gray-500 line-through ml-1">
+                Rs. {medicine.price.toFixed(2)}
+              </span>
+            )}
+          </div>
+          {/* Prescription badge - smaller */}
+          {medicine.prescriptionRequired && (
+            <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+              Rx
+            </span>
+          )}
+          {/* Prescription badge with tooltip */}
+{/* {medicine.prescriptionRequired && (
+  <div className="relative group">
+    <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium cursor-help">
+      Prescription Required
+    </span>
+    <div className="absolute hidden group-hover:block z-10 w-48 p-2 mt-1 text-xs bg-gray-800 text-white rounded-lg shadow-lg">
+      Requires doctor's prescription. Upload when ordering.
+    </div>
+  </div>
+)} */}
         </div>
         
-        {/* Buttons */}
-        <div className="flex space-x-2 mt-4">
+        {/* Buttons - Ultra compact */}
+        <div className="flex space-x-1">
           <button
             onClick={() => onAddToCart(medicine)}
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+            disabled={!medicine.inStock}
+            className={`flex-1 py-1 px-1.5 rounded text-[10px] font-medium transition-colors ${
+              medicine.inStock
+                ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)]'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
           >
-            Add to Cart
+            {medicine.inStock ? 'Add to Cart' : 'Out of Stock'}
           </button>
           <Link
-            to={`/medicine/${medicine.id}`}
-            className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300 transition-colors text-center"
+            to={`/medicine/${medicine._id}`}
+            className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
           >
-            Learn More
+            View Details
           </Link>
         </div>
       </div>
@@ -44,3 +338,100 @@ const MedicineCard = ({ medicine, onAddToCart }) => {
 };
 
 export default MedicineCard;
+
+
+
+
+
+
+
+
+
+
+
+//Just to check if not good UI then above will use
+// import React, { useState } from 'react';
+
+// const MedicineCard = ({ medicine, addToCart, cart }) => {
+//   const [quantity, setQuantity] = useState(1);
+
+//   const handleAddToCart = () => {
+//     // Ensure all required fields are present
+//     const medicineToAdd = {
+//       ...medicine,
+//       _id: medicine._id,
+//       name: medicine.name || 'Unknown Medicine',
+//       price: medicine.price || 0,
+//       discountedPrice: medicine.discountedPrice || medicine.price || 0,
+//       image: medicine.image || 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=500'
+//     };
+    
+//     addToCart(medicineToAdd);
+//   };
+
+//   // Check if this medicine is already in cart
+//   const isInCart = cart.find(item => item.id === medicine._id);
+
+//   return (
+//     <div className="bg-white rounded-xl shadow-sm border p-4 hover:shadow-md transition-shadow">
+//       {/* Medicine image */}
+//       <div className="relative h-40 mb-4 rounded-lg overflow-hidden bg-gray-100">
+//         <img 
+//           src={medicine.image} 
+//           alt={medicine.name}
+//           className="w-full h-full object-cover"
+//           onError={(e) => {
+//             e.target.onerror = null;
+//             e.target.src = 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=500';
+//           }}
+//         />
+//       </div>
+      
+//       {/* Medicine details */}
+//       <div className="mb-4">
+//         <h3 className="font-bold text-gray-900 mb-1 truncate">{medicine.name}</h3>
+//         <p className="text-sm text-gray-600 mb-2 truncate">{medicine.genericName || medicine.description?.substring(0, 50)}</p>
+//         <div className="flex items-center justify-between mb-2">
+//           <div>
+//             {medicine.discountedPrice && medicine.discountedPrice < medicine.price ? (
+//               <>
+//                 <span className="text-lg font-bold text-gray-900">Rs. {medicine.discountedPrice}</span>
+//                 <span className="text-sm text-gray-500 line-through ml-2">Rs. {medicine.price}</span>
+//               </>
+//             ) : (
+//               <span className="text-lg font-bold text-gray-900">Rs. {medicine.price || 0}</span>
+//             )}
+//           </div>
+//           <div className="flex items-center">
+//             <svg className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+//               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+//             </svg>
+//             <span className="text-sm font-medium">{medicine.rating || 4.0}</span>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Add to cart button */}
+//       {isInCart ? (
+//         <div className="flex items-center justify-between">
+//           <span className="text-green-600 font-medium text-sm">✓ Added to cart</span>
+//           <button
+//             onClick={handleAddToCart}
+//             className="px-4 py-2 bg-blue-50 text-[var(--primary-color)] rounded-lg font-medium hover:bg-blue-100 transition-colors"
+//           >
+//             Add More
+//           </button>
+//         </div>
+//       ) : (
+//         <button
+//           onClick={handleAddToCart}
+//           className="w-full bg-[var(--primary-color)] text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+//         >
+//           Add to Cart
+//         </button>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default MedicineCard;

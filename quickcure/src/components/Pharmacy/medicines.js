@@ -159,6 +159,7 @@ export const medicines = [
     price: 5.99,
     image: "https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400",
     category: "Pain Relief",
+    availableAt: [1, 2, 3], // Array of pharmacy IDs where this medicine is available
     dosage: "500mg",
     sideEffects: ["Nausea", "Headache", "Insomnia"],
     uses: ["Fever", "Headache", "Body pain"]
@@ -171,6 +172,7 @@ export const medicines = [
     price: 12.99,
     image: "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=400",
     category: "Antibiotic",
+    availableAt: [1, 3, 4], // Available at pharmacy IDs 1, 3, and 4
     dosage: "250mg",
     sideEffects: ["Nausea", "Diarrhea", "Skin rash"],
     uses: ["Bacterial infections", "Respiratory infections"]
@@ -183,6 +185,7 @@ export const medicines = [
     price: 8.49,
     image: "https://images.unsplash.com/photo-1558645836-8916d8d9e8ae?w=400",
     category: "Pain Relief",
+    availableAt: [2,4],
     dosage: "400mg",
     sideEffects: ["Stomach pain", "Heartburn", "Dizziness"],
     uses: ["Pain relief", "Inflammation", "Fever"]
@@ -195,6 +198,7 @@ export const medicines = [
     price: 15.99,
     image: "https://images.unsplash.com/photo-1584302179602-e4819bb92daa?w=400",
     category: "Supplements",
+    availableAt: [8,9,10],
     dosage: "1000mg",
     sideEffects: ["Diarrhea", "Nausea", "Stomach cramps"],
     uses: ["Immune support", "Antioxidant"]
@@ -207,6 +211,7 @@ export const medicines = [
     price: 7.25,
     image: "https://images.unsplash.com/photo-1599045118108-bb99546c16ed?w=400",
     category: "Allergy",
+    availableAt: [6,7],
     dosage: "10mg",
     sideEffects: ["Drowsiness", "Dry mouth", "Fatigue"],
     uses: ["Allergy relief", "Hay fever", "Hives"]
@@ -219,6 +224,7 @@ export const medicines = [
     price: 18.75,
     image: "https://images.unsplash.com/photo-1550572017-eb101ade1d0a?w=400",
     category: "Gastrointestinal",
+    availableAt: [5,6,8],
     dosage: "20mg",
     sideEffects: ["Headache", "Abdominal pain", "Nausea"],
     uses: ["Acid reflux", "Heartburn", "Ulcers"]

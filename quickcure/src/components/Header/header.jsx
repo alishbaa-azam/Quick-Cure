@@ -537,8 +537,8 @@ export default function Header() {
       { label: "All Specialities", to: "/doctors" },
     ],
     medicines: [
+      { label: "Pharmacies", to: "/Pharmacies" },
       { label: "Medicines", to: "/medicines" },
-      { label: "All Medicines", to: "/pharmacy" },
     ],
     labs: [
       { label: "Chughtai Lab", to: "/labs/chughtai" },
