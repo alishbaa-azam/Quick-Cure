@@ -11,14 +11,17 @@ import Footer from "./components/footer";
 import Home from "./components/Home/home";
 import DoctorsPage from "./components/Doctors/DoctorsPage";
 import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
-import VideoConsultation from "./components/Doctors/VideoConsultation";
-import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
+// import VideoConsultation from "./components/Doctors/VideoConsultation";
+// import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
 import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
+// import BookAppointment from './components/Doctors/appointmentBooking';
 
 import LabsPage from "./components/Lab/lab";
 import LabDetail from "./components/Lab/LabDetail";
 import LoginPage from "./components/Login/LoginPage";
+// import Footer from "./components/footer";
+// import BookingPage from "./components/Lab/LabTestBooking";
 import TestBooking from "./components/Lab/LabTestBooking";
 
 import PharmacyPage from "./components/Pharmacy/PharmacyPage";
@@ -28,9 +31,10 @@ import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
 // import MedicinePage from './components/Pharmacy/MedicinePage';
 
-import PharmacyDashboard from './components/Dashboard/PharmacyDashboard';
+// import PharmacyDashboard from './components/Dashboard/PharmacyDashboard';
 
 import ScrollToTop from "./ScrollToTop";  
+// import BookingPage from './components/Lab/LabTestBooking';
 
 function Layout() {
   const location = useLocation();
@@ -47,10 +51,13 @@ function Layout() {
         <Route path="/" element={<Home />} />
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/specialities/:specialityName" element={<SpecialityDoctors />} />
-        <Route path="/video-consultation" element={<VideoConsultation />} />
-        <Route path="/video-consultation/:doctorId" element={<VideoConsultationPage />} />
+        {/* <Route path="/appointment" element={<VideoConsultation />} />
+        <Route path="/appointment/:doctorId" element={<VideoConsultationPage />} /> */}
         <Route path="/doctor/:id" element={<ViewProfile />} />
         <Route path="/registration" element={<DoctorRegistration />} />
+        {/* <Route path="/book-appointment/:doctorId" element={<BookAppointment />} /> */}
+
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/labs" element={<LabsPage />} />
         <Route path="/labs/:id" element={<LabDetail />} />
@@ -64,7 +71,7 @@ function Layout() {
         <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
         <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
 
-        <Route path="/PharmacyDashboard" element={<PharmacyDashboard />} />
+        {/* <Route path="/PharmacyDashboard" element={<PharmacyDashboard />} /> */}
 
       </Routes>
 
