@@ -195,7 +195,7 @@ export default function SpecialityDoctors() {
                 {/* Doctor Image and Basic Info */}
                 <div className="flex flex-col lg:flex-row gap-6 flex-1">
                   {/* Doctor Image */}
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="relative">
                       <img
                         src={`http://localhost:5000${doctor.image}`}
@@ -269,7 +269,7 @@ export default function SpecialityDoctors() {
                       {/* Consultation Fee Display - Moved above buttons */}
                       <div className="lg:absolute lg:right-6 lg:top-6 lg:w-64">
                         <div className="mb-4">
-                          <div className="text-center bg-gradient-to-r from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-lg border border-[#9fbfc5]">
+                          <div className="text-center bg-linear-to-r from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-lg border border-[#9fbfc5]">
                             <div className="text-3xl font-bold text-[#174047]">
                               Rs. {doctor.fee || "N/A"}
                             </div>

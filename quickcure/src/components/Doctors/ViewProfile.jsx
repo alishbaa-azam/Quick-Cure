@@ -641,7 +641,7 @@ export default function ViewProfile() {
           <div className="flex-1">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
               <div className="flex-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-[#174047] bg-gradient-to-r from-[#174047] to-[#2c6774] bg-clip-text text-transparent">
+                <h1 className="text-2xl md:text-3xl font-bold text-[#174047] bg-linear-to-r from-[#174047] to-[#2c6774] bg-clip-text">
                   Dr. {doctor.name}
                 </h1>
                 <div className="flex items-center gap-3 mt-2">
@@ -684,7 +684,7 @@ export default function ViewProfile() {
                     </p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-xl border border-[#c0d3dc]/30">
+                  <div className="bg-linear-to-br from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-xl border border-[#c0d3dc]/30">
                     <div className="flex items-center gap-2 mb-2">
                       <Star size={18} className="text-yellow-400 fill-yellow-400" />
                       <span className="text-sm text-[#5c878f] font-medium">Rating</span>
