@@ -1,3 +1,114 @@
+import React, { useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+
+import Header from "./components/Header/header";
+import Footer from "./components/footer";
+import Home from "./components/Home/home";
+import DoctorsPage from "./components/Doctors/DoctorsPage";
+import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
+import VideoConsultation from "./components/Doctors/VideoConsultation";
+import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
+import ViewProfile from "./components/Doctors/ViewProfile";
+import DoctorRegistration from "./components/Registration/doctor_registration";
+
+import LabsPage from "./components/Lab/lab";
+import LabDetail from "./components/Lab/LabDetail";
+import LoginPage from "./components/Login/LoginPage";
+import TestBooking from "./components/Lab/LabTestBooking";
+
+import PharmacyPage from "./components/Pharmacy/PharmacyPage";
+import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
+import MedicinePage from "./components/Pharmacy/MedicinePage";
+import MedicineDetail from "./components/Pharmacy/MedicineDetail";
+import MedicineBooking from "./components/Pharmacy/MedicineBooking";
+
+
+// Dashboard Components (NEW STRUCTURE)
+import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout';
+import DashboardHome from './components/Dashboard/DashboardHome';
+import FeaturesPage from './components/Dashboard/FeaturesPage';
+import CategoriesPage from './components/Dashboard/CategoriesPage';
+import ProductsPage from './components/Dashboard/ProductsPage';
+import SalesPage from './components/Dashboard/SalesPage';
+import OrdersPage from './components/Dashboard/OrdersPage';
+import CustomersPage from './components/Dashboard/CustomersPage';
+import FinancePage from './components/Dashboard/FinancePage';
+import ReportsPage from './components/Dashboard/ReportsPage';
+import SupportPage from './components/Dashboard/SupportPage';
+import SettingsPage from './components/Dashboard/SettingsPage';
+
+import ScrollToTop from "./ScrollToTop";  
+
+function Layout() {
+  const location = useLocation();
+  const [cart, setCart] = useState([]);
+  const hideLayoutRoutes = ["/login"];
+
+  const hideLayout = hideLayoutRoutes.includes(location.pathname);
+
+  return (
+    <>
+      {!hideLayout && <Header />}
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/doctors" element={<DoctorsPage />} />
+        <Route path="/specialities/:specialityName" element={<SpecialityDoctors />} />
+        <Route path="/video-consultation" element={<VideoConsultation />} />
+        <Route path="/video-consultation/:doctorId" element={<VideoConsultationPage />} />
+        <Route path="/doctor/:id" element={<ViewProfile />} />
+        <Route path="/registration" element={<DoctorRegistration />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/labs" element={<LabsPage />} />
+        <Route path="/labs/:id" element={<LabDetail />} />
+        <Route path="/labs/:id/booking" element={<TestBooking />} />
+
+
+        <Route path="/pharmacies/:id" element={<PharmacyDetailPage cart={cart} setCart={setCart} />} />
+        <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} /> {/* All Medicines Page */}
+        <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
+        <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
+
+
+      {/* NEW: Dashboard Routes with Layout */}
+        <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
+          <Route index element={<DashboardHome />} />
+          <Route path="features" element={<FeaturesPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="sales" element={<SalesPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="finance" element={<FinancePage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="support" element={<SupportPage />} /> 
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
+
+      </Routes>
+
+      {!hideLayout && <Footer />}
+    </>
+  );
+}
+
+const App = () => {
+  return (
+    <Router>
+      <ScrollToTop />  
+      <Layout />
+    </Router>
+  );
+};
+
+export default App;
+
+
 // import React, { useState } from 'react';
 // import {
 //   BrowserRouter as Router,
@@ -165,127 +276,127 @@
 
 
 
-import React, { useState } from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+// import React, { useState } from 'react';
+// import {
+//   BrowserRouter as Router,
+//   Routes,
+//   Route,
+//   useLocation,
+// } from "react-router-dom";
 
-import Header from "./components/Header/header";
-import Footer from "./components/footer";
-import Home from "./components/Home/home";
+// import Header from "./components/Header/header";
+// import Footer from "./components/footer";
+// import Home from "./components/Home/home";
 
-import AboutContactPage from './components/AboutContactPage';
+// import AboutContactPage from './components/AboutContactPage';
 
-import DoctorsPage from "./components/Doctors/DoctorsPage";
-import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
-import VideoConsultation from "./components/Doctors/VideoConsultation";
-import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
-import ViewProfile from "./components/Doctors/ViewProfile";
-import DoctorRegistration from "./components/Registration/doctor_registration";
+// import DoctorsPage from "./components/Doctors/DoctorsPage";
+// import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
+// import VideoConsultation from "./components/Doctors/VideoConsultation";
+// import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
+// import ViewProfile from "./components/Doctors/ViewProfile";
+// import DoctorRegistration from "./components/Registration/doctor_registration";
 
-import LabsPage from "./components/Lab/lab";
-import LabDetail from "./components/Lab/LabDetail";
-import LoginPage from "./components/Login/LoginPage";
-import TestBooking from "./components/Lab/LabTestBooking";
+// import LabsPage from "./components/Lab/lab";
+// import LabDetail from "./components/Lab/LabDetail";
+// import LoginPage from "./components/Login/LoginPage";
+// import TestBooking from "./components/Lab/LabTestBooking";
 
-import PharmacyPage from "./components/Pharmacy/PharmacyPage";
-import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
-import MedicinePage from "./components/Pharmacy/MedicinePage";
-import MedicineDetail from "./components/Pharmacy/MedicineDetail";
-import MedicineBooking from "./components/Pharmacy/MedicineBooking";
-
-
-// Dashboard Components (NEW STRUCTURE)
-import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout';
-import DashboardHome from './components/Dashboard/DashboardHome';
-import FeaturesPage from './components/Dashboard/FeaturesPage';
-import CategoriesPage from './components/Dashboard/CategoriesPage';
-import ProductsPage from './components/Dashboard/ProductsPage';
-import SalesPage from './components/Dashboard/SalesPage';
-import OrdersPage from './components/Dashboard/OrdersPage';
-import CustomersPage from './components/Dashboard/CustomersPage';
-import FinancePage from './components/Dashboard/FinancePage';
-import ReportsPage from './components/Dashboard/ReportsPage';
-import SupportPage from './components/Dashboard/SupportPage';
-import SettingsPage from './components/Dashboard/SettingsPage';
+// import PharmacyPage from "./components/Pharmacy/PharmacyPage";
+// import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
+// import MedicinePage from "./components/Pharmacy/MedicinePage";
+// import MedicineDetail from "./components/Pharmacy/MedicineDetail";
+// import MedicineBooking from "./components/Pharmacy/MedicineBooking";
 
 
-
-import ScrollToTop from "./ScrollToTop";  
-
-function Layout() {
-  const location = useLocation();
-  const [cart, setCart] = useState([]);
-  const hideLayoutRoutes = ["/login"];
-
-  // const hideLayout = hideLayoutRoutes.includes(location.pathname);
-
-   const isDashboardRoute = location.pathname.startsWith('/PharmacyDashboard');
-  const hideLayout = hideLayoutRoutes.includes(location.pathname) || isDashboardRoute;
-
-  return (
-    <>
-      {!hideLayout && <Header />}
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-
-        <Route path="/about" element={<AboutContactPage />} />
-
-        <Route path="/doctors" element={<DoctorsPage />} />
-        <Route path="/specialities/:specialityName" element={<SpecialityDoctors />} />
-        <Route path="/video-consultation" element={<VideoConsultation />} />
-        <Route path="/video-consultation/:doctorId" element={<VideoConsultationPage />} />
-        <Route path="/doctor/:id" element={<ViewProfile />} />
-        <Route path="/registration" element={<DoctorRegistration />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/labs" element={<LabsPage />} />
-        <Route path="/labs/:id" element={<LabDetail />} />
-        <Route path="/labs/:id/booking" element={<TestBooking />} />
-
-
-        <Route path="/pharmacies" element={<PharmacyPage />} /> {/* Main pharmacy listing */}
-        {/* <Route path="/pharmacies/:pharmacyId" element={<PharmacyDetailPage cart={cart} setCart={setCart} />} />  Pharmacy Detail Page */}
-        <Route path="/pharmacies/:id" element={<PharmacyDetailPage cart={cart} setCart={setCart} />} />
-        <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} /> {/* All Medicines Page */}
-        <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
-        <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
-
-
-      {/* NEW: Dashboard Routes with Layout */}
-        <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
-          <Route index element={<DashboardHome />} />
-          <Route path="features" element={<FeaturesPage />} />
-          <Route path="categories" element={<CategoriesPage />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="sales" element={<SalesPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="customers" element={<CustomersPage />} />
-          <Route path="finance" element={<FinancePage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="support" element={<SupportPage />} /> 
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
+// // Dashboard Components (NEW STRUCTURE)
+// import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout';
+// import DashboardHome from './components/Dashboard/DashboardHome';
+// import FeaturesPage from './components/Dashboard/FeaturesPage';
+// import CategoriesPage from './components/Dashboard/CategoriesPage';
+// import ProductsPage from './components/Dashboard/ProductsPage';
+// import SalesPage from './components/Dashboard/SalesPage';
+// import OrdersPage from './components/Dashboard/OrdersPage';
+// import CustomersPage from './components/Dashboard/CustomersPage';
+// import FinancePage from './components/Dashboard/FinancePage';
+// import ReportsPage from './components/Dashboard/ReportsPage';
+// import SupportPage from './components/Dashboard/SupportPage';
+// import SettingsPage from './components/Dashboard/SettingsPage';
 
 
 
-      </Routes>
+// import ScrollToTop from "./ScrollToTop";  
 
-      {!hideLayout && <Footer />}
-    </>
-  );
-}
+// function Layout() {
+//   const location = useLocation();
+//   const [cart, setCart] = useState([]);
+//   const hideLayoutRoutes = ["/login"];
 
-const App = () => {
-  return (
-    <Router>
-      <ScrollToTop />  
-      <Layout />
-    </Router>
-  );
-};
+//   // const hideLayout = hideLayoutRoutes.includes(location.pathname);
 
-export default App;
+//    const isDashboardRoute = location.pathname.startsWith('/PharmacyDashboard');
+//   const hideLayout = hideLayoutRoutes.includes(location.pathname) || isDashboardRoute;
+
+//   return (
+//     <>
+//       {!hideLayout && <Header />}
+
+//       <Routes>
+//         <Route path="/" element={<Home />} />
+
+//         <Route path="/about" element={<AboutContactPage />} />
+
+//         <Route path="/doctors" element={<DoctorsPage />} />
+//         <Route path="/specialities/:specialityName" element={<SpecialityDoctors />} />
+//         <Route path="/video-consultation" element={<VideoConsultation />} />
+//         <Route path="/video-consultation/:doctorId" element={<VideoConsultationPage />} />
+//         <Route path="/doctor/:id" element={<ViewProfile />} />
+//         <Route path="/registration" element={<DoctorRegistration />} />
+//         <Route path="/login" element={<LoginPage />} />
+//         <Route path="/labs" element={<LabsPage />} />
+//         <Route path="/labs/:id" element={<LabDetail />} />
+//         <Route path="/labs/:id/booking" element={<TestBooking />} />
+
+
+//         <Route path="/pharmacies" element={<PharmacyPage />} /> {/* Main pharmacy listing */}
+//         {/* <Route path="/pharmacies/:pharmacyId" element={<PharmacyDetailPage cart={cart} setCart={setCart} />} />  Pharmacy Detail Page */}
+//         <Route path="/pharmacies/:id" element={<PharmacyDetailPage cart={cart} setCart={setCart} />} />
+//         <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} /> {/* All Medicines Page */}
+//         <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
+//         <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
+
+
+//       {/* NEW: Dashboard Routes with Layout */}
+//         <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
+//           <Route index element={<DashboardHome />} />
+//           <Route path="features" element={<FeaturesPage />} />
+//           <Route path="categories" element={<CategoriesPage />} />
+//           <Route path="products" element={<ProductsPage />} />
+//           <Route path="sales" element={<SalesPage />} />
+//           <Route path="orders" element={<OrdersPage />} />
+//           <Route path="customers" element={<CustomersPage />} />
+//           <Route path="finance" element={<FinancePage />} />
+//           <Route path="reports" element={<ReportsPage />} />
+//           <Route path="support" element={<SupportPage />} /> 
+//           <Route path="settings" element={<SettingsPage />} />
+//         </Route>
+
+
+
+//       </Routes>
+
+//       {!hideLayout && <Footer />}
+//     </>
+//   );
+// }
+
+// const App = () => {
+//   return (
+//     <Router>
+//       <ScrollToTop />  
+//       <Layout />
+//     </Router>
+//   );
+// };
+
+// export default App;
