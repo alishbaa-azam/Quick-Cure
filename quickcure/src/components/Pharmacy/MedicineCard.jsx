@@ -227,128 +227,6 @@
 
 
 
-//The below code is correct css and backen API attached
-import React from 'react';
-import { Link } from 'react-router-dom';
-
-const MedicineCard = ({ medicine, onAddToCart }) => {
-  // Calculate final price with discount (keep your original $medicine.price format)
-  const finalPrice = medicine.discountedPrice || 
-    (medicine.discountPercentage > 0 
-      ? medicine.price * (1 - medicine.discountPercentage / 100)
-      : medicine.price);
-
-  const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
-
-  return (
-    <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto">
-      
-  {/* Medicine Image - Ultra compact */}
-      <div className="relative h-24 bg-gray-50 flex items-center justify-center">
-        <img
-          src={medicine.image}
-          alt={medicine.name}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
-          }}
-        />
-        {/* Discount badge - smaller to match original style */}
-        {isDiscounted && (
-          <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">
-            {medicine.discountPercentage > 0 
-              ? `${medicine.discountPercentage}%` 
-              : 'SALE'}
-          </div>
-        )}
-        {/* Out of stock badge - smaller */}
-        {!medicine.inStock && (
-          <div className="absolute top-1 right-1 bg-gray-500 text-white text-[10px] px-1.5 py-0.5 rounded">
-            OOS
-          </div>
-        )}
-      </div>
-      
-      {/* Medicine Info - Ultra compact */}
-      <div className="p-1.5">
-        <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
-          {medicine.name}
-        </h3>
-        {/* {medicine.brand && (
-          <p className="text-[10px] text-gray-500 mb-0.5">{medicine.brand}</p>
-        )} */}
-        <p className="text-[10px] text-gray-600 line-clamp-2 mb-1.5">
-          {medicine.description}
-        </p>
-        
-        <div className="flex justify-between items-center mb-1.5">
-          <div className="flex items-center">
-            <span className="text-sm font-bold text-green-600">
-              Rs. {finalPrice.toFixed(2)}
-            </span>
-            {isDiscounted && medicine.price > finalPrice && (
-              <span className="text-[10px] text-gray-500 line-through ml-1">
-                Rs. {medicine.price.toFixed(2)}
-              </span>
-            )}
-          </div>
-          {/* Prescription badge - smaller */}
-          {medicine.prescriptionRequired && (
-            <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
-              Rx
-            </span>
-          )}
-          {/* Prescription badge with tooltip */}
-{/* {medicine.prescriptionRequired && (
-  <div className="relative group">
-    <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium cursor-help">
-      Prescription Required
-    </span>
-    <div className="absolute hidden group-hover:block z-10 w-48 p-2 mt-1 text-xs bg-gray-800 text-white rounded-lg shadow-lg">
-      Requires doctor's prescription. Upload when ordering.
-    </div>
-  </div>
-)} */}
-        </div>
-        
-        {/* Buttons - Ultra compact */}
-        <div className="flex space-x-1">
-          <button
-            onClick={() => onAddToCart(medicine)}
-            disabled={!medicine.inStock}
-            className={`flex-1 py-1 px-1.5 rounded text-[10px] font-medium transition-colors ${
-              medicine.inStock
-                ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)]'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            {medicine.inStock ? 'Add to Cart' : 'Out of Stock'}
-          </button>
-          <Link
-            to={`/medicine/${medicine._id}`}
-            className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
-          >
-            View Details
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default MedicineCard;
-
-
-
-
-
-
-
-
-
-
-
 //Just to check if not good UI then above will use
 // import React, { useState } from 'react';
 
@@ -435,3 +313,302 @@ export default MedicineCard;
 // };
 
 // export default MedicineCard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//The below code is correct css and backen API attached
+// import React from 'react';
+// import { Link } from 'react-router-dom';
+
+// const MedicineCard = ({ medicine, onAddToCart }) => {
+//   // Calculate final price with discount (keep your original $medicine.price format)
+//   const finalPrice = medicine.discountedPrice || 
+//     (medicine.discountPercentage > 0 
+//       ? medicine.price * (1 - medicine.discountPercentage / 100)
+//       : medicine.price);
+
+//   const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+
+//   return (
+//     <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto">
+      
+//   {/* Medicine Image - Ultra compact */}
+//       <div className="relative h-24 bg-gray-50 flex items-center justify-center">
+//         <img
+//           src={medicine.image}
+//           alt={medicine.name}
+//           className="w-full h-full object-cover"
+//           onError={(e) => {
+//             e.target.onerror = null;
+//             e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+//           }}
+//         />
+//         {/* Discount badge - smaller to match original style */}
+//         {isDiscounted && (
+//           <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//             {medicine.discountPercentage > 0 
+//               ? `${medicine.discountPercentage}%` 
+//               : 'SALE'}
+//           </div>
+//         )}
+//         {/* Out of stock badge - smaller */}
+//         {!medicine.inStock && (
+//           <div className="absolute top-1 right-1 bg-gray-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//             OOS
+//           </div>
+//         )}
+//       </div>
+      
+//       {/* Medicine Info - Ultra compact */}
+//       <div className="p-1.5">
+//         <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
+//           {medicine.name}
+//         </h3>
+//         {/* {medicine.brand && (
+//           <p className="text-[10px] text-gray-500 mb-0.5">{medicine.brand}</p>
+//         )} */}
+//         <p className="text-[10px] text-gray-600 line-clamp-2 mb-1.5">
+//           {medicine.description}
+//         </p>
+        
+//         <div className="flex justify-between items-center mb-1.5">
+//           <div className="flex items-center">
+//             <span className="text-sm font-bold text-green-600">
+//               Rs. {finalPrice.toFixed(2)}
+//             </span>
+//             {isDiscounted && medicine.price > finalPrice && (
+//               <span className="text-[10px] text-gray-500 line-through ml-1">
+//                 Rs. {medicine.price.toFixed(2)}
+//               </span>
+//             )}
+//           </div>
+//           {/* Prescription badge - smaller */}
+//           {medicine.prescriptionRequired && (
+//             <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+//               Rx
+//             </span>
+//           )}
+//           {/* Prescription badge with tooltip */}
+// {/* {medicine.prescriptionRequired && (
+//   <div className="relative group">
+//     <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium cursor-help">
+//       Prescription Required
+//     </span>
+//     <div className="absolute hidden group-hover:block z-10 w-48 p-2 mt-1 text-xs bg-gray-800 text-white rounded-lg shadow-lg">
+//       Requires doctor's prescription. Upload when ordering.
+//     </div>
+//   </div>
+// )} */}
+//         </div>
+        
+//         {/* Buttons - Ultra compact */}
+//         <div className="flex space-x-1">
+//           <button
+//             onClick={() => onAddToCart(medicine)}
+//             disabled={!medicine.inStock}
+//             className={`flex-1 py-1 px-1.5 rounded text-[10px] font-medium transition-colors ${
+//               medicine.inStock
+//                 ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)]'
+//                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+//             }`}
+//           >
+//             {medicine.inStock ? 'Add to Cart' : 'Out of Stock'}
+//           </button>
+//           <Link
+//             to={`/medicine/${medicine._id}`}
+//             className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+//           >
+//             View Details
+//           </Link>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MedicineCard;
+
+
+
+
+
+
+//--------------------------------------------------------------------
+//New experiment of aggregation still above okay
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
+  // Determine if this is aggregated view or pharmacy-specific view
+  const isAggregatedView = context === 'all-medicines' && medicine.priceStats;
+  const isPharmacyView = context === 'pharmacy-detail';
+  
+  // Calculate price based on context
+  let finalPrice, originalPrice, discountPercentage, isDiscounted;
+  
+  if (isAggregatedView) {
+    // "All Medicines" page - aggregated data
+    finalPrice = medicine.priceStats?.displayPrice || medicine.price || 0;
+    originalPrice = medicine.priceStats?.lowestPrice || medicine.price || 0;
+    discountPercentage = medicine.priceStats?.discountPercentage || 0;
+    isDiscounted = medicine.priceStats?.hasDiscount || false;
+  } else {
+    // Pharmacy Detail page - specific pharmacy price
+    finalPrice = medicine.discountedPrice || 
+      (medicine.discountPercentage > 0 
+        ? medicine.price * (1 - medicine.discountPercentage / 100)
+        : medicine.price);
+    originalPrice = medicine.price || 0;
+    discountPercentage = medicine.discountPercentage || 0;
+    isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+  }
+  
+  // Check availability based on context
+  const isAvailable = isAggregatedView 
+    ? (medicine.availableAtCount > 0 || medicine.inStock)
+    : (medicine.inStock !== false);
+
+  return (
+    <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto">
+      
+      {/* Medicine Image */}
+      <div className="relative h-24 bg-gray-50 flex items-center justify-center">
+        <img
+          src={medicine.image}
+          alt={medicine.name}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+          }}
+        />
+        
+        {/* Discount badge */}
+        {isDiscounted && (
+          <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+            {discountPercentage > 0 ? `${discountPercentage}%` : 'SALE'}
+          </div>
+        )}
+        
+        {/* Out of stock badge */}
+        {!isAvailable && (
+          <div className="absolute top-1 right-1 bg-gray-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+            OOS
+          </div>
+        )}
+        
+        {/* Available at multiple pharmacies badge (only in aggregated view) */}
+        {isAggregatedView && medicine.availableAtCount > 1 && (
+          <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+            {medicine.availableAtCount} stores
+          </div>
+        )}
+      </div>
+      
+      {/* Medicine Info */}
+      <div className="p-1.5">
+        <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
+          {medicine.name}
+        </h3>
+        
+        {medicine.genericName && (
+          <p className="text-[10px] text-gray-500 mb-0.5">{medicine.genericName}</p>
+        )}
+        
+        <p className="text-[10px] text-gray-600 line-clamp-2 mb-1.5">
+          {medicine.description}
+        </p>
+        
+        <div className="flex justify-between items-center mb-1.5">
+          <div className="flex items-center">
+            <span className="text-sm font-bold text-green-600">
+              Rs. {finalPrice.toFixed(2)}
+            </span>
+            
+            {/* Show original price if discounted */}
+            {isDiscounted && originalPrice > finalPrice && (
+              <span className="text-[10px] text-gray-500 line-through ml-1">
+                Rs. {originalPrice.toFixed(2)}
+              </span>
+            )}
+            
+            {/* Show price range for aggregated view */}
+            {isAggregatedView && medicine.priceStats && (
+              <span className="text-[10px] text-gray-500 ml-1">
+                ({medicine.availableAtCount} stores)
+              </span>
+            )}
+          </div>
+          
+          {/* Prescription badge */}
+          {medicine.prescriptionRequired && (
+            <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+              Rx
+            </span>
+          )}
+        </div>
+        
+        {/* Buttons */}
+        <div className="flex space-x-1">
+          <button
+            onClick={() => onAddToCart(medicine)}
+            disabled={!isAvailable}
+            className={`flex-1 py-1 px-1.5 rounded text-[10px] font-medium transition-colors ${
+              isAvailable
+                ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)]'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {isAvailable ? 'Add to Cart' : 'Out of Stock'}
+          </button>
+          
+          {/* Link to medicine detail page */}
+          {isAggregatedView ? (
+            // Link to aggregated medicine detail (by name)
+            <Link
+              to={`/medicines/${encodeURIComponent(medicine.name)}`}
+              className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+            >
+              Compare
+            </Link>
+          ) : (
+            // Link to medicine detail page (by ID)
+            <Link
+              to={`/medicine/${medicine._id}`}
+              className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+            >
+              Details
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MedicineCard;

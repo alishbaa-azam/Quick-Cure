@@ -1,4 +1,4 @@
-// components/MedicineDetail.jsx
+//components/MedicineDetail.jsx
 // import React, { useState } from "react";
 // import { useParams } from "react-router-dom";
 // import { medicines } from "./medicines";
@@ -154,7 +154,7 @@
 
 
 
-// The below code is working perfectly
+//The below code is working perfectly
 
 // import React from 'react';
 // import { useParams, Link } from 'react-router-dom';
@@ -280,7 +280,7 @@
 
 
 
-// Below code is for checking new idea.
+//Below code is for checking new idea.
 // import React, { useState } from 'react';
 // import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 // import { medicines } from './medicines';
@@ -730,570 +730,6 @@
 
 
 
-
-
-//The backend API is attached below.
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-
-const MedicineDetail = ({ cart, setCart }) => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  
-  const [medicine, setMedicine] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeSection, setActiveSection] = useState('uses');
-  const [relatedMedicines, setRelatedMedicines] = useState([]);
-
-  // Fetch medicine details from backend
-  useEffect(() => {
-    const fetchMedicineDetails = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/medicines/${id}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setMedicine(data.data);
-          
-          // Fetch related medicines (same category)
-          fetchRelatedMedicines(data.data.category, data.data._id);
-        } else {
-          setError('Medicine not found');
-        }
-      } catch (err) {
-        console.error('Error fetching medicine:', err);
-        setError('Error loading medicine details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (id) {
-      fetchMedicineDetails();
-    }
-  }, [id]);
-
-  // Fetch related medicines
-  const fetchRelatedMedicines = async (category, excludeId) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/medicines?category=${category}&limit=4`);
-      const data = await response.json();
-      
-      if (data.success) {
-        // Exclude current medicine
-        const filtered = data.data.filter(med => med._id !== excludeId).slice(0, 3);
-        setRelatedMedicines(filtered);
-      }
-    } catch (err) {
-      console.error('Error fetching related medicines:', err);
-    }
-  };
-
-  // Get quantity in cart
-  const quantityInCart = medicine ? 
-    cart.find(item => item._id === medicine._id)?.quantity || 0 
-    : 0;
-
-  const addToCart = () => {
-    if (!medicine) return;
-    
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item._id === medicine._id);
-      if (existingItem) {
-        return prevCart.map(item =>
-          item._id === medicine._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prevCart, { ...medicine, quantity: 1 }];
-    });
-  };
-
-  const removeFromCart = () => {
-    if (!medicine) return;
-    
-    setCart(prevCart => prevCart.filter(item => item._id !== medicine._id));
-  };
-
-  // Calculate final price with discount
-  const calculateFinalPrice = () => {
-    if (!medicine) return 0;
-    
-    if (medicine.discountedPrice) {
-      return medicine.discountedPrice;
-    }
-    
-    if (medicine.discountPercentage > 0) {
-      return medicine.price * (1 - medicine.discountPercentage / 100);
-    }
-    
-    return medicine.price;
-  };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-gray-600">Loading medicine details...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error || !medicine) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <svg className="w-16 h-16 text-red-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h2 className="text-2xl font-bold text-red-600 mb-2">Medicine Not Found</h2>
-        <p className="text-gray-500 mb-6">{error || 'The medicine you are looking for does not exist.'}</p>
-        <button 
-          onClick={() => navigate(-1)}
-          className="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          ← Go Back
-        </button>
-      </div>
-    );
-  }
-
-  const finalPrice = calculateFinalPrice();
-  const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
-  const availablePharmacies = medicine.availableAtPharmacies || [];
-
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
-      >
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Go Back
-      </button>
-
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="md:flex">
-          {/* Left Column - Medicine Info */}
-          <div className="md:w-2/5 lg:w-1/3 p-6 md:p-8 border-r border-gray-100">
-            {/* Medicine Image */}
-            <div className="mb-6">
-              <div className="relative rounded-xl overflow-hidden bg-gray-50 h-64">
-                <img
-                  src={medicine.image}
-                  alt={medicine.name}
-                  className="w-full h-full object-contain p-4"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
-                  }}
-                />
-                {isDiscounted && (
-                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg font-bold">
-                    {medicine.discountPercentage > 0 
-                      ? `Rs. {medicine.discountPercentage}% OFF` 
-                      : 'SALE'}
-                  </div>
-                )}
-                {!medicine.inStock && (
-                  <div className="absolute top-4 right-4 bg-gray-600 text-white px-3 py-1 rounded-lg font-bold">
-                    OUT OF STOCK
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Medicine Info Box */}
-            <div className="space-y-5">
-              {/* Category */}
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                  <h3 className="text-sm font-semibold text-gray-700">Category</h3>
-                </div>
-                <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-100">
-                  {medicine.category || 'General'}
-                </div>
-              </div>
-
-              {/* Manufacturer */}
-              {medicine.manufacturer && (
-                <div>
-                  <div className="flex items-center mb-2">
-                    <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <h3 className="text-sm font-semibold text-gray-700">Manufacturer</h3>
-                  </div>
-                  <div className="bg-gray-50 text-gray-700 px-4 py-2 rounded-lg border border-gray-100">
-                    {medicine.manufacturer}
-                  </div>
-                </div>
-              )}
-
-              {/* Dosage */}
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <h3 className="text-sm font-semibold text-gray-700">Dosage</h3>
-                </div>
-                <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-100">
-                  {medicine.dosage || 'As prescribed'}
-                </div>
-              </div>
-
-              {/* Price */}
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <h3 className="text-sm font-semibold text-gray-700">Price</h3>
-                </div>
-                <div className="bg-purple-50 text-purple-700 px-4 py-2 rounded-lg border border-purple-100">
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold">Rs. {finalPrice.toFixed(2)}</span>
-                    {isDiscounted && medicine.price > finalPrice && (
-                      <span className="text-sm text-gray-500 line-through">
-                        Rs. {medicine.price.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">per unit</div>
-                </div>
-              </div>
-
-              {/* Available at Pharmacies */}
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <h3 className="text-sm font-semibold text-gray-700">Available at</h3>
-                </div>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                  {availablePharmacies.length > 0 ? (
-                    availablePharmacies.map(pharmacy => (
-                      <Link
-                        key={pharmacy._id}
-                        to={`/pharmacies/${pharmacy._id}`}
-                        className="block bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-700 px-3 py-2 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{pharmacy.name}</span>
-                          <span className="text-xs text-gray-500">{pharmacy.distance || 'Nearby'}</span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">{pharmacy.city}</div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="bg-gray-50 text-gray-500 px-3 py-2 rounded-lg border border-gray-200">
-                      Available at selected pharmacies
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Cart Summary */}
-              {quantityInCart > 0 && (
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-1">In your cart:</p>
-                    <p className="text-lg font-bold text-blue-600">{quantityInCart} unit{quantityInCart > 1 ? 's' : ''}</p>
-                    <p className="text-sm text-gray-500">Total: Rs. {(finalPrice * quantityInCart).toFixed(2)}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column - Content */}
-          <div className="md:w-3/5 lg:w-2/3 flex flex-col">
-            {/* Fixed Header */}
-            <div className="p-6 md:p-8 border-b border-gray-100">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
-                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-0">
-                  {medicine.name}
-                </h1>
-                <div className="flex items-center space-x-4">
-                  {medicine.brand && (
-                    <span className="text-lg text-gray-600 font-medium">{medicine.brand}</span>
-                  )}
-                  {medicine.prescriptionRequired && (
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                      Prescription Required
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              {medicine.genericName && (
-                <p className="text-gray-500 italic mb-3">Generic: {medicine.genericName}</p>
-              )}
-              
-              <p className="text-lg text-gray-600 leading-relaxed">
-                {medicine.detailedDescription || medicine.description}
-              </p>
-            </div>
-
-            {/* Scrollable Content with Tabs */}
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* Section Navigation Tabs */}
-              <div className="border-b border-gray-200">
-                <div className="flex overflow-x-auto px-6 md:px-8">
-                  <button
-                    onClick={() => setActiveSection('uses')}
-                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'uses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Uses & Benefits
-                  </button>
-                  <button
-                    onClick={() => setActiveSection('sideEffects')}
-                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'sideEffects' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Side Effects
-                  </button>
-                  <button
-                    onClick={() => setActiveSection('precautions')}
-                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'precautions' ? 'border-yellow-600 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Precautions
-                  </button>
-                  <button
-                    onClick={() => setActiveSection('instructions')}
-                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'instructions' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  >
-                    Instructions
-                  </button>
-                </div>
-              </div>
-
-              {/* Scrollable Content Area */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                {/* Uses Section */}
-                {activeSection === 'uses' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Primary Uses</h3>
-                      {medicine.uses && medicine.uses.length > 0 ? (
-                        <ul className="space-y-3">
-                          {medicine.uses.map((use, index) => (
-                            <li key={index} className="flex items-start">
-                              <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span className="text-gray-700">{use}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-gray-500 italic">No specific uses listed.</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Side Effects Section */}
-                {activeSection === 'sideEffects' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Common Side Effects</h3>
-                      {medicine.sideEffects && medicine.sideEffects.length > 0 ? (
-                        <ul className="space-y-3">
-                          {medicine.sideEffects.map((effect, index) => (
-                            <li key={index} className="flex items-start">
-                              <svg className="w-5 h-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                              </svg>
-                              <span className="text-gray-700">{effect}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-gray-500 italic">No specific side effects listed.</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Precautions Section */}
-                {activeSection === 'precautions' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Important Precautions</h3>
-                      {medicine.precautions && medicine.precautions.length > 0 ? (
-                        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-5">
-                          <ul className="space-y-4">
-                            {medicine.precautions.map((precaution, index) => (
-                              <li key={index} className="flex items-start">
-                                <svg className="w-5 h-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span className="text-gray-800">{precaution}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : (
-                        <p className="text-gray-500 italic">No specific precautions listed.</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Instructions Section */}
-                {activeSection === 'instructions' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Usage Instructions</h3>
-                      {medicine.instructions && medicine.instructions.length > 0 ? (
-                        <div className="bg-green-50 border border-green-100 rounded-xl p-5">
-                          <ul className="space-y-4">
-                            {medicine.instructions.map((instruction, index) => (
-                              <li key={index} className="flex items-start">
-                                <svg className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                                <span className="text-gray-800">{instruction}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : (
-                        <p className="text-gray-700">Take as directed by your physician. Follow the dosage instructions carefully.</p>
-                      )}
-                    </div>
-                    {medicine.storageInstructions && (
-                      <div>
-                        <h4 className="font-bold text-gray-900 mb-2">Storage Instructions</h4>
-                        <p className="text-gray-700">{medicine.storageInstructions}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Fixed Add to Cart Button */}
-              <div className="border-t border-gray-200 p-6 md:p-8 bg-white">
-                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                  <div className="text-center sm:text-left">
-                    <p className="text-gray-600">Quantity in cart: <span className="font-bold text-blue-600">{quantityInCart}</span></p>
-                    <p className="text-sm text-gray-500">Click below to add more</p>
-                  </div>
-                  {/* <div className="flex flex-wrap gap-3 items-center"> */}
-<div className="flex items-center space-x-4">
-                    <button
-                      onClick={removeFromCart}
-                      disabled={quantityInCart === 0}
-                      className={`px-6 py-3 rounded-lg font-medium ${quantityInCart === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
-                    >
-                      Remove
-                    </button>
-                    <button
-                      onClick={addToCart}
-                      disabled={!medicine.inStock}
-                      className={`px-8 py-3 rounded-lg text-lg font-semibold shadow-md transition-colors ${
-                        medicine.inStock
-                          ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)] hover:shadow-lg'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {medicine.inStock 
-                        ? (quantityInCart > 0 ? 'Add More to Cart' : 'Add to Cart')
-                        : 'Out of Stock'
-                      } - Rs. {finalPrice.toFixed(2)}
-                    </button>
-                    <Link
-                      to="/booking"
-                      className={`px-6 py-3 rounded-lg font-medium ${
-                        cart.length === 0 
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                          : 'bg-green-600 text-white hover:bg-green-700'
-                      }`}
-                    >
-                      Checkout ({cart.length})
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Related Medicines Section */}
-      {relatedMedicines.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Related Medicines</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedMedicines.map(relatedMed => (
-              <div key={relatedMed._id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
-                <div className="p-5">
-                  <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-1">
-                    {relatedMed.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {relatedMed.description}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-green-600">
-                      Rs.{relatedMed.discountedPrice 
-                        ? relatedMed.discountedPrice.toFixed(2)
-                        : relatedMed.price.toFixed(2)
-                      }
-                    </span>
-                    <Link
-                      to={`/medicine/${relatedMed._id}`}
-                      className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
-                    >
-                      View Details
-                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Additional Information */}
-      <div className="mt-8 bg-blue-50 rounded-xl p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Important Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4 className="font-semibold text-gray-700 mb-2">📞 Need Help?</h4>
-            <p className="text-gray-600 text-sm">
-              Contact our pharmacists for any questions about this medicine.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-700 mb-2">⚠️ Safety First</h4>
-            <p className="text-gray-600 text-sm">
-              Always consult your doctor before starting any new medication.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default MedicineDetail;
 
 
 
@@ -1827,4 +1263,2304 @@ export default MedicineDetail;
 
 
 
-// Updated backend code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//The backend API is attached below. Working perfect can return to this
+// import React, { useState, useEffect } from 'react';
+// import { useParams, Link, useNavigate } from 'react-router-dom';
+
+// const MedicineDetail = ({ cart, setCart }) => {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+  
+//   const [medicine, setMedicine] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [activeSection, setActiveSection] = useState('uses');
+//   const [relatedMedicines, setRelatedMedicines] = useState([]);
+
+//   // Fetch medicine details from backend
+// useEffect(() => {
+//   const fetchMedicineDetails = async () => {
+//     try {
+//       setLoading(true);
+//       // Use medicine name instead of ID (new aggregated endpoint)
+//       const encodedName = encodeURIComponent(id); // id is actually medicine name
+//       const response = await fetch(`http://localhost:5000/api/medicines/${encodedName}`);
+//       const data = await response.json();
+      
+//       if (data.success) {
+//         // Transform aggregated data to match your component format
+//         const medicineDetails = {
+//           _id: data.data.medicine._id || data.data.medicine.name,
+//           name: data.data.medicine.name,
+//           genericName: data.data.medicine.genericName,
+//           description: data.data.medicine.description,
+//           detailedDescription: data.data.medicine.detailedDescription,
+//           category: data.data.medicine.category,
+//           // Use lowest price from aggregated data
+//           price: data.data.stats?.lowestPrice || data.data.medicine.price || 0,
+//           discountedPrice: data.data.stats?.lowestDiscountedPrice,
+//           discountPercentage: data.data.medicine.discountPercentage || 0,
+//           dosage: data.data.medicine.dosage,
+//           strength: data.data.medicine.strength,
+//           form: data.data.medicine.form,
+//           manufacturer: data.data.medicine.manufacturer,
+//           image: data.data.medicine.image,
+//           prescriptionRequired: data.data.medicine.prescriptionRequired || false,
+//           inStock: data.data.stats?.totalPharmacies > 0, // Available if at least one pharmacy
+//           // Transform availableAtPharmacies
+//           availableAtPharmacies: data.data.availableAt?.map(pharmacy => ({
+//             _id: pharmacy.pharmacyId,
+//             name: pharmacy.pharmacyName,
+//             city: pharmacy.pharmacyCity,
+//             distance: pharmacy.pharmacyDistance,
+//             // Add other pharmacy fields if needed
+//           })) || []
+//         };
+        
+//         setMedicine(medicineDetails);
+        
+//         // Fetch related medicines (same category)
+//         fetchRelatedMedicines(medicineDetails.category, medicineDetails._id);
+//       } else {
+//         setError('Medicine not found');
+//       }
+//     } catch (err) {
+//       console.error('Error fetching medicine:', err);
+//       setError('Error loading medicine details');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+    
+//     if (id) {
+//       fetchMedicineDetails();
+//     }
+//   }, [id]);
+
+//   // Fetch related medicines
+//   const fetchRelatedMedicines = async (category, excludeId) => {
+//     try {
+//       const response = await fetch(`http://localhost:5000/api/medicines?category=${category}&limit=4`);
+//       const data = await response.json();
+      
+//       if (data.success) {
+//         // Exclude current medicine
+//         const filtered = data.data.filter(med => med._id !== excludeId).slice(0, 3);
+//         setRelatedMedicines(filtered);
+//       }
+//     } catch (err) {
+//       console.error('Error fetching related medicines:', err);
+//     }
+//   };
+
+//   // Get quantity in cart
+//   const quantityInCart = medicine ? 
+//     cart.find(item => item._id === medicine._id)?.quantity || 0 
+//     : 0;
+
+//   const addToCart = () => {
+//     if (!medicine) return;
+    
+//     setCart(prevCart => {
+//       const existingItem = prevCart.find(item => item._id === medicine._id);
+//       if (existingItem) {
+//         return prevCart.map(item =>
+//           item._id === medicine._id
+//             ? { ...item, quantity: item.quantity + 1 }
+//             : item
+//         );
+//       }
+//       return [...prevCart, { ...medicine, quantity: 1 }];
+//     });
+//   };
+
+//   const removeFromCart = () => {
+//     if (!medicine) return;
+    
+//     setCart(prevCart => prevCart.filter(item => item._id !== medicine._id));
+//   };
+
+//   // Calculate final price with discount
+//   const calculateFinalPrice = () => {
+//     if (!medicine) return 0;
+    
+//     if (medicine.discountedPrice) {
+//       return medicine.discountedPrice;
+//     }
+    
+//     if (medicine.discountPercentage > 0) {
+//       return medicine.price * (1 - medicine.discountPercentage / 100);
+//     }
+    
+//     return medicine.price;
+//   };
+
+//   // Loading state
+//   if (loading) {
+//     return (
+//       <div className="container mx-auto px-4 py-8">
+//         <div className="flex justify-center items-center h-64">
+//           <div className="text-lg text-gray-600">Loading medicine details...</div>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   // Error state
+//   if (error || !medicine) {
+//     return (
+//       <div className="container mx-auto px-4 py-8 text-center">
+//         <svg className="w-16 h-16 text-red-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//         </svg>
+//         <h2 className="text-2xl font-bold text-red-600 mb-2">Medicine Not Found</h2>
+//         <p className="text-gray-500 mb-6">{error || 'The medicine you are looking for does not exist.'}</p>
+//         <button 
+//           onClick={() => navigate(-1)}
+//           className="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors"
+//         >
+//           ← Go Back
+//         </button>
+//       </div>
+//     );
+//   }
+
+//   const finalPrice = calculateFinalPrice();
+//   const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+//   const availablePharmacies = medicine.availableAtPharmacies || [];
+
+//   return (
+//     <div className="container mx-auto px-4 py-8 max-w-6xl">
+//       {/* Back Button */}
+//       <button
+//         onClick={() => navigate(-1)}
+//         className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
+//       >
+//         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+//         </svg>
+//         Go Back
+//       </button>
+
+//       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+//         <div className="md:flex">
+//           {/* Left Column - Medicine Info */}
+//           <div className="md:w-2/5 lg:w-1/3 p-6 md:p-8 border-r border-gray-100">
+//             {/* Medicine Image */}
+//             <div className="mb-6">
+//               <div className="relative rounded-xl overflow-hidden bg-gray-50 h-64">
+//                 <img
+//                   src={medicine.image}
+//                   alt={medicine.name}
+//                   className="w-full h-full object-contain p-4"
+//                   onError={(e) => {
+//                     e.target.onerror = null;
+//                     e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+//                   }}
+//                 />
+//                 {isDiscounted && (
+//                   <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg font-bold">
+//                     {medicine.discountPercentage > 0 
+//                       ? `Rs. {medicine.discountPercentage}% OFF` 
+//                       : 'SALE'}
+//                   </div>
+//                 )}
+//                 {!medicine.inStock && (
+//                   <div className="absolute top-4 right-4 bg-gray-600 text-white px-3 py-1 rounded-lg font-bold">
+//                     OUT OF STOCK
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Medicine Info Box */}
+//             <div className="space-y-5">
+//               {/* Category */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Category</h3>
+//                 </div>
+//                 <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-100">
+//                   {medicine.category || 'General'}
+//                 </div>
+//               </div>
+
+//               {/* Manufacturer */}
+//               {medicine.manufacturer && (
+//                 <div>
+//                   <div className="flex items-center mb-2">
+//                     <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+//                     </svg>
+//                     <h3 className="text-sm font-semibold text-gray-700">Manufacturer</h3>
+//                   </div>
+//                   <div className="bg-gray-50 text-gray-700 px-4 py-2 rounded-lg border border-gray-100">
+//                     {medicine.manufacturer}
+//                   </div>
+//                 </div>
+//               )}
+
+//               {/* Dosage */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Dosage</h3>
+//                 </div>
+//                 <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-100">
+//                   {medicine.dosage || 'As prescribed'}
+//                 </div>
+//               </div>
+
+//               {/* Price */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Price</h3>
+//                 </div>
+//                 <div className="bg-purple-50 text-purple-700 px-4 py-2 rounded-lg border border-purple-100">
+//                   <div className="flex justify-between items-center">
+//                     <span className="text-2xl font-bold">Rs. {finalPrice.toFixed(2)}</span>
+//                     {isDiscounted && medicine.price > finalPrice && (
+//                       <span className="text-sm text-gray-500 line-through">
+//                         Rs. {medicine.price.toFixed(2)}
+//                       </span>
+//                     )}
+//                   </div>
+//                   <div className="text-xs text-gray-500 mt-1">per unit</div>
+//                 </div>
+//               </div>
+
+//               {/* Available at Pharmacies */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Available at</h3>
+//                 </div>
+//                 <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+//                   {availablePharmacies.length > 0 ? (
+//                     availablePharmacies.map(pharmacy => (
+//                       <Link
+//                         key={pharmacy._id}
+//                         to={`/pharmacies/${pharmacy._id}`}
+//                         className="block bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-700 px-3 py-2 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors"
+//                       >
+//                         <div className="flex justify-between items-center">
+//                           <span className="font-medium">{pharmacy.name}</span>
+//                           <span className="text-xs text-gray-500">{pharmacy.distance || 'Nearby'}</span>
+//                         </div>
+//                         <div className="text-xs text-gray-500 mt-1">{pharmacy.city}</div>
+//                       </Link>
+//                     ))
+//                   ) : (
+//                     <div className="bg-gray-50 text-gray-500 px-3 py-2 rounded-lg border border-gray-200">
+//                       Available at selected pharmacies
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+
+//               {/* Cart Summary */}
+//               {quantityInCart > 0 && (
+//                 <div className="pt-4 border-t border-gray-200">
+//                   <div className="text-center">
+//                     <p className="text-sm text-gray-600 mb-1">In your cart:</p>
+//                     <p className="text-lg font-bold text-blue-600">{quantityInCart} unit{quantityInCart > 1 ? 's' : ''}</p>
+//                     <p className="text-sm text-gray-500">Total: Rs. {(finalPrice * quantityInCart).toFixed(2)}</p>
+//                   </div>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+
+//           {/* Right Column - Content */}
+//           <div className="md:w-3/5 lg:w-2/3 flex flex-col">
+//             {/* Fixed Header */}
+//             <div className="p-6 md:p-8 border-b border-gray-100">
+//               <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
+//                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-0">
+//                   {medicine.name}
+//                 </h1>
+//                 <div className="flex items-center space-x-4">
+//                   {/* {medicine.brand && (
+//                     <span className="text-lg text-gray-600 font-medium">{medicine.brand}</span>
+//                   )} */}
+//                   {medicine.prescriptionRequired && (
+//                     <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+//                       Prescription Required
+//                     </span>
+//                   )}
+//                 </div>
+//               </div>
+              
+//               {medicine.genericName && (
+//                 <p className="text-gray-500 italic mb-3">Generic: {medicine.genericName}</p>
+//               )}
+              
+//               <p className="text-lg text-gray-600 leading-relaxed">
+//                 {medicine.detailedDescription || medicine.description}
+//               </p>
+//             </div>
+
+//             {/* Scrollable Content with Tabs */}
+//             <div className="flex-1 flex flex-col min-h-0">
+//               {/* Section Navigation Tabs */}
+//               <div className="border-b border-gray-200">
+//                 <div className="flex overflow-x-auto px-6 md:px-8">
+//                   <button
+//                     onClick={() => setActiveSection('uses')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'uses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Uses & Benefits
+//                   </button>
+//                   <button
+//                     onClick={() => setActiveSection('sideEffects')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'sideEffects' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Side Effects
+//                   </button>
+//                   <button
+//                     onClick={() => setActiveSection('precautions')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'precautions' ? 'border-yellow-600 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Precautions
+//                   </button>
+//                   <button
+//                     onClick={() => setActiveSection('instructions')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'instructions' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Instructions
+//                   </button>
+//                 </div>
+//               </div>
+
+//               {/* Scrollable Content Area */}
+//               <div className="flex-1 overflow-y-auto p-6 md:p-8">
+//                 {/* Uses Section */}
+//                 {activeSection === 'uses' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Primary Uses</h3>
+//                       {medicine.uses && medicine.uses.length > 0 ? (
+//                         <ul className="space-y-3">
+//                           {medicine.uses.map((use, index) => (
+//                             <li key={index} className="flex items-start">
+//                               <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+//                               </svg>
+//                               <span className="text-gray-700">{use}</span>
+//                             </li>
+//                           ))}
+//                         </ul>
+//                       ) : (
+//                         <p className="text-gray-500 italic">No specific uses listed.</p>
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Side Effects Section */}
+//                 {activeSection === 'sideEffects' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Common Side Effects</h3>
+//                       {medicine.sideEffects && medicine.sideEffects.length > 0 ? (
+//                         <ul className="space-y-3">
+//                           {medicine.sideEffects.map((effect, index) => (
+//                             <li key={index} className="flex items-start">
+//                               <svg className="w-5 h-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+//                               </svg>
+//                               <span className="text-gray-700">{effect}</span>
+//                             </li>
+//                           ))}
+//                         </ul>
+//                       ) : (
+//                         <p className="text-gray-500 italic">No specific side effects listed.</p>
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Precautions Section */}
+//                 {activeSection === 'precautions' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Important Precautions</h3>
+//                       {medicine.precautions && medicine.precautions.length > 0 ? (
+//                         <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-5">
+//                           <ul className="space-y-4">
+//                             {medicine.precautions.map((precaution, index) => (
+//                               <li key={index} className="flex items-start">
+//                                 <svg className="w-5 h-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                                 </svg>
+//                                 <span className="text-gray-800">{precaution}</span>
+//                               </li>
+//                             ))}
+//                           </ul>
+//                         </div>
+//                       ) : (
+//                         <p className="text-gray-500 italic">No specific precautions listed.</p>
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Instructions Section */}
+//                 {activeSection === 'instructions' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Usage Instructions</h3>
+//                       {medicine.instructions && medicine.instructions.length > 0 ? (
+//                         <div className="bg-green-50 border border-green-100 rounded-xl p-5">
+//                           <ul className="space-y-4">
+//                             {medicine.instructions.map((instruction, index) => (
+//                               <li key={index} className="flex items-start">
+//                                 <svg className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+//                                 </svg>
+//                                 <span className="text-gray-800">{instruction}</span>
+//                               </li>
+//                             ))}
+//                           </ul>
+//                         </div>
+//                       ) : (
+//                         <p className="text-gray-700">Take as directed by your physician. Follow the dosage instructions carefully.</p>
+//                       )}
+//                     </div>
+//                     {medicine.storageInstructions && (
+//                       <div>
+//                         <h4 className="font-bold text-gray-900 mb-2">Storage Instructions</h4>
+//                         <p className="text-gray-700">{medicine.storageInstructions}</p>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* Fixed Add to Cart Button */}
+//               <div className="border-t border-gray-200 p-6 md:p-8 bg-white">
+//                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+//                   <div className="text-center sm:text-left">
+//                     <p className="text-gray-600">Quantity in cart: <span className="font-bold text-blue-600">{quantityInCart}</span></p>
+//                     <p className="text-sm text-gray-500">Click below to add more</p>
+//                   </div>
+//                   {/* <div className="flex flex-wrap gap-3 items-center"> */}
+// <div className="flex items-center space-x-4">
+//                     <button
+//                       onClick={removeFromCart}
+//                       disabled={quantityInCart === 0}
+//                       className={`px-6 py-3 rounded-lg font-medium ${quantityInCart === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+//                     >
+//                       Remove
+//                     </button>
+//                     <button
+//                       onClick={addToCart}
+//                       disabled={!medicine.inStock}
+//                       className={`px-8 py-3 rounded-lg text-lg font-semibold shadow-md transition-colors ${
+//                         medicine.inStock
+//                           ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)] hover:shadow-lg'
+//                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+//                       }`}
+//                     >
+//                       {medicine.inStock 
+//                         ? (quantityInCart > 0 ? 'Add More to Cart' : 'Add to Cart')
+//                         : 'Out of Stock'
+//                       } - Rs. {finalPrice.toFixed(2)}
+//                     </button>
+//                     <Link
+//                       to="/booking"
+//                       className={`px-6 py-3 rounded-lg font-medium ${
+//                         cart.length === 0 
+//                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+//                           : 'bg-green-600 text-white hover:bg-green-700'
+//                       }`}
+//                     >
+//                       Checkout ({cart.length})
+//                     </Link>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Related Medicines Section */}
+//       {relatedMedicines.length > 0 && (
+//         <div className="mt-12">
+//           <h2 className="text-2xl font-bold text-gray-800 mb-6">Related Medicines</h2>
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//             {relatedMedicines.map(relatedMed => (
+//               <div key={relatedMed._id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+//                 <div className="p-5">
+//                   <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-1">
+//                     {relatedMed.name}
+//                   </h3>
+//                   <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+//                     {relatedMed.description}
+//                   </p>
+//                   <div className="flex justify-between items-center">
+//                     <span className="text-xl font-bold text-green-600">
+//                       Rs.{relatedMed.discountedPrice 
+//                         ? relatedMed.discountedPrice.toFixed(2)
+//                         : relatedMed.price.toFixed(2)
+//                       }
+//                     </span>
+//                     <Link
+//                       to={`/medicine/${relatedMed._id}`}
+//                       className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+//                     >
+//                       View Details
+//                       <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+//                       </svg>
+//                     </Link>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Additional Information */}
+//       <div className="mt-8 bg-blue-50 rounded-xl p-6">
+//         <h3 className="text-lg font-bold text-gray-900 mb-4">Important Information</h3>
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//           <div>
+//             <h4 className="font-semibold text-gray-700 mb-2">📞 Need Help?</h4>
+//             <p className="text-gray-600 text-sm">
+//               Contact our pharmacists for any questions about this medicine.
+//             </p>
+//           </div>
+//           <div>
+//             <h4 className="font-semibold text-gray-700 mb-2">⚠️ Safety First</h4>
+//             <p className="text-gray-600 text-sm">
+//               Always consult your doctor before starting any new medication.
+//             </p>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MedicineDetail;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Updated backend code with new logic
+// import React, { useState, useEffect } from 'react';
+// import { useParams, Link, useNavigate } from 'react-router-dom';
+
+// const MedicineDetail = ({ cart, setCart }) => {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+  
+//   const [medicine, setMedicine] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [activeSection, setActiveSection] = useState('uses');
+//   const [relatedMedicines, setRelatedMedicines] = useState([]);
+//   const [isAggregatedView, setIsAggregatedView] = useState(false);
+//   const [pharmacyId, setPharmacyId] = useState(null);
+
+//   // SMART medicine fetching - detects pharmacy-specific vs aggregated
+//   useEffect(() => {
+//     const fetchMedicineDetails = async () => {
+//       try {
+//         setLoading(true);
+        
+//         // Check if ID is in format: "pharmacyId_medicineId" (pharmacy-specific)
+//         // or just "medicineName" (aggregated - for future)
+//         const idParts = id.split('_');
+        
+//         if (idParts.length === 2) {
+//           // PHARMACY-SPECIFIC FLOW: pharmacyId_medicineId
+//           await fetchPharmacyMedicine(idParts[0], idParts[1]);
+//         } else {
+//           // AGGREGATED FLOW: medicineName (not implemented yet)
+//           await fetchAggregatedMedicine(id);
+//         }
+//       } catch (err) {
+//         console.error('Error fetching medicine:', err);
+//         setError('Error loading medicine details');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+    
+//     if (id) {
+//       fetchMedicineDetails();
+//     }
+//   }, [id]);
+
+//   // 1. Fetch pharmacy-specific medicine
+//   const fetchPharmacyMedicine = async (pharmacyId, medicineId) => {
+//     try {
+//       const response = await fetch(
+//         `http://localhost:5000/api/pharmacies/${pharmacyId}/medicines/${medicineId}`
+//       );
+//       const data = await response.json();
+      
+//       if (data.success) {
+//         const medicineData = data.data;
+        
+//         // Calculate discount percentage automatically
+//         const discountPercentage = medicineData.discountedPrice && medicineData.price > 0
+//           ? Math.round(((medicineData.price - medicineData.discountedPrice) / medicineData.price) * 100)
+//           : 0;
+        
+//         const medicineDetails = {
+//           _id: medicineId,
+//           id: `${pharmacyId}_${medicineId}`, // Combined ID for cart
+//           name: medicineData.name,
+//           genericName: medicineData.genericName,
+//           description: medicineData.description,
+//           detailedDescription: medicineData.detailedDescription || medicineData.description,
+//           category: medicineData.category,
+//           price: medicineData.price,
+//           discountedPrice: medicineData.discountedPrice,
+//           discountPercentage: discountPercentage,
+//           dosage: medicineData.dosage || 'As prescribed',
+//           strength: medicineData.strength,
+//           form: medicineData.form,
+//           manufacturer: medicineData.manufacturer,
+//           image: medicineData.image,
+//           prescriptionRequired: medicineData.prescriptionRequired || false,
+//           inStock: medicineData.inStock !== false, // Default to true if not specified
+//           // Detailed arrays
+//           sideEffects: medicineData.sideEffects || [],
+//           uses: medicineData.uses || [],
+//           precautions: medicineData.precautions || [],
+//           instructions: medicineData.instructions || [],
+//           storageInstructions: medicineData.storageInstructions || 'Store in a cool, dry place away from direct sunlight',
+//           // Pharmacy info
+//           pharmacyId: pharmacyId,
+//           pharmacyName: medicineData.pharmacy?.name || 'Pharmacy',
+//           pharmacyAddress: medicineData.pharmacy?.address,
+//           pharmacyCity: medicineData.pharmacy?.city,
+//           pharmacyPhone: medicineData.pharmacy?.phone,
+//           // Available at (for this pharmacy only)
+//           availableAtPharmacies: [{
+//             _id: pharmacyId,
+//             name: medicineData.pharmacy?.name || 'Pharmacy',
+//             city: medicineData.pharmacy?.city,
+//             distance: medicineData.pharmacy?.distance || 'Nearby'
+//           }]
+//         };
+        
+//         setMedicine(medicineDetails);
+//         setPharmacyId(pharmacyId);
+//         setIsAggregatedView(false);
+        
+//         // Fetch related medicines from SAME pharmacy
+//         if (medicineData.category) {
+//           fetchRelatedPharmacyMedicines(pharmacyId, medicineData.category, medicineId);
+//         }
+//       } else {
+//         setError(data.message || 'Medicine not found');
+//       }
+//     } catch (err) {
+//       console.error('Error fetching pharmacy medicine:', err);
+//       setError('Error loading medicine details from pharmacy');
+//     }
+//   };
+
+//   // 2. Fetch aggregated medicine (FOR FUTURE - NOT WORKING YET)
+//   const fetchAggregatedMedicine = async (medicineName) => {
+//     try {
+//       // For now, show message that aggregated view is not ready
+//       // You can uncomment this when you implement aggregation
+      
+//       /*
+//       // UNCOMMENT THIS WHEN READY FOR AGGREGATION:
+//       const encodedName = encodeURIComponent(medicineName);
+//       const response = await fetch(`http://localhost:5000/api/medicines/${encodedName}`);
+//       const data = await response.json();
+      
+//       if (data.success) {
+//         // Transform aggregated data
+//         const medicineDetails = {
+//           _id: data.data.medicine._id || data.data.medicine.name,
+//           id: medicineName, // Use name as ID for aggregated
+//           name: data.data.medicine.name,
+//           genericName: data.data.medicine.genericName,
+//           description: data.data.medicine.description,
+//           detailedDescription: data.data.medicine.detailedDescription,
+//           category: data.data.medicine.category,
+//           price: data.data.stats?.lowestPrice || data.data.medicine.price || 0,
+//           discountedPrice: data.data.stats?.lowestDiscountedPrice,
+//           discountPercentage: data.data.medicine.discountPercentage || 0,
+//           dosage: data.data.medicine.dosage,
+//           strength: data.data.medicine.strength,
+//           form: data.data.medicine.form,
+//           manufacturer: data.data.medicine.manufacturer,
+//           image: data.data.medicine.image,
+//           prescriptionRequired: data.data.medicine.prescriptionRequired || false,
+//           inStock: data.data.stats?.totalPharmacies > 0,
+//           sideEffects: data.data.medicine.sideEffects || [],
+//           uses: data.data.medicine.uses || [],
+//           precautions: data.data.medicine.precautions || [],
+//           instructions: data.data.medicine.instructions || [],
+//           storageInstructions: data.data.medicine.storageInstructions,
+//           availableAtPharmacies: data.data.availableAt?.map(pharmacy => ({
+//             _id: pharmacy.pharmacyId,
+//             name: pharmacy.pharmacyName,
+//             city: pharmacy.pharmacyCity,
+//             distance: pharmacy.pharmacyDistance,
+//           })) || []
+//         };
+        
+//         setMedicine(medicineDetails);
+//         setIsAggregatedView(true);
+        
+//         // Fetch related aggregated medicines
+//         if (data.data.medicine.category) {
+//           fetchRelatedAggregatedMedicines(data.data.medicine.category, medicineName);
+//         }
+//       } else {
+//         setError('Medicine not found in aggregated data');
+//       }
+//       */
+      
+//       // TEMPORARY: Show error for aggregated access
+//       setError('Aggregated medicine view is not enabled yet. Please access medicines through pharmacies.');
+//       setIsAggregatedView(true);
+      
+//     } catch (err) {
+//       console.error('Error fetching aggregated medicine:', err);
+//       setError('Error loading aggregated medicine details');
+//     }
+//   };
+
+//   // Fetch related medicines for pharmacy-specific view
+//   const fetchRelatedPharmacyMedicines = async (pharmacyId, category, excludeMedicineId) => {
+//     try {
+//       const response = await fetch(
+//         `http://localhost:5000/api/pharmacies/${pharmacyId}/medicines?category=${category}`
+//       );
+//       const data = await response.json();
+      
+//       if (data.success) {
+//         const filtered = data.data
+//           .filter(med => med._id !== excludeMedicineId)
+//           .slice(0, 3)
+//           .map(med => ({
+//             _id: `${pharmacyId}_${med._id}`, // Combined ID
+//             name: med.name,
+//             description: med.description,
+//             price: med.price,
+//             discountedPrice: med.discountedPrice,
+//             discountPercentage: med.discountedPrice && med.price > 0
+//               ? Math.round(((med.price - med.discountedPrice) / med.price) * 100)
+//               : 0,
+//             image: med.image
+//           }));
+        
+//         setRelatedMedicines(filtered);
+//       }
+//     } catch (err) {
+//       console.error('Error fetching related pharmacy medicines:', err);
+//     }
+//   };
+
+//   // Fetch related aggregated medicines (FOR FUTURE)
+//   const fetchRelatedAggregatedMedicines = async (category, excludeMedicineName) => {
+//     try {
+//       // Uncomment when aggregated is ready
+//       /*
+//       const response = await fetch(`http://localhost:5000/api/medicines?category=${category}&limit=4`);
+//       const data = await response.json();
+      
+//       if (data.success) {
+//         const filtered = data.data
+//           .filter(med => med.name !== excludeMedicineName)
+//           .slice(0, 3)
+//           .map(med => ({
+//             _id: med.name, // Use name as ID
+//             name: med.name,
+//             description: med.description,
+//             price: med.priceStats?.displayPrice || med.price,
+//             discountedPrice: med.priceStats?.lowestDiscountedPrice,
+//             discountPercentage: med.priceStats?.discountPercentage || 0,
+//             image: med.image
+//           }));
+        
+//         setRelatedMedicines(filtered);
+//       }
+//       */
+//     } catch (err) {
+//       console.error('Error fetching related aggregated medicines:', err);
+//     }
+//   };
+
+//   // Get quantity in cart
+//   const quantityInCart = medicine ? 
+//     cart.find(item => item.id === medicine.id)?.quantity || 0 
+//     : 0;
+
+//   const addToCart = () => {
+//     if (!medicine) return;
+    
+//     setCart(prevCart => {
+//       const existingItem = prevCart.find(item => item.id === medicine.id);
+//       if (existingItem) {
+//         return prevCart.map(item =>
+//           item.id === medicine.id
+//             ? { ...item, quantity: item.quantity + 1 }
+//             : item
+//         );
+//       }
+//       return [...prevCart, { ...medicine, quantity: 1 }];
+//     });
+//   };
+
+//   const removeFromCart = () => {
+//     if (!medicine) return;
+    
+//     setCart(prevCart => prevCart.filter(item => item.id !== medicine.id));
+//   };
+
+//   // Calculate final price with discount
+//   const calculateFinalPrice = () => {
+//     if (!medicine) return 0;
+    
+//     if (medicine.discountedPrice) {
+//       return medicine.discountedPrice;
+//     }
+    
+//     if (medicine.discountPercentage > 0) {
+//       return medicine.price * (1 - medicine.discountPercentage / 100);
+//     }
+    
+//     return medicine.price;
+//   };
+
+//   // Loading state
+//   if (loading) {
+//     return (
+//       <div className="container mx-auto px-4 py-8">
+//         <div className="flex justify-center items-center h-64">
+//           <div className="text-lg text-gray-600">Loading medicine details...</div>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   // Error state
+//   if (error || !medicine) {
+//     return (
+//       <div className="container mx-auto px-4 py-8 text-center">
+//         <svg className="w-16 h-16 text-red-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//         </svg>
+//         <h2 className="text-2xl font-bold text-red-600 mb-2">Medicine Not Found</h2>
+//         <p className="text-gray-500 mb-6">{error || 'The medicine you are looking for does not exist.'}</p>
+        
+//         {isAggregatedView && (
+//           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+//             <p className="text-blue-800 mb-2">
+//               Try accessing medicine through a pharmacy:
+//             </p>
+//             <Link 
+//               to="/pharmacies"
+//               className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+//             >
+//               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+//               </svg>
+//               Browse Pharmacies →
+//             </Link>
+//           </div>
+//         )}
+        
+//         <button 
+//           onClick={() => navigate(-1)}
+//           className="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors"
+//         >
+//           ← Go Back
+//         </button>
+//       </div>
+//     );
+//   }
+
+//   const finalPrice = calculateFinalPrice();
+//   const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+//   const availablePharmacies = medicine.availableAtPharmacies || [];
+
+//   return (
+//     <div className="container mx-auto px-4 py-8 max-w-6xl">
+//       {/* Back Button */}
+//       <button
+//         onClick={() => navigate(-1)}
+//         className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
+//       >
+//         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+//         </svg>
+//         Go Back
+//       </button>
+
+//       {/* Pharmacy Info Banner (only for pharmacy-specific view) */}
+//       {!isAggregatedView && medicine.pharmacyName && (
+//         <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+//           <div className="flex items-center">
+//             <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+//             </svg>
+//             <span className="font-medium text-blue-800">
+//               Available at: 
+//               <Link 
+//                 to={`/pharmacies/${medicine.pharmacyId}`} 
+//                 className="ml-1 hover:underline font-semibold"
+//               >
+//                 {medicine.pharmacyName}
+//               </Link>
+//               {medicine.pharmacyCity && ` (${medicine.pharmacyCity})`}
+//             </span>
+//             <span className="ml-auto text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+//               Pharmacy-specific price
+//             </span>
+//           </div>
+//         </div>
+//       )}
+
+//       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+//         <div className="md:flex">
+//           {/* Left Column - Medicine Info */}
+//           <div className="md:w-2/5 lg:w-1/3 p-6 md:p-8 border-r border-gray-100">
+//             {/* Medicine Image */}
+//             <div className="mb-6">
+//               <div className="relative rounded-xl overflow-hidden bg-gray-50 h-64">
+//                 <img
+//                   src={medicine.image}
+//                   alt={medicine.name}
+//                   className="w-full h-full object-contain p-4"
+//                   onError={(e) => {
+//                     e.target.onerror = null;
+//                     e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+//                   }}
+//                 />
+//                 {isDiscounted && (
+//                   <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg font-bold">
+//                     {medicine.discountPercentage > 0 
+//                       ? `${medicine.discountPercentage}% OFF` 
+//                       : 'SALE'}
+//                   </div>
+//                 )}
+//                 {!medicine.inStock && (
+//                   <div className="absolute top-4 right-4 bg-gray-600 text-white px-3 py-1 rounded-lg font-bold">
+//                     OUT OF STOCK
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Medicine Info Box */}
+//             <div className="space-y-5">
+//               {/* Category */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Category</h3>
+//                 </div>
+//                 <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-100">
+//                   {medicine.category || 'General'}
+//                 </div>
+//               </div>
+
+//               {/* Manufacturer */}
+//               {medicine.manufacturer && (
+//                 <div>
+//                   <div className="flex items-center mb-2">
+//                     <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+//                     </svg>
+//                     <h3 className="text-sm font-semibold text-gray-700">Manufacturer</h3>
+//                   </div>
+//                   <div className="bg-gray-50 text-gray-700 px-4 py-2 rounded-lg border border-gray-100">
+//                     {medicine.manufacturer}
+//                   </div>
+//                 </div>
+//               )}
+
+//               {/* Dosage */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Dosage</h3>
+//                 </div>
+//                 <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-100">
+//                   {medicine.dosage || 'As prescribed'}
+//                 </div>
+//               </div>
+
+//               {/* Price */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Price</h3>
+//                 </div>
+//                 <div className="bg-purple-50 text-purple-700 px-4 py-2 rounded-lg border border-purple-100">
+//                   <div className="flex justify-between items-center">
+//                     <span className="text-2xl font-bold">Rs. {finalPrice.toFixed(2)}</span>
+//                     {isDiscounted && medicine.price > finalPrice && (
+//                       <span className="text-sm text-gray-500 line-through">
+//                         Rs. {medicine.price.toFixed(2)}
+//                       </span>
+//                     )}
+//                   </div>
+//                   <div className="text-xs text-gray-500 mt-1">per unit</div>
+//                   {medicine.discountPercentage > 0 && (
+//                     <div className="text-xs text-green-600 font-medium mt-1">
+//                       Save {medicine.discountPercentage}%
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+
+//               {/* Available at Pharmacies */}
+//               <div>
+//                 <div className="flex items-center mb-2">
+//                   <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+//                   </svg>
+//                   <h3 className="text-sm font-semibold text-gray-700">Available at</h3>
+//                 </div>
+//                 <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+//                   {availablePharmacies.length > 0 ? (
+//                     availablePharmacies.map(pharmacy => (
+//                       <Link
+//                         key={pharmacy._id}
+//                         to={`/pharmacies/${pharmacy._id}`}
+//                         className="block bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-700 px-3 py-2 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors"
+//                       >
+//                         <div className="flex justify-between items-center">
+//                           <span className="font-medium">{pharmacy.name}</span>
+//                           <span className="text-xs text-gray-500">{pharmacy.distance || 'Nearby'}</span>
+//                         </div>
+//                         <div className="text-xs text-gray-500 mt-1">{pharmacy.city}</div>
+//                       </Link>
+//                     ))
+//                   ) : (
+//                     <div className="bg-gray-50 text-gray-500 px-3 py-2 rounded-lg border border-gray-200">
+//                       Available at selected pharmacies
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+
+//               {/* Cart Summary */}
+//               {quantityInCart > 0 && (
+//                 <div className="pt-4 border-t border-gray-200">
+//                   <div className="text-center">
+//                     <p className="text-sm text-gray-600 mb-1">In your cart:</p>
+//                     <p className="text-lg font-bold text-blue-600">{quantityInCart} unit{quantityInCart > 1 ? 's' : ''}</p>
+//                     <p className="text-sm text-gray-500">Total: Rs. {(finalPrice * quantityInCart).toFixed(2)}</p>
+//                   </div>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+
+//           {/* Right Column - Content */}
+//           <div className="md:w-3/5 lg:w-2/3 flex flex-col">
+//             {/* Fixed Header */}
+//             <div className="p-6 md:p-8 border-b border-gray-100">
+//               <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
+//                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-0">
+//                   {medicine.name}
+//                 </h1>
+//                 <div className="flex items-center space-x-4">
+//                   {medicine.prescriptionRequired && (
+//                     <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+//                       Prescription Required
+//                     </span>
+//                   )}
+//                 </div>
+//               </div>
+              
+//               {medicine.genericName && (
+//                 <p className="text-gray-500 italic mb-3">Generic: {medicine.genericName}</p>
+//               )}
+              
+//               <p className="text-lg text-gray-600 leading-relaxed">
+//                 {medicine.detailedDescription || medicine.description}
+//               </p>
+//             </div>
+
+//             {/* Scrollable Content with Tabs */}
+//             <div className="flex-1 flex flex-col min-h-0">
+//               {/* Section Navigation Tabs */}
+//               <div className="border-b border-gray-200">
+//                 <div className="flex overflow-x-auto px-6 md:px-8">
+//                   <button
+//                     onClick={() => setActiveSection('uses')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'uses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Uses & Benefits
+//                   </button>
+//                   <button
+//                     onClick={() => setActiveSection('sideEffects')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'sideEffects' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Side Effects
+//                   </button>
+//                   <button
+//                     onClick={() => setActiveSection('precautions')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'precautions' ? 'border-yellow-600 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Precautions
+//                   </button>
+//                   <button
+//                     onClick={() => setActiveSection('instructions')}
+//                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'instructions' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+//                   >
+//                     Instructions
+//                   </button>
+//                 </div>
+//               </div>
+
+//               {/* Scrollable Content Area */}
+//               <div className="flex-1 overflow-y-auto p-6 md:p-8">
+//                 {/* Uses Section */}
+//                 {activeSection === 'uses' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Primary Uses</h3>
+//                       {medicine.uses && medicine.uses.length > 0 ? (
+//                         <ul className="space-y-3">
+//                           {medicine.uses.map((use, index) => (
+//                             <li key={index} className="flex items-start">
+//                               <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+//                               </svg>
+//                               <span className="text-gray-700">{use}</span>
+//                             </li>
+//                           ))}
+//                         </ul>
+//                       ) : (
+//                         <p className="text-gray-500 italic">No specific uses listed.</p>
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Side Effects Section */}
+//                 {activeSection === 'sideEffects' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Common Side Effects</h3>
+//                       {medicine.sideEffects && medicine.sideEffects.length > 0 ? (
+//                         <ul className="space-y-3">
+//                           {medicine.sideEffects.map((effect, index) => (
+//                             <li key={index} className="flex items-start">
+//                               <svg className="w-5 h-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+//                               </svg>
+//                               <span className="text-gray-700">{effect}</span>
+//                             </li>
+//                           ))}
+//                         </ul>
+//                       ) : (
+//                         <p className="text-gray-500 italic">No specific side effects listed.</p>
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Precautions Section */}
+//                 {activeSection === 'precautions' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Important Precautions</h3>
+//                       {medicine.precautions && medicine.precautions.length > 0 ? (
+//                         <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-5">
+//                           <ul className="space-y-4">
+//                             {medicine.precautions.map((precaution, index) => (
+//                               <li key={index} className="flex items-start">
+//                                 <svg className="w-5 h-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                                 </svg>
+//                                 <span className="text-gray-800">{precaution}</span>
+//                               </li>
+//                             ))}
+//                           </ul>
+//                         </div>
+//                       ) : (
+//                         <p className="text-gray-500 italic">No specific precautions listed.</p>
+//                       )}
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* Instructions Section */}
+//                 {activeSection === 'instructions' && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <h3 className="text-xl font-bold text-gray-900 mb-4">Usage Instructions</h3>
+//                       {medicine.instructions && medicine.instructions.length > 0 ? (
+//                         <div className="bg-green-50 border border-green-100 rounded-xl p-5">
+//                           <ul className="space-y-4">
+//                             {medicine.instructions.map((instruction, index) => (
+//                               <li key={index} className="flex items-start">
+//                                 <svg className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+//                                 </svg>
+//                                 <span className="text-gray-800">{instruction}</span>
+//                               </li>
+//                             ))}
+//                           </ul>
+//                         </div>
+//                       ) : (
+//                         <p className="text-gray-700">Take as directed by your physician. Follow the dosage instructions carefully.</p>
+//                       )}
+//                     </div>
+//                     {medicine.storageInstructions && (
+//                       <div>
+//                         <h4 className="font-bold text-gray-900 mb-2">Storage Instructions</h4>
+//                         <p className="text-gray-700">{medicine.storageInstructions}</p>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* Fixed Add to Cart Button */}
+//               <div className="border-t border-gray-200 p-6 md:p-8 bg-white">
+//                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+//                   <div className="text-center sm:text-left">
+//                     <p className="text-gray-600">Quantity in cart: <span className="font-bold text-blue-600">{quantityInCart}</span></p>
+//                     <p className="text-sm text-gray-500">Click below to add more</p>
+//                   </div>
+//                   <div className="flex items-center space-x-4">
+//                     <button
+//                       onClick={removeFromCart}
+//                       disabled={quantityInCart === 0}
+//                       className={`px-6 py-3 rounded-lg font-medium ${quantityInCart === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+//                     >
+//                       Remove
+//                     </button>
+//                     <button
+//                       onClick={addToCart}
+//                       disabled={!medicine.inStock}
+//                       className={`px-8 py-3 rounded-lg text-lg font-semibold shadow-md transition-colors ${
+//                         medicine.inStock
+//                           ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)] hover:shadow-lg'
+//                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+//                       }`}
+//                     >
+//                       {medicine.inStock 
+//                         ? (quantityInCart > 0 ? 'Add More to Cart' : 'Add to Cart')
+//                         : 'Out of Stock'
+//                       } - Rs. {finalPrice.toFixed(2)}
+//                     </button>
+//                     <Link
+//                       to="/booking"
+//                       className={`px-6 py-3 rounded-lg font-medium ${
+//                         cart.length === 0 
+//                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+//                           : 'bg-green-600 text-white hover:bg-green-700'
+//                       }`}
+//                     >
+//                       Checkout ({cart.length})
+//                     </Link>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Related Medicines Section */}
+//       {relatedMedicines.length > 0 && (
+//         <div className="mt-12">
+//           <h2 className="text-2xl font-bold text-gray-800 mb-6">Related Medicines</h2>
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//             {relatedMedicines.map(relatedMed => (
+//               <div key={relatedMed._id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+//                 <div className="p-5">
+//                   <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-1">
+//                     {relatedMed.name}
+//                   </h3>
+//                   <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+//                     {relatedMed.description}
+//                   </p>
+//                   <div className="flex justify-between items-center">
+//                     <div>
+//                       <span className="text-xl font-bold text-green-600">
+//                         Rs.{relatedMed.discountedPrice 
+//                           ? relatedMed.discountedPrice.toFixed(2)
+//                           : relatedMed.price.toFixed(2)
+//                         }
+//                       </span>
+//                       {relatedMed.discountPercentage > 0 && (
+//                         <span className="ml-2 text-sm text-red-600 font-medium">
+//                           {relatedMed.discountPercentage}% OFF
+//                         </span>
+//                       )}
+//                     </div>
+//                     <Link
+//                       to={`/medicine/${relatedMed._id}`}
+//                       className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+//                     >
+//                       View Details
+//                       <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+//                       </svg>
+//                     </Link>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Additional Information */}
+//       <div className="mt-8 bg-blue-50 rounded-xl p-6">
+//         <h3 className="text-lg font-bold text-gray-900 mb-4">Important Information</h3>
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//           <div>
+//             <h4 className="font-semibold text-gray-700 mb-2">📞 Need Help?</h4>
+//             <p className="text-gray-600 text-sm">
+//               Contact our pharmacists for any questions about this medicine.
+//             </p>
+//             {medicine.pharmacyPhone && (
+//               <a 
+//                 href={`tel:${medicine.pharmacyPhone}`}
+//                 className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm mt-1"
+//               >
+//                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+//                 </svg>
+//                 Call {medicine.pharmacyName}: {medicine.pharmacyPhone}
+//               </a>
+//             )}
+//           </div>
+//           <div>
+//             <h4 className="font-semibold text-gray-700 mb-2">⚠️ Safety First</h4>
+//             <p className="text-gray-600 text-sm">
+//               Always consult your doctor before starting any new medication.
+//             </p>
+//             {medicine.prescriptionRequired && (
+//               <p className="text-red-600 text-sm mt-1 font-medium">
+//                 ⚠️ This medicine requires a valid prescription.
+//               </p>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MedicineDetail;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Aggregated logic
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+
+const MedicineDetail = ({ cart, setCart }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  const [medicine, setMedicine] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeSection, setActiveSection] = useState('uses');
+  const [relatedMedicines, setRelatedMedicines] = useState([]);
+  const [isAggregatedView, setIsAggregatedView] = useState(false);
+  const [pharmacyId, setPharmacyId] = useState(null);
+
+  // SMART medicine fetching - detects pharmacy-specific vs aggregated
+  useEffect(() => {
+    const fetchMedicineDetails = async () => {
+      try {
+        setLoading(true);
+        
+        // Check if ID is in format: "pharmacyId_medicineId" (pharmacy-specific)
+        // or just "medicineName" (aggregated)
+        const idParts = id.split('_');
+        
+        if (idParts.length === 2) {
+          // PHARMACY-SPECIFIC FLOW: pharmacyId_medicineId
+          await fetchPharmacyMedicine(idParts[0], idParts[1]);
+        } else {
+          // AGGREGATED FLOW: medicineName
+          await fetchAggregatedMedicine(id);
+        }
+      } catch (err) {
+        console.error('Error fetching medicine:', err);
+        setError('Error loading medicine details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (id) {
+      fetchMedicineDetails();
+    }
+  }, [id]);
+
+  // 1. Fetch pharmacy-specific medicine
+  const fetchPharmacyMedicine = async (pharmacyId, medicineId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/pharmacies/${pharmacyId}/medicines/${medicineId}`
+      );
+      const data = await response.json();
+      
+      if (data.success) {
+        const medicineData = data.data;
+        
+        // Calculate discount percentage automatically
+        const discountPercentage = medicineData.discountedPrice && medicineData.price > 0
+          ? Math.round(((medicineData.price - medicineData.discountedPrice) / medicineData.price) * 100)
+          : 0;
+        
+        const medicineDetails = {
+          _id: medicineId,
+          id: `${pharmacyId}_${medicineId}`, // Combined ID for cart
+          name: medicineData.name,
+          genericName: medicineData.genericName,
+          description: medicineData.description,
+          detailedDescription: medicineData.detailedDescription || medicineData.description,
+          category: medicineData.category,
+          price: medicineData.price,
+          discountedPrice: medicineData.discountedPrice,
+          discountPercentage: discountPercentage,
+          dosage: medicineData.dosage || 'As prescribed',
+          strength: medicineData.strength,
+          form: medicineData.form,
+          manufacturer: medicineData.manufacturer,
+          image: medicineData.image,
+          prescriptionRequired: medicineData.prescriptionRequired || false,
+          inStock: medicineData.inStock !== false, // Default to true if not specified
+          // Detailed arrays
+          sideEffects: medicineData.sideEffects || [],
+          uses: medicineData.uses || [],
+          precautions: medicineData.precautions || [],
+          instructions: medicineData.instructions || [],
+          storageInstructions: medicineData.storageInstructions || 'Store in a cool, dry place away from direct sunlight',
+          // Pharmacy info
+          pharmacyId: pharmacyId,
+          pharmacyName: medicineData.pharmacy?.name || 'Pharmacy',
+          pharmacyAddress: medicineData.pharmacy?.address,
+          pharmacyCity: medicineData.pharmacy?.city,
+          pharmacyPhone: medicineData.pharmacy?.phone,
+          // Available at (for this pharmacy only)
+          availableAtPharmacies: [{
+            _id: pharmacyId,
+            name: medicineData.pharmacy?.name || 'Pharmacy',
+            city: medicineData.pharmacy?.city,
+            distance: medicineData.pharmacy?.distance || 'Nearby'
+          }]
+        };
+        
+        setMedicine(medicineDetails);
+        setPharmacyId(pharmacyId);
+        setIsAggregatedView(false);
+        
+        // Fetch related medicines from SAME pharmacy
+        if (medicineData.category) {
+          fetchRelatedPharmacyMedicines(pharmacyId, medicineData.category, medicineId);
+        }
+      } else {
+        setError(data.message || 'Medicine not found');
+      }
+    } catch (err) {
+      console.error('Error fetching pharmacy medicine:', err);
+      setError('Error loading medicine details from pharmacy');
+    }
+  };
+
+  // 2. Fetch aggregated medicine
+  const fetchAggregatedMedicine = async (medicineName) => {
+    try {
+      const encodedName = encodeURIComponent(medicineName);
+      const response = await fetch(`http://localhost:5000/api/pharmacies/medicines/${encodedName}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform aggregated data
+        const medicineDetails = {
+          _id: medicineName,
+          id: medicineName,
+          name: data.data.medicine.name,
+          genericName: data.data.medicine.genericName,
+          description: data.data.medicine.description,
+          detailedDescription: data.data.medicine.detailedDescription,
+          category: data.data.medicine.category,
+          price: data.data.stats?.lowestPrice || data.data.medicine.price || 0,
+          discountedPrice: data.data.stats?.lowestDiscountedPrice,
+          discountPercentage: 0, // Will calculate from availableAt
+          dosage: data.data.medicine.dosage,
+          strength: data.data.medicine.strength,
+          form: data.data.medicine.form,
+          manufacturer: data.data.medicine.manufacturer,
+          image: data.data.medicine.image,
+          prescriptionRequired: data.data.medicine.prescriptionRequired || false,
+          inStock: data.data.stats?.totalPharmacies > 0,
+          sideEffects: data.data.medicine.sideEffects || [],
+          uses: data.data.medicine.uses || [],
+          precautions: data.data.medicine.precautions || [],
+          instructions: data.data.medicine.instructions || [],
+          storageInstructions: data.data.medicine.storageInstructions,
+          availableAtPharmacies: data.data.availableAt?.map(pharmacy => ({
+            _id: pharmacy.pharmacyId,
+            name: pharmacy.pharmacyName,
+            city: pharmacy.pharmacyCity,
+            distance: pharmacy.distance || 'Nearby',
+            price: pharmacy.price,
+            discountedPrice: pharmacy.discountedPrice,
+            discountPercentage: pharmacy.discountPercentage || 0,
+            uniqueId: pharmacy.uniqueId || `${pharmacy.pharmacyId}_${medicineName}`
+          })) || [],
+          stats: data.data.stats
+        };
+        
+        setMedicine(medicineDetails);
+        setIsAggregatedView(true);
+        
+        // Fetch related aggregated medicines
+        if (data.data.medicine.category) {
+          fetchRelatedAggregatedMedicines(data.data.medicine.category, medicineName);
+        }
+      } else {
+        setError('Medicine not found in aggregated data');
+      }
+    } catch (err) {
+      console.error('Error fetching aggregated medicine:', err);
+      setError('Error loading aggregated medicine details');
+    }
+  };
+
+  // Fetch related medicines for pharmacy-specific view
+  const fetchRelatedPharmacyMedicines = async (pharmacyId, category, excludeMedicineId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/pharmacies/${pharmacyId}/medicines?category=${category}`
+      );
+      const data = await response.json();
+      
+      if (data.success) {
+        const filtered = data.data
+          .filter(med => med._id !== excludeMedicineId)
+          .slice(0, 3)
+          .map(med => ({
+            _id: `${pharmacyId}_${med._id}`, // Combined ID
+            name: med.name,
+            description: med.description,
+            price: med.price,
+            discountedPrice: med.discountedPrice,
+            discountPercentage: med.discountedPrice && med.price > 0
+              ? Math.round(((med.price - med.discountedPrice) / med.price) * 100)
+              : 0,
+            image: med.image
+          }));
+        
+        setRelatedMedicines(filtered);
+      }
+    } catch (err) {
+      console.error('Error fetching related pharmacy medicines:', err);
+    }
+  };
+
+  // Fetch related aggregated medicines
+  const fetchRelatedAggregatedMedicines = async (category, excludeMedicineName) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/pharmacies/medicines/all?category=${category}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const filtered = data.data
+          .filter(med => med.name !== excludeMedicineName)
+          .slice(0, 3)
+          .map(med => ({
+            _id: med.name,
+            name: med.name,
+            description: med.description,
+            price: med.lowestPrice || med.price || 0,
+            discountedPrice: med.lowestDiscountedPrice,
+            discountPercentage: 0,
+            image: med.image
+          }));
+        
+        setRelatedMedicines(filtered);
+      }
+    } catch (err) {
+      console.error('Error fetching related aggregated medicines:', err);
+    }
+  };
+
+  // Get quantity in cart
+  const quantityInCart = medicine ? 
+    cart.find(item => item.id === medicine.id)?.quantity || 0 
+    : 0;
+
+  const addToCart = () => {
+    if (!medicine) return;
+    
+    // For aggregated view, can't add to cart directly (need to choose a pharmacy)
+    if (isAggregatedView) {
+      alert('Please select a specific pharmacy to add this medicine to cart');
+      return;
+    }
+    
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.id === medicine.id);
+      if (existingItem) {
+        return prevCart.map(item =>
+          item.id === medicine.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prevCart, { ...medicine, quantity: 1 }];
+    });
+  };
+
+  const removeFromCart = () => {
+    if (!medicine) return;
+    
+    setCart(prevCart => prevCart.filter(item => item.id !== medicine.id));
+  };
+
+  // Calculate final price with discount
+  const calculateFinalPrice = () => {
+    if (!medicine) return 0;
+    
+    if (medicine.discountedPrice) {
+      return medicine.discountedPrice;
+    }
+    
+    if (medicine.discountPercentage > 0) {
+      return medicine.price * (1 - medicine.discountPercentage / 100);
+    }
+    
+    return medicine.price;
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading medicine details...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !medicine) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <svg className="w-16 h-16 text-red-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2 className="text-2xl font-bold text-red-600 mb-2">Medicine Not Found</h2>
+        <p className="text-gray-500 mb-6">{error || 'The medicine you are looking for does not exist.'}</p>
+        
+        {isAggregatedView && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+            <p className="text-blue-800 mb-2">
+              Try accessing medicine through a pharmacy:
+            </p>
+            <Link 
+              to="/pharmacies"
+              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              Browse Pharmacies →
+            </Link>
+          </div>
+        )}
+        
+        <button 
+          onClick={() => navigate(-1)}
+          className="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          ← Go Back
+        </button>
+      </div>
+    );
+  }
+
+  const finalPrice = calculateFinalPrice();
+  const isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+  const availablePharmacies = medicine.availableAtPharmacies || [];
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
+      >
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Go Back
+      </button>
+
+      {/* Pharmacy Info Banner (only for pharmacy-specific view) */}
+      {!isAggregatedView && medicine.pharmacyName && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span className="font-medium text-blue-800">
+              Available at: 
+              <Link 
+                to={`/pharmacies/${medicine.pharmacyId}`} 
+                className="ml-1 hover:underline font-semibold"
+              >
+                {medicine.pharmacyName}
+              </Link>
+              {medicine.pharmacyCity && ` (${medicine.pharmacyCity})`}
+            </span>
+            <span className="ml-auto text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+              Pharmacy-specific price
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Aggregated View Banner */}
+      {isAggregatedView && (
+        <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <span className="font-medium text-green-800">
+              Available at {availablePharmacies.length} pharmacies • 
+              <span className="ml-2 font-semibold">
+                Price range: Rs. {medicine.stats?.lowestPrice || 0} - Rs. {medicine.stats?.highestPrice || 0}
+              </span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="md:flex">
+          {/* Left Column - Medicine Info */}
+          <div className="md:w-2/5 lg:w-1/3 p-6 md:p-8 border-r border-gray-100">
+            {/* Medicine Image */}
+            <div className="mb-6">
+              <div className="relative rounded-xl overflow-hidden bg-gray-50 h-64">
+                <img
+                  src={medicine.image}
+                  alt={medicine.name}
+                  className="w-full h-full object-contain p-4"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+                  }}
+                />
+                {isDiscounted && (
+                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg font-bold">
+                    {medicine.discountPercentage > 0 
+                      ? `${medicine.discountPercentage}% OFF` 
+                      : 'SALE'}
+                  </div>
+                )}
+                {!medicine.inStock && (
+                  <div className="absolute top-4 right-4 bg-gray-600 text-white px-3 py-1 rounded-lg font-bold">
+                    OUT OF STOCK
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Medicine Info Box */}
+            <div className="space-y-5">
+              {/* Category */}
+              <div>
+                <div className="flex items-center mb-2">
+                  <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-gray-700">Category</h3>
+                </div>
+                <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-100">
+                  {medicine.category || 'General'}
+                </div>
+              </div>
+
+              {/* Manufacturer */}
+              {medicine.manufacturer && (
+                <div>
+                  <div className="flex items-center mb-2">
+                    <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <h3 className="text-sm font-semibold text-gray-700">Manufacturer</h3>
+                  </div>
+                  <div className="bg-gray-50 text-gray-700 px-4 py-2 rounded-lg border border-gray-100">
+                    {medicine.manufacturer}
+                  </div>
+                </div>
+              )}
+
+              {/* Dosage */}
+              <div>
+                <div className="flex items-center mb-2">
+                  <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-gray-700">Dosage</h3>
+                </div>
+                <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-100">
+                  {medicine.dosage || 'As prescribed'}
+                </div>
+              </div>
+
+              {/* Price */}
+              <div>
+                <div className="flex items-center mb-2">
+                  <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-gray-700">Price</h3>
+                </div>
+                <div className="bg-purple-50 text-purple-700 px-4 py-2 rounded-lg border border-purple-100">
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold">Rs. {finalPrice.toFixed(2)}</span>
+                    {isDiscounted && medicine.price > finalPrice && (
+                      <span className="text-sm text-gray-500 line-through">
+                        Rs. {medicine.price.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">per unit</div>
+                  {medicine.discountPercentage > 0 && (
+                    <div className="text-xs text-green-600 font-medium mt-1">
+                      Save {medicine.discountPercentage}%
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Available at Pharmacies */}
+              <div>
+                <div className="flex items-center mb-2">
+                  <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-gray-700">Available at</h3>
+                </div>
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                  {availablePharmacies.length > 0 ? (
+                    availablePharmacies.map(pharmacy => (
+                      <Link
+                        key={pharmacy._id}
+                        to={`/medicine/${pharmacy.uniqueId || `${pharmacy._id}_${medicine.name}`}`}
+                        className="block bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-700 px-3 py-2 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">{pharmacy.name}</span>
+                          <span className="text-xs text-gray-500">{pharmacy.distance || 'Nearby'}</span>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-xs text-gray-500">{pharmacy.city}</span>
+                          <span className="text-sm font-bold text-green-600">
+                            Rs. {pharmacy.discountedPrice || pharmacy.price}
+                            {pharmacy.discountPercentage > 0 && (
+                              <span className="ml-1 text-xs text-red-500">
+                                ({pharmacy.discountPercentage}% OFF)
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="bg-gray-50 text-gray-500 px-3 py-2 rounded-lg border border-gray-200">
+                      Available at selected pharmacies
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Cart Summary */}
+              {quantityInCart > 0 && (
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-1">In your cart:</p>
+                    <p className="text-lg font-bold text-blue-600">{quantityInCart} unit{quantityInCart > 1 ? 's' : ''}</p>
+                    <p className="text-sm text-gray-500">Total: Rs. {(finalPrice * quantityInCart).toFixed(2)}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Content */}
+          <div className="md:w-3/5 lg:w-2/3 flex flex-col">
+            {/* Fixed Header */}
+            <div className="p-6 md:p-8 border-b border-gray-100">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-0">
+                  {medicine.name}
+                </h1>
+                <div className="flex items-center space-x-4">
+                  {medicine.prescriptionRequired && (
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      Prescription Required
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {medicine.genericName && (
+                <p className="text-gray-500 italic mb-3">Generic: {medicine.genericName}</p>
+              )}
+              
+              <p className="text-lg text-gray-600 leading-relaxed">
+                {medicine.detailedDescription || medicine.description}
+              </p>
+            </div>
+
+            {/* Scrollable Content with Tabs */}
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Section Navigation Tabs */}
+              <div className="border-b border-gray-200">
+                <div className="flex overflow-x-auto px-6 md:px-8">
+                  <button
+                    onClick={() => setActiveSection('uses')}
+                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'uses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    Uses & Benefits
+                  </button>
+                  <button
+                    onClick={() => setActiveSection('sideEffects')}
+                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'sideEffects' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    Side Effects
+                  </button>
+                  <button
+                    onClick={() => setActiveSection('precautions')}
+                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'precautions' ? 'border-yellow-600 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    Precautions
+                  </button>
+                  <button
+                    onClick={() => setActiveSection('instructions')}
+                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === 'instructions' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    Instructions
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                {/* Uses Section */}
+                {activeSection === 'uses' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Primary Uses</h3>
+                      {medicine.uses && medicine.uses.length > 0 ? (
+                        <ul className="space-y-3">
+                          {medicine.uses.map((use, index) => (
+                            <li key={index} className="flex items-start">
+                              <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span className="text-gray-700">{use}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-gray-500 italic">No specific uses listed.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Side Effects Section */}
+                {activeSection === 'sideEffects' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Common Side Effects</h3>
+                      {medicine.sideEffects && medicine.sideEffects.length > 0 ? (
+                        <ul className="space-y-3">
+                          {medicine.sideEffects.map((effect, index) => (
+                            <li key={index} className="flex items-start">
+                              <svg className="w-5 h-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                              </svg>
+                              <span className="text-gray-700">{effect}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-gray-500 italic">No specific side effects listed.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Precautions Section */}
+                {activeSection === 'precautions' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Important Precautions</h3>
+                      {medicine.precautions && medicine.precautions.length > 0 ? (
+                        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-5">
+                          <ul className="space-y-4">
+                            {medicine.precautions.map((precaution, index) => (
+                              <li key={index} className="flex items-start">
+                                <svg className="w-5 h-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-gray-800">{precaution}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No specific precautions listed.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Instructions Section */}
+                {activeSection === 'instructions' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Usage Instructions</h3>
+                      {medicine.instructions && medicine.instructions.length > 0 ? (
+                        <div className="bg-green-50 border border-green-100 rounded-xl p-5">
+                          <ul className="space-y-4">
+                            {medicine.instructions.map((instruction, index) => (
+                              <li key={index} className="flex items-start">
+                                <svg className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                <span className="text-gray-800">{instruction}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p className="text-gray-700">Take as directed by your physician. Follow the dosage instructions carefully.</p>
+                      )}
+                    </div>
+                    {medicine.storageInstructions && (
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-2">Storage Instructions</h4>
+                        <p className="text-gray-700">{medicine.storageInstructions}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Fixed Add to Cart Button */}
+              <div className="border-t border-gray-200 p-6 md:p-8 bg-white">
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                  <div className="text-center sm:text-left">
+                    <p className="text-gray-600">Quantity in cart: <span className="font-bold text-blue-600">{quantityInCart}</span></p>
+                    <p className="text-sm text-gray-500">Click below to add more</p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={removeFromCart}
+                      disabled={quantityInCart === 0}
+                      className={`px-6 py-3 rounded-lg font-medium ${quantityInCart === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                    >
+                      Remove
+                    </button>
+                    <button
+                      onClick={addToCart}
+                      disabled={!medicine.inStock || isAggregatedView}
+                      className={`px-8 py-3 rounded-lg text-lg font-semibold shadow-md transition-colors ${
+                        medicine.inStock && !isAggregatedView
+                          ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)] hover:shadow-lg'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      {medicine.inStock 
+                        ? (isAggregatedView ? 'Select Pharmacy First' : (quantityInCart > 0 ? 'Add More to Cart' : 'Add to Cart'))
+                        : 'Out of Stock'
+                      } - Rs. {finalPrice.toFixed(2)}
+                    </button>
+                    <Link
+                      to="/booking"
+                      className={`px-6 py-3 rounded-lg font-medium ${
+                        cart.length === 0 
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                    >
+                      Checkout ({cart.length})
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Related Medicines Section */}
+      {relatedMedicines.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Related Medicines</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {relatedMedicines.map(relatedMed => (
+              <div key={relatedMed._id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+                <div className="p-5">
+                  <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-1">
+                    {relatedMed.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {relatedMed.description}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-xl font-bold text-green-600">
+                        Rs.{relatedMed.discountedPrice 
+                          ? relatedMed.discountedPrice.toFixed(2)
+                          : relatedMed.price.toFixed(2)
+                        }
+                      </span>
+                      {relatedMed.discountPercentage > 0 && (
+                        <span className="ml-2 text-sm text-red-600 font-medium">
+                          {relatedMed.discountPercentage}% OFF
+                        </span>
+                      )}
+                    </div>
+                    <Link
+                      to={`/medicine/${relatedMed._id}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                    >
+                      View Details
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Additional Information */}
+      <div className="mt-8 bg-blue-50 rounded-xl p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Important Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-semibold text-gray-700 mb-2">📞 Need Help?</h4>
+            <p className="text-gray-600 text-sm">
+              Contact our pharmacists for any questions about this medicine.
+            </p>
+            {medicine.pharmacyPhone && (
+              <a 
+                href={`tel:${medicine.pharmacyPhone}`}
+                className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm mt-1"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                Call {medicine.pharmacyName}: {medicine.pharmacyPhone}
+              </a>
+            )}
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-700 mb-2">⚠️ Safety First</h4>
+            <p className="text-gray-600 text-sm">
+              Always consult your doctor before starting any new medication.
+            </p>
+            {medicine.prescriptionRequired && (
+              <p className="text-red-600 text-sm mt-1 font-medium">
+                ⚠️ This medicine requires a valid prescription.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MedicineDetail;

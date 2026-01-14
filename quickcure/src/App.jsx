@@ -11,8 +11,8 @@ import Footer from "./components/footer";
 import Home from "./components/Home/home";
 import DoctorsPage from "./components/Doctors/DoctorsPage";
 import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
-import VideoConsultation from "./components/Doctors/VideoConsultation";
-import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
+// import VideoConsultation from "./components/Doctors/VideoConsultation";
+// import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
 import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
 import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
@@ -27,7 +27,6 @@ import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
 import MedicinePage from "./components/Pharmacy/MedicinePage";
 import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
-// import MedicinePage from './components/Pharmacy/MedicinePage';
 
 
 import ScrollToTop from "./ScrollToTop";  
@@ -47,8 +46,8 @@ function Layout() {
         <Route path="/" element={<Home />} />
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/specialities/:specialityName" element={<SpecialityDoctors />} />
-        <Route path="/video-consultation" element={<VideoConsultation />} />
-        <Route path="/video-consultation/:doctorId" element={<VideoConsultationPage />} />
+        {/* <Route path="/video-consultation" element={<VideoConsultation />} /> */}
+        {/* <Route path="/video-consultation/:doctorId" element={<VideoConsultationPage />} /> */}
         <Route path="/doctor/:id" element={<ViewProfile />} />
         <Route path="/registration" element={<DoctorRegistration />} />
         <Route path="/reg" element={<PharmacyRegistration />} />

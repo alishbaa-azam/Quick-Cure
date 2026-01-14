@@ -214,7 +214,7 @@ const handleSubmit = async () => {
     });
 
     const data = await response.json();
-    console.log('Response:', data);
+    console.log('Response:', data)
 
     if (response.ok) {
       setSubmitSuccess(true);
