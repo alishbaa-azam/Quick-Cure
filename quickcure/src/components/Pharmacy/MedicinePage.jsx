@@ -616,7 +616,7 @@ const MedicinePage = ({ cart, setCart }) => {
                 category: medicine.category,
                 price: medicine.lowestPrice || 0,
                 discountedPrice: medicine.lowestDiscountedPrice,
-                discountPercentage: 0, // Will calculate below
+                discountPercentage: 0, 
                 image: medicine.image,
                 inStock: medicine.availableAt.some(pharmacy => pharmacy.inStock),
                 prescriptionRequired: medicine.prescriptionRequired || false,
@@ -726,7 +726,7 @@ const MedicinePage = ({ cart, setCart }) => {
           <p className="text-gray-500">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="mt-4 px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-[var(--secondary-color)] transition-colors"
           >
             Try Again
           </button>
@@ -769,7 +769,7 @@ const MedicinePage = ({ cart, setCart }) => {
         <div className="w-full md:w-auto">
           <Link
             to="/booking"
-            className={`bg-[var(--primary-color)] text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-block w-full md:w-auto text-center ${
+            className={`bg-[var(--primary-color)] text-white px-6 py-2 rounded-lg hover:bg-[var(--secondary-color)] transition-colors inline-block w-full md:w-auto text-center ${
               cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
@@ -779,7 +779,8 @@ const MedicinePage = ({ cart, setCart }) => {
       </div>
 
       {/* Category Filter */}
-      <div className="mb-6">
+      
+      {/* <div className="mb-6">
         <div className="flex flex-wrap gap-2">
           {categories.map(category => (
             <button
@@ -795,7 +796,7 @@ const MedicinePage = ({ cart, setCart }) => {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Medicine Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
