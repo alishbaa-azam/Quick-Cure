@@ -740,7 +740,7 @@ const MedicinePage = ({ cart, setCart }) => {
       {/* Header with Stats */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">All Medicines</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-(--primary-color)">All Medicines</h1>
           <p className="text-gray-600 mt-1">
             Browse medicines from all pharmacies
           </p>
@@ -788,7 +788,7 @@ const MedicinePage = ({ cart, setCart }) => {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === category
-                  ? 'bg-[var(--primary-color)] text-white'
+                  ? 'bg-(--primary-color) text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
