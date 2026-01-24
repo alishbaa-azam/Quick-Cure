@@ -11,11 +11,10 @@ import Footer from "./components/footer";
 import Home from "./components/Home/home";
 import DoctorsPage from "./components/Doctors/DoctorsPage";
 import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
-// import VideoConsultation from "./components/Doctors/VideoConsultation";
-// import VideoConsultationPage from "./components/Doctors/VideoConsultationPage";
+import BookAppointment from './components/Doctors/appointmentBooking';
 import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
-
+import LabDashboard from "./components/LabDashboards/LabDashboard";
 import LabsPage from "./components/Lab/lab";
 import LabDetail from "./components/Lab/LabDetail";
 import LoginPage from "./components/Login/LoginPage";
@@ -59,16 +58,17 @@ function Layout() {
         <Route path="/" element={<Home />} />
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/specialities/:specialityName" element={<SpecialityDoctors />} />
-        {/* <Route path="/video-consultation" element={<VideoConsultation />} /> */}
-        {/* <Route path="/video-consultation/:doctorId" element={<VideoConsultationPage />} /> */}
-        <Route path="/doctor/:id" element={<ViewProfile />} />
+       <Route path="/doctor/:id" element={<ViewProfile />} />
+        <Route path="/book-appointment/:doctorId" element={<BookAppointment doctorId={location.pathname.split('/')[2]} />} />
         <Route path="/registration" element={<DoctorRegistration />} />
         <Route path="/login" element={<LoginPage />} />
+
+        <Route path='/lab/dashboard' element={<LabDashboard />} />
         <Route path="/labs" element={<LabsPage />} />
         <Route path="/labs/:id" element={<LabDetail />} />
         <Route path="/labs/:id/booking" element={<TestBooking />} />
 
-
+<Route path="/pharmacies" element={<PharmacyPage cart={cart} setCart={setCart} />} /> {/* All Pharmacies Page */}
         <Route path="/pharmacies/:id" element={<PharmacyDetailPage cart={cart} setCart={setCart} />} />
         <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} /> {/* All Medicines Page */}
         <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
