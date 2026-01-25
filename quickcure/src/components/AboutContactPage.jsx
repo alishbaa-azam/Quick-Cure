@@ -607,7 +607,7 @@ const AboutContactPage = () => {
               </div>
               <h3 className="text-xl font-bold text-[#174047] mb-2">Fareeha Ajmal</h3>
               <p className="text-[#5c878f] mb-1">093074</p>
-              <p className="text-gray-600">Frontend Developer</p>
+              <p className="text-gray-600">Full Stack Developer</p>
             </div>
           </div>
           
