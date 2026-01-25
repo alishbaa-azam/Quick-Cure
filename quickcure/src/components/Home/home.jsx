@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaSearch } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "./home.css";
 import bgImage from "../../hospital.webp"; // ← replace with your background image path
 import heart from "../../images/heart-organ.png";
@@ -16,6 +17,7 @@ import TestimonialCarousel from './TestimonialCarousel';
 
 export default function Home() {
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -70,7 +72,7 @@ export default function Home() {
           <div className="speciality">
             <img src={heart} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/cardiologist")}>
                 <span>Cardiac Care</span>
                 <br></br>
                 Heart health treatment
@@ -81,7 +83,7 @@ export default function Home() {
           <div className="speciality">
             <img src={dentist} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/dentist")}>
                 <span>Dentistry</span>
                 <br></br>
                 Dental care solution
@@ -103,7 +105,7 @@ export default function Home() {
           <div className="speciality">
             <img src={stomach} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/gastroenterologist")}>
                 <span>Gestrosciences</span>
                 <br></br>
                 Digestive health care
@@ -114,7 +116,7 @@ export default function Home() {
           <div className="speciality">
             <img src={neuro} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/neurologist")}>
                 <span>Neurosciences</span>
                 <br></br>
                 Brain and nerve Care
@@ -125,7 +127,7 @@ export default function Home() {
           <div className="speciality">
             <img src={kidney} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/sonologist")}>
                 <span>Renal Care</span>
                 <br></br>
                 Kidney health treatment
@@ -147,7 +149,7 @@ export default function Home() {
           <div className="speciality">
             <img src={gynecology} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/gynecologist")}>
                 <span>Gynecology</span>
                 <br></br>
                 Gynecological care solution
@@ -158,14 +160,14 @@ export default function Home() {
           <div className="speciality">
             <img src={paediatric} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/pediatrician")}>
                 <span>Paediatric Care</span>
                 <br></br>
                 Child health services
               </p>
             </div>
           </div>
-          <button type="button">
+          <button type="button" onClick={() => navigate("/doctors")}>
             {" "}
             View All Specialties <span>→</span>
           </button>
@@ -230,3 +232,4 @@ export default function Home() {
     </>
   );
 }
+
