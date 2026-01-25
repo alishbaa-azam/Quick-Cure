@@ -175,14 +175,14 @@ export default function Home() {
       </section>
 
       <section class="why-choose">
-        <p class="eco">
+        <div class="eco">
           <h2>
             Why Choose <span>QuickCure?</span>
           </h2>
           At QuickCure, we blend expert medical care with compassion, offering
           personalized treatment to ensure every patient feels supported and
           valued throughout their healing journey.
-        </p>
+        </div>
 
         <div class="c1">
           <div class="c">

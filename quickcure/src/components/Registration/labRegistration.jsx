@@ -212,7 +212,7 @@ const Step2ContactDetails = ({ register, errors, formValues, getValues, setError
               }
             })}
             type="text"
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent ${getFieldErrorStyle('contactPerson')}`}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-(--primary-color) focus:border-transparent ${getFieldErrorStyle('contactPerson')}`}
             placeholder="Full name"
           />
           {errors.contactPerson && (
@@ -229,7 +229,7 @@ const Step2ContactDetails = ({ register, errors, formValues, getValues, setError
               {...register('designation', {
                 required: 'Designation is required'
               })}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent appearance-none bg-white ${getFieldErrorStyle('designation')}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-(--primary-color) focus:border-transparent appearance-none bg-white ${getFieldErrorStyle('designation')}`}
               defaultValue=""
             >
               <option value="" disabled>Select designation</option>
