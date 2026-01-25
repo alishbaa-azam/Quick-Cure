@@ -424,11 +424,11 @@ export default function ViewProfile() {
 
   const handleShare = () => {
     const shareUrl = window.location.href;
-    const shareText = `Check out Dr. ${doctor?.name} - ${doctor?.speciality} | ${doctor?.qualification} | Book Appointment Now`;
+    const shareText = `Check out  ${doctor?.name} - ${doctor?.speciality} | ${doctor?.qualification} | Book Appointment Now`;
 
     if (navigator.share) {
       navigator.share({
-        title: `Dr. ${doctor?.name} - ${doctor?.speciality}`,
+        title: `${doctor?.name} - ${doctor?.speciality}`,
         text: shareText,
         url: shareUrl,
       });
@@ -642,7 +642,7 @@ export default function ViewProfile() {
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
               <div className="flex-1">
                 <h1 className="text-2xl md:text-3xl font-bold text-[#174047] bg-linear-to-r from-[#174047] to-[#2c6774] bg-clip-text">
-                  Dr. {doctor.name}
+                {doctor.name}
                 </h1>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="px-3 py-1 bg-[#e8f4f7] text-[#2c6774] rounded-full text-sm font-semibold">
@@ -1255,7 +1255,7 @@ export default function ViewProfile() {
                 </button>
               </div>
               <p className="text-sm text-[#5c878f] mt-2">
-                Share your experience with Dr. {doctor.name}
+                Share your experience with {doctor.name}
               </p>
             </div>
 

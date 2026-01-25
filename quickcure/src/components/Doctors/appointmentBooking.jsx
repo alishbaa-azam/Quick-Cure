@@ -1,734 +1,318 @@
-// // // import { useEffect, useState } from "react";
-// // // import axios from "axios";
-
-// // // export default function BookAppointment({ doctorId }) {
-// // //   const [date, setDate] = useState("");
-// // //   const [slots, setSlots] = useState([]);
-// // //   const [time, setTime] = useState("");
-// // //   const [patientName, setPatientName] = useState("");
-// // //   const [phoneNo, setPhoneNo] = useState("");
-// // //   const [loading, setLoading] = useState(false);
-
-// // //   // Next 15 days
-// // //   const next15Days = [...Array(15)].map((_, i) => {
-// // //     const d = new Date();
-// // //     d.setDate(d.getDate() + i);
-// // //     return d.toISOString().split("T")[0];
-// // //   });
-
-// // //  useEffect(() => {
-// // //   if (!date) return;
-// // //   console.log("Fetching slots for date:", date, "doctorId:", doctorId);
-// // //     setLoading(true);
-
-// // //   //   axios
-// // //   //     .get(`/api/appointments/slots?doctorId=${doctorId}&date=${date}`)
-// // //   //     .then((res) => {
-// // //   //       setSlots(Array.isArray(res.data) ? res.data : []);
-// // //   //       setTime("");
-// // //   //     })
-// // //   //     .catch(() => setSlots([]))
-// // //   //     .finally(() => setLoading(false));
-// // //   // }, [date, doctorId]);
-
-// // //   // Update your axios call to catch errors better:
-// // // axios
-// // //   .get(`/api/appointments/slots?doctorId=${doctorId}&date=${date}`)
-// // //   .then((res) => {
-// // //     console.log("Received slots:", res.data); // Debug log
-// // //     setSlots(Array.isArray(res.data) ? res.data : []);
-// // //     setTime("");
-// // //   })
-// // //   .catch((err) => {
-// // //     console.error("Error fetching slots:", err);
-// // //     setSlots([]);
-// // //   })
-// // //   .finally(() => setLoading(false));
-// // // }, [date, doctorId]);
-// // //   // Book appointment
-// // //   const bookAppointment = async () => {
-// // //     if (!patientName || !phoneNo || !date || !time) {
-// // //       alert("Please fill all fields");
-// // //       return;
-// // //     }
-
-// // //     try {
-// // //       await axios.post("/api/appointments/book", {
-// // //         doctorId,
-// // //         patientName,
-// // //         phoneNo,
-// // //         date,
-// // //         time,
-// // //       });
-
-// // //       alert("Appointment booked successfully");
-
-// // //       // reset
-// // //       setPatientName("");
-// // //       setPhoneNo("");
-// // //       setDate("");
-// // //       setTime("");
-// // //       setSlots([]);
-// // //     } catch (err) {
-// // //       alert(err.response?.data?.message || "Booking failed");
-// // //     }
-// // //   };
-
-// // //   return (
-// // //     <div
-// // //       className="max-w-md mx-auto mt-12 p-6 rounded-2xl shadow-xl"
-// // //       style={{ backgroundColor: "var(--bg-light)" }}
-// // //     >
-// // //       <h2
-// // //         className="text-2xl font-bold text-center mb-6"
-// // //         style={{ color: "var(--secondary-color)" }}
-// // //       >
-// // //         Book Appointment
-// // //       </h2>
-
-// // //       {/* Patient Name */}
-// // //       <input
-// // //         type="text"
-// // //         placeholder="Patient Name"
-// // //         value={patientName}
-// // //         onChange={(e) => setPatientName(e.target.value)}
-// // //         className="w-full p-3 mb-4 rounded-lg border focus:outline-none"
-// // //         style={{
-// // //           borderColor: "var(--accent-color)",
-// // //           backgroundColor: "var(--white)",
-// // //         }}
-// // //       />
-
-// // //       {/* Phone Number */}
-// // //       <input
-// // //         type="tel"
-// // //         placeholder="Phone Number"
-// // //         value={phoneNo}
-// // //         onChange={(e) => setPhoneNo(e.target.value)}
-// // //         className="w-full p-3 mb-4 rounded-lg border focus:outline-none"
-// // //         style={{
-// // //           borderColor: "var(--accent-color)",
-// // //           backgroundColor: "var(--white)",
-// // //         }}
-// // //       />
-
-// // //       {/* Date */}
-// // //       <select
-// // //         value={date}
-// // //         onChange={(e) => setDate(e.target.value)}
-// // //         className="w-full p-3 mb-4 rounded-lg border focus:outline-none"
-// // //         style={{
-// // //           borderColor: "var(--accent-color)",
-// // //           backgroundColor: "var(--white)",
-// // //         }}
-// // //       >
-// // //         <option value="">Select Date</option>
-// // //         {next15Days.map((d) => (
-// // //           <option key={d} value={d}>
-// // //             {d}
-// // //           </option>
-// // //         ))}
-// // //       </select>
-// // //       <select
-// // //         value={time}
-// // //         onChange={(e) => setTime(e.target.value)}
-// // //         disabled={loading}
-// // //         className="w-full p-3 mb-6 rounded-lg border focus:outline-none"
-// // //       >
-// // //         <option value="">
-// // //           {loading
-// // //             ? "Loading slots..."
-// // //             : slots.length
-// // //             ? "Select Time"
-// // //             : "No slots available"}
-// // //         </option>
-
-// // //         {slots.map((slot) => (
-// // //           <option key={slot} value={slot}>
-// // //             {slot}
-// // //           </option>
-// // //         ))}
-// // //       </select>
-
-// // //       {/* Button */}
-// // //       <button
-// // //         onClick={bookAppointment}
-// // //         className="w-full py-3 rounded-lg font-semibold transition-all"
-// // //         style={{
-// // //           backgroundColor: "var(--primary-color)",
-// // //           color: "var(--white)",
-// // //         }}
-// // //         onMouseEnter={(e) =>
-// // //           (e.currentTarget.style.backgroundColor = "var(--hover-color)")
-// // //         }
-// // //         onMouseLeave={(e) =>
-// // //           (e.currentTarget.style.backgroundColor = "var(--primary-color)")
-// // //         }
-// // //       >
-// // //         Book Appointment
-// // //       </button>
-// // //     </div>
-// // //   );
-// // // }
-
-// // import { useEffect, useState } from "react";
-// // import axios from "axios";
-
-// // export default function BookAppointment({ doctorId }) {
-// //   const [doctor, setDoctor] = useState(null);
-// //   const [date, setDate] = useState("");
-// //   const [slots, setSlots] = useState([]);
-// //   const [selectedSlot, setSelectedSlot] = useState("");
-
-// //   /* ------------------ Helpers ------------------ */
-
-// //   // Get weekday name from date
-// //   const getDayName = (dateStr) => {
-// //     return new Date(dateStr).toLocaleDateString("en-US", {
-// //       weekday: "long",
-// //     });
-// //   };
-
-// //   // Convert "09:00 AM" → minutes
-// //   const timeToMinutes = (time) => {
-// //     const [timePart, modifier] = time.split(" ");
-// //     let [hours, minutes] = timePart.split(":").map(Number);
-
-// //     if (modifier === "PM" && hours !== 12) hours += 12;
-// //     if (modifier === "AM" && hours === 12) hours = 0;
-
-// //     return hours * 60 + minutes;
-// //   };
-
-// //   // Convert minutes → "09:00 AM"
-// //   const minutesToTime = (minutes) => {
-// //     let h = Math.floor(minutes / 60);
-// //     const m = minutes % 60;
-// //     const ampm = h >= 12 ? "PM" : "AM";
-
-// //     h = h % 12;
-// //     h = h === 0 ? 12 : h;
-
-// //     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
-// //   };
-
-// //   // Generate slots (30 minutes)
-// //   const generateSlots = (start, end, gap = 30) => {
-// //     let result = [];
-// //     let startMin = timeToMinutes(start);
-// //     let endMin = timeToMinutes(end);
-
-// //     while (startMin + gap <= endMin) {
-// //       result.push(
-// //         `${minutesToTime(startMin)} - ${minutesToTime(startMin + gap)}`
-// //       );
-// //       startMin += gap;
-// //     }
-// //     return result;
-// //   };
-
-// //   /* ------------------ Fetch Doctor ------------------ */
-
-// //   useEffect(() => {
-// //     axios
-// //       .get(`http://localhost:5000/api/doctors/${doctorId}`)
-// //       .then((res) => setDoctor(res.data))
-// //       .catch((err) => console.error(err));
-// //   }, [doctorId]);
-
-// //   /* ------------------ Date Change ------------------ */
-
-// //   const handleDateChange = (e) => {
-// //     const selectedDate = e.target.value;
-// //     setDate(selectedDate);
-// //     setSelectedSlot("");
-
-// //     if (!doctor || !selectedDate) return;
-
-// //     const selectedDay = getDayName(selectedDate);
-
-// //     const availableSlots = doctor.availability.filter(
-// //       (a) => a.day === selectedDay && a.isAvailable
-// //     );
-
-// //     if (availableSlots.length === 0) {
-// //       setSlots([]);
-// //       return;
-// //     }
-
-// //     let allSlots = [];
-// //     availableSlots.forEach((a) => {
-// //       allSlots = [
-// //         ...allSlots,
-// //         ...generateSlots(a.startTime, a.endTime),
-// //       ];
-// //     });
-
-// //     setSlots(allSlots);
-// //   };
-
-// //   /* ------------------ UI ------------------ */
-
-// //   return (
-// //     <div className="max-w-lg mx-auto p-4 border rounded">
-// //       <h2 className="text-xl font-bold mb-3">Book Appointment</h2>
-
-// //       {doctor && (
-// //         <p className="mb-3">
-// //           Doctor: <strong>{doctor.name}</strong>
-// //         </p>
-// //       )}
-
-// //       <label className="block mb-2 font-medium">Select Date</label>
-// //       <input
-// //         type="date"
-// //         className="border p-2 w-full mb-4"
-// //         value={date}
-// //         onChange={handleDateChange}
-// //       />
-
-// //       <label className="block mb-2 font-medium">Available Slots</label>
-
-// //       {slots.length === 0 && date && (
-// //         <p className="text-red-500">No slots available</p>
-// //       )}
-
-// //       <div className="grid grid-cols-2 gap-2">
-// //         {slots.map((slot, index) => (
-// //           <button
-// //             key={index}
-// //             onClick={() => setSelectedSlot(slot)}
-// //             className={`border p-2 rounded ${
-// //               selectedSlot === slot
-// //                 ? "bg-blue-600 text-white"
-// //                 : "hover:bg-gray-100"
-// //             }`}
-// //           >
-// //             {slot}
-// //           </button>
-// //         ))}
-// //       </div>
-
-// //       {selectedSlot && (
-// //         <p className="mt-4 text-green-600 font-medium">
-// //           Selected Slot: {selectedSlot}
-// //         </p>
-// //       )}
-// //     </div>
-// //   );
-// // }
-
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-
-// export default function BookAppointment({ doctorId }) {
-//   const [doctor, setDoctor] = useState(null);
-//   const [date, setDate] = useState("");
-//   const [slots, setSlots] = useState([]);
-//   const [selectedSlot, setSelectedSlot] = useState("");
-
-//   // 👉 NEW STATES
-//   const [patientName, setPatientName] = useState("");
-//   const [phoneNo, setPhoneNo] = useState("");
-
-//   /* ------------------ Helpers ------------------ */
-
-//   const getDayName = (dateStr) =>
-//     new Date(dateStr).toLocaleDateString("en-US", { weekday: "long" });
-
-//   const timeToMinutes = (time) => {
-//     const [timePart, modifier] = time.split(" ");
-//     let [hours, minutes] = timePart.split(":").map(Number);
-
-//     if (modifier === "PM" && hours !== 12) hours += 12;
-//     if (modifier === "AM" && hours === 12) hours = 0;
-
-//     return hours * 60 + minutes;
-//   };
-
-//   const minutesToTime = (minutes) => {
-//     let h = Math.floor(minutes / 60);
-//     const m = minutes % 60;
-//     const ampm = h >= 12 ? "PM" : "AM";
-
-//     h = h % 12;
-//     h = h === 0 ? 12 : h;
-
-//     return `${String(h).padStart(2, "0")}:${String(m).padStart(
-//       2,
-//       "0"
-//     )} ${ampm}`;
-//   };
-
-//   const generateSlots = (start, end, gap = 15) => {
-//     let result = [];
-//     let startMin = timeToMinutes(start);
-//     let endMin = timeToMinutes(end);
-
-//     while (startMin + gap <= endMin) {
-//       result.push(
-//         `${minutesToTime(startMin)} - ${minutesToTime(startMin + gap)}`
-//       );
-//       startMin += gap;
-//     }
-//     return result;
-//   };
-
-//   /* ------------------ Fetch Doctor ------------------ */
-
-//   useEffect(() => {
-//     axios
-//       .get(`http://localhost:5000/api/doctors/${doctorId}`)
-//       .then((res) => setDoctor(res.data))
-//       .catch((err) => console.error(err));
-//   }, [doctorId]);
-
-//   /* ------------------ Date Change ------------------ */
-
-//   const handleDateChange = (e) => {
-//     const selectedDate = e.target.value;
-//     setDate(selectedDate);
-//     setSelectedSlot("");
-
-//     if (!doctor || !selectedDate) return;
-
-//     const selectedDay = getDayName(selectedDate);
-
-//     const availableSlots = doctor.availability.filter(
-//       (a) => a.day === selectedDay && a.isAvailable
-//     );
-
-//     let allSlots = [];
-//     availableSlots.forEach((a) => {
-//       allSlots = [...allSlots, ...generateSlots(a.startTime, a.endTime)];
-//     });
-
-//     setSlots(allSlots);
-//   };
-
-//   /* ------------------ Submit ------------------ */
-
-// //   const handleSubmit = async () => {
-// //     if (!patientName || !phoneNo || !date || !selectedSlot) {
-// //       alert("Please fill all fields");
-// //       return;
-// //     }
-
-// //     try {
-// //       await axios.post("http://localhost:5000/api/appointments", {
-// //         doctorId,
-// //         patientName,
-// //         phoneNo,
-// //         date,
-// //         slot: selectedSlot,
-// //       });
-
-// //       alert("Appointment booked successfully!");
-// //     } catch (error) {
-// //       console.error(error);
-// //       alert("Failed to book appointment");
-// //     }
-// //   };
-// const handleSubmit = async () => {
-//   if (!patientName || !phoneNo || !date || !selectedSlot) {
-//     alert("Please fill all fields");
-//     return;
-//   }
-
-//   // "09:00 AM - 09:15 AM"
-//   const [startTime, endTime] = selectedSlot.split(" - ");
-
-//   try {
-//     await axios.post("http://localhost:5000/api/appointments/book", {
-//       doctorId,
-//       patientName,
-//       phoneNo,
-//       date,
-//       startTime,
-//       endTime
-//     });
-
-//     alert("Appointment booked successfully");
-//   } catch (error) {
-//     console.error(error.response?.data || error.message);
-//     alert(error.response?.data?.message || "Booking failed");
-//   }
-// };
-
-//   /* ------------------ UI ------------------ */
-
-//   return (
-//     <div className="max-w-lg mx-auto p-4 border rounded">
-//       <h2 className="text-xl font-bold mb-3">Book Appointment</h2>
-
-//       {doctor && (
-//         <p className="mb-3">
-//           Doctor: <strong>{doctor.name}</strong>
-//         </p>
-//       )}
-
-//       {/* Patient Name */}
-//       <label className="block mb-1 font-medium">Patient Name</label>
-//       <input
-//         type="text"
-//         className="border p-2 w-full mb-3"
-//         value={patientName}
-//         onChange={(e) => setPatientName(e.target.value)}
-//         placeholder="Enter patient name"
-//       />
-
-//       {/* Phone Number */}
-//       <label className="block mb-1 font-medium">Phone Number</label>
-//       <input
-//         type="text"
-//         className="border p-2 w-full mb-4"
-//         value={phoneNo}
-//         onChange={(e) => setPhoneNo(e.target.value)}
-//         placeholder="03XXXXXXXXX"
-//       />
-
-//       <label className="block mb-2 font-medium">Select Date</label>
-//       <input
-//         type="date"
-//         className="border p-2 w-full mb-4"
-//         value={date}
-//         onChange={handleDateChange}
-//       />
-
-//       <label className="block mb-2 font-medium">Available Slots</label>
-
-//       {slots.length === 0 && date && (
-//         <p className="text-red-500">No slots available</p>
-//       )}
-
-//       <div className="grid grid-cols-2 gap-2">
-//         {slots.map((slot, index) => (
-//           <button
-//             key={index}
-//             onClick={() => setSelectedSlot(slot)}
-//             className={`border p-2 rounded ${
-//               selectedSlot === slot
-//                 ? "bg-blue-600 text-white"
-//                 : "hover:bg-gray-100"
-//             }`}
-//           >
-//             {slot}
-//           </button>
-//         ))}
-//       </div>
-
-//       {selectedSlot && (
-//         <p className="mt-4 text-green-600 font-medium">
-//           Selected Slot: {selectedSlot}
-//         </p>
-//       )}
-
-//       {/* Submit Button */}
-//       <button
-//         onClick={handleSubmit}
-//         className="mt-4 w-full bg-green-600 text-white p-2 rounded"
-//       >
-//         Book Appointment
-//       </button>
-//     </div>
-//   );
-// }
-
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function BookAppointment({ doctorId }) {
+  const navigate = useNavigate();
+
   const [doctor, setDoctor] = useState(null);
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState("");
-
   const [patientName, setPatientName] = useState("");
   const [phoneNo, setPhoneNo] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  /* ------------------ Helpers ------------------ */
+  const [appointmentSummary, setAppointmentSummary] = useState(null);
 
-  const getDayName = (dateStr) =>
-    new Date(dateStr).toLocaleDateString("en-US", { weekday: "long" });
+  const [popup, setPopup] = useState({
+    open: false,
+    type: "",
+    message: "",
+  });
 
-  const timeToMinutes = (time) => {
-    const [timePart, modifier] = time.split(" ");
-    let [hours, minutes] = timePart.split(":").map(Number);
-
-    if (modifier === "PM" && hours !== 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
-
-    return hours * 60 + minutes;
+  /* ------------------ Popup Helpers ------------------ */
+  const showErrorPopup = (message) => {
+    setPopup({ open: true, type: "error", message });
   };
 
-  const minutesToTime = (minutes) => {
-    let h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    const ampm = h >= 12 ? "PM" : "AM";
-
-    h = h % 12;
-    h = h === 0 ? 12 : h;
-
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(
-      2,
-      "0"
-    )} ${ampm}`;
-  };
-
-  // ✅ 15-minute slot generator
-  const generateSlots = (start, end, gap = 15) => {
-    let result = [];
-    let startMin = timeToMinutes(start);
-    let endMin = timeToMinutes(end);
-
-    while (startMin + gap <= endMin) {
-      result.push(
-        `${minutesToTime(startMin)} - ${minutesToTime(startMin + gap)}`
-      );
-      startMin += gap;
-    }
-    return result;
+  const showSuccessPopup = (message) => {
+    setPopup({ open: true, type: "success", message });
   };
 
   /* ------------------ Fetch Doctor ------------------ */
-
   useEffect(() => {
+    if (!doctorId) return;
+
     axios
       .get(`http://localhost:5000/api/doctors/${doctorId}`)
       .then((res) => setDoctor(res.data))
-      .catch((err) => console.error(err));
+      .catch(() => showErrorPopup("Failed to load doctor information"));
   }, [doctorId]);
 
-  /* ------------------ Date Change ------------------ */
+  /* ------------------ Fetch Slots ------------------ */
+  const fetchAvailableSlots = async (selectedDate) => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/appointments/slots",
+        { params: { doctorId, date: selectedDate } },
+      );
 
+      if (res.data.success) {
+        setSlots(
+          res.data.availableSlots.map(
+            (s) => `${s.startTime12} - ${s.endTime12}`,
+          ),
+        );
+      } else {
+        setSlots([]);
+      }
+    } catch {
+      setSlots([]);
+    }
+  };
+
+  /* ------------------ Date Change ------------------ */
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
     setDate(selectedDate);
     setSelectedSlot("");
 
-    if (!doctor || !selectedDate) return;
+    if (!selectedDate) return;
 
-    const selectedDay = getDayName(selectedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const availableSlots = doctor.availability.filter(
-      (a) => a.day === selectedDay && a.isAvailable
-    );
-
-    let allSlots = [];
-    availableSlots.forEach((a) => {
-      allSlots = [
-        ...allSlots,
-        ...generateSlots(a.startTime, a.endTime)
-      ];
-    });
-
-    setSlots(allSlots);
-  };
-
-  /* ------------------ Submit ------------------ */
-
-  const handleSubmit = async () => {
-    if (!patientName || !phoneNo || !date || !selectedSlot) {
-      alert("Please fill all fields");
+    if (new Date(selectedDate) < today) {
+      showErrorPopup("Cannot book past dates");
       return;
     }
 
+    fetchAvailableSlots(selectedDate);
+  };
+
+  /* ------------------ Phone Validation ------------------ */
+
+  const validatePhoneNumber = (phone) => {
+    return /^03\d{9}$/.test(phone); // exactly 11 digits starting with 03
+  };
+
+  /* ------------------ Submit ------------------ */
+  const handleSubmit = async () => {
+    if (!patientName.trim()) return showErrorPopup("Enter patient name");
+
+    if (!validatePhoneNumber(phoneNo))
+      return showErrorPopup("Enter valid Pakistani phone number");
+
+    if (!date || !selectedSlot) return showErrorPopup("Complete all fields");
+
     const [startTime, endTime] = selectedSlot.split(" - ");
 
+    setLoading(true);
+
     try {
-      await axios.post(
+      const res = await axios.post(
         "http://localhost:5000/api/appointments/book",
         {
           doctorId,
           patientName,
-          phoneNo,
+          phoneNo: phoneNo.replace(/[\s\-\(\)]/g, ""),
           date,
           startTime,
-          endTime
-        }
+          endTime,
+        },
       );
 
-      alert("Appointment booked successfully");
-      setSelectedSlot("");
-      setPatientName("");
-      setPhoneNo("");
-    } catch (error) {
-      console.error(error.response?.data || error.message);
-      alert(error.response?.data?.message || "Booking failed");
+      if (res.data.success) {
+        setAppointmentSummary({
+          doctor: doctor?.name,
+          speciality: doctor?.speciality,
+          patientName,
+          phoneNo,
+          date,
+          slot: selectedSlot,
+        });
+
+        showSuccessPopup("Appointment booked successfully!");
+      } else {
+        showErrorPopup("Booking failed");
+      }
+    } catch (err) {
+      showErrorPopup(err.response?.data?.message || "Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   /* ------------------ UI ------------------ */
-
   return (
-    <div className="max-w-lg mx-auto p-4 border rounded">
-      <h2 className="text-xl font-bold mb-3">Book Appointment</h2>
-
-      {doctor && (
-        <p className="mb-3">
-          Doctor: <strong>{doctor.name}</strong>
-        </p>
-      )}
-
-      <label className="block mb-1 font-medium">Patient Name</label>
-      <input
-        type="text"
-        className="border p-2 w-full mb-3"
-        value={patientName}
-        onChange={(e) => setPatientName(e.target.value)}
-      />
-
-      <label className="block mb-1 font-medium">Phone Number</label>
-      <input
-        type="text"
-        className="border p-2 w-full mb-4"
-        value={phoneNo}
-        onChange={(e) => setPhoneNo(e.target.value)}
-        placeholder="03XXXXXXXXX"
-      />
-
-      <label className="block mb-2 font-medium">Select Date</label>
-      <input
-        type="date"
-        className="border p-2 w-full mb-4"
-        value={date}
-        onChange={handleDateChange}
-      />
-
-      <label className="block mb-2 font-medium">Available Slots</label>
-
-      {slots.length === 0 && date && (
-        <p className="text-red-500">No slots available</p>
-      )}
-
-      <div className="grid grid-cols-2 gap-2">
-        {slots.map((slot, index) => (
-          <button
-            key={index}
-            onClick={() => setSelectedSlot(slot)}
-            className={`border p-2 rounded ${
-              selectedSlot === slot
-                ? "bg-blue-600 text-white"
-                : "hover:bg-gray-100"
-            }`}
+    <>
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ backgroundColor: "var(--bg-light)" }}
+      >
+        <div
+          className="w-full max-w-xl rounded-2xl shadow-xl overflow-hidden"
+          style={{ backgroundColor: "var(--white)" }}
+        >
+          <div
+            className="p-6 text-white"
+            style={{ backgroundColor: "var(--primary-color)" }}
           >
-            {slot}
-          </button>
-        ))}
+            <h2 className="text-2xl font-bold">Book Appointment</h2>
+            <p className="text-sm opacity-90">Schedule your visit</p>
+          </div>
+
+          <div className="p-6 space-y-4">
+            {doctor && (
+              <div
+                className="p-4 rounded-lg"
+                style={{ backgroundColor: "var(--bg-light)" }}
+              >
+                <p className="font-semibold">{doctor.name}</p>
+                <p className="text-sm">{doctor.speciality}</p>
+              </div>
+            )}
+
+            <input
+              className="w-full p-3 rounded border"
+              placeholder="Patient Name"
+              value={patientName}
+              onChange={(e) => setPatientName(e.target.value)}
+            />
+
+            <input
+              className="w-full p-3 rounded border"
+              placeholder="03XXXXXXXXX"
+              value={phoneNo}
+              maxLength={11}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // only digits
+                if (value.length <= 11) {
+                  setPhoneNo(value);
+                }
+              }}
+            />
+
+            <input
+              type="date"
+              className="w-full p-3 rounded border"
+              value={date}
+              onChange={handleDateChange}
+              min={new Date().toISOString().split("T")[0]}
+            />
+
+            {slots.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {slots.map((slot, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedSlot(slot)}
+                    className="px-4 py-2 rounded-full border"
+                    style={{
+                      backgroundColor:
+                        selectedSlot === slot
+                          ? "var(--primary-color)"
+                          : "var(--white)",
+                      color:
+                        selectedSlot === slot
+                          ? "var(--white)"
+                          : "var(--secondary-color)",
+                    }}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full py-3 rounded text-white"
+              style={{ backgroundColor: "var(--primary-color)" }}
+            >
+              {loading ? "Booking..." : "Confirm Appointment"}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {selectedSlot && (
-        <p className="mt-4 text-green-600 font-medium">
-          Selected Slot: {selectedSlot}
-        </p>
-      )}
+      {/* POPUP */}
+      {popup.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="w-96 p-6 rounded-2xl shadow-2xl"
+            style={{ backgroundColor: "var(--white)" }}
+          >
+            <h3
+              className="text-xl font-bold mb-3 text-center"
+              style={{
+                color:
+                  popup.type === "success" ? "var(--primary-color)" : "#c0392b",
+              }}
+            >
+              {popup.type === "success" ? "Appointment Confirmed" : "Error"}
+            </h3>
 
-      <button
-        onClick={handleSubmit}
-        className="mt-4 w-full bg-green-600 text-white p-2 rounded"
-      >
-        Book Appointment
-      </button>
-    </div>
+            <p className="text-sm text-center mb-4">{popup.message}</p>
+
+            {popup.type === "success" && appointmentSummary && (
+              <div
+                className="text-sm space-y-1 p-4 rounded-lg mb-4"
+                style={{ backgroundColor: "var(--bg-light)" }}
+              >
+                <p>
+                  <b>Doctor:</b> {appointmentSummary.doctor}
+                </p>
+                <p>
+                  <b>Speciality:</b> {appointmentSummary.speciality}
+                </p>
+                <p>
+                  <b>Patient:</b> {appointmentSummary.patientName}
+                </p>
+                <p>
+                  <b>Phone:</b> {appointmentSummary.phoneNo}
+                </p>
+                <p>
+                  <b>Date:</b> {appointmentSummary.date}
+                </p>
+                <p>
+                  <b>Time:</b> {appointmentSummary.slot}
+                </p>
+              </div>
+            )}
+
+            {popup.type === "success" ? (
+              // <div className="flex gap-3">
+              //   <button
+              //     onClick={() => navigate("/")}
+              //     className="flex-1 py-2 rounded text-white"
+              //     style={{ backgroundColor: "var(--primary-color)" }}
+              //   >
+              //     Back to Home
+              //   </button>
+
+              //   <button
+              //     onClick={() => window.print()}
+              //     className="flex-1 py-2 rounded border"
+              //     style={{
+              //       borderColor: "var(--primary-color)",
+              //       color: "var(--primary-color)",
+              //     }}
+              //   >
+              //     Save
+              //   </button>
+              // </div>
+              <button
+                onClick={() => navigate("/")}
+                className="w-full py-2 rounded text-white"
+                style={{ backgroundColor: "var(--primary-color)" }}
+              >
+                Back to Home
+              </button>
+            ) : (
+              <button
+                onClick={() => setPopup({ open: false, type: "", message: "" })}
+                className="w-full py-2 rounded text-white"
+                style={{ backgroundColor: "#c0392b" }}
+              >
+                Close
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

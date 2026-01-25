@@ -25,8 +25,7 @@ import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
 import MedicinePage from "./components/Pharmacy/MedicinePage";
 import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
-import OrderHistory from './components/Pharmacy/OrderHistory';
-
+// import OrderHistory from './components/Pharmacy/OrderHistory';
 
 // Dashboard Components (NEW STRUCTURE)
 import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout.jsx';
@@ -41,7 +40,10 @@ import OrdersPage from './components/Dashboard/OrdersPage.jsx';
 import ReportsPage from './components/Dashboard/ReportsPage.jsx';
 // import SupportPage from '../../../Unused files/F/SupportPage.jsx';
 import SettingsPage from './components/Dashboard/SettingsPage.jsx';
-import ProfilePage from './components/Dashboard/ProfilePage.jsx';
+// import ProfilePage from './components/Dashboard/ProfilePage.jsx';
+//context
+// import { AuthProvider } from './Context/authContext.jsx';
+
 
 import ScrollToTop from "./ScrollToTop";  
 
@@ -75,7 +77,7 @@ function Layout() {
         <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} /> {/* All Medicines Page */}
         <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
         <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
-        <Route path="/orders" element={<OrderHistory />} />
+        {/* <Route path="/orders" element={<OrderHistory />} /> */}
 
       {/* NEW: Dashboard Routes with Layout */}
         <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
@@ -90,7 +92,7 @@ function Layout() {
           <Route path="reports" element={<ReportsPage />} />
           {/* <Route path="support" element={<SupportPage />} />  */}
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
+          {/* <Route path="profile" element={<ProfilePage />} /> */}
         </Route>
 
       </Routes>
@@ -102,10 +104,14 @@ function Layout() {
 
 const App = () => {
   return (
+  
     <Router>
+        {/* <AuthProvider> */}
       <ScrollToTop />  
       <Layout />
+         {/* </AuthProvider> */}
     </Router>
+ 
   );
 };
 

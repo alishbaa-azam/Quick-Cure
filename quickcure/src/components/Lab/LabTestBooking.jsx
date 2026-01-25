@@ -670,7 +670,7 @@ export default function BookingPage() {
                 </div>
 
                 {/* Sample Collection Type */}
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     How would you like to give the sample? *
                   </label>
@@ -737,7 +737,7 @@ export default function BookingPage() {
                       </div>
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Address for Collection (if home collection) */}
                 {appointmentDetails.sampleCollectionType === 'home' && (
@@ -776,7 +776,7 @@ export default function BookingPage() {
                 <label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
                   <span className="font-semibold">Terms & Conditions:</span> I agree that the information provided is accurate. I understand that 
                   the lab technician will contact me to confirm the appointment. Any cancellation should be done 
-                  at least 2 hours before the scheduled time. I agree to pay the amount at the time of sample collection.
+                  at least 6 hours before the scheduled time. I agree to pay the amount at the time of sample collection.
                 </label>
               </div>
             </div>
