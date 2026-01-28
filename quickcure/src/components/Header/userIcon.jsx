@@ -461,7 +461,7 @@ export default function UserIcon({ user, onLogout }) {
           {
             label: "Pharmacy Dashboard",
             icon: FaBookMedical,
-            path: "/pharmacy/dashboard",
+            path: "/PharmacyDashboard",
             color: "text-pink-600",
           },
         ];

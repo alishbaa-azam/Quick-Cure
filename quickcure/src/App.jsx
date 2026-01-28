@@ -9,11 +9,14 @@ import {
 import Header from "./components/Header/header";
 import Footer from "./components/footer";
 import Home from "./components/Home/home";
+
 import DoctorsPage from "./components/Doctors/DoctorsPage";
 import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
 import BookAppointment from './components/Doctors/appointmentBooking';
 import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
+import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
+
 import LabDashboard from "./components/LabDashboards/LabDashboard";
 import LabsPage from "./components/Lab/lab";
 import LabDetail from "./components/Lab/LabDetail";
@@ -25,14 +28,14 @@ import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
 import MedicinePage from "./components/Pharmacy/MedicinePage";
 import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
-import OrderHistory from './components/Pharmacy/OrderHistory';
+// import OrderHistory from './components/Pharmacy/OrderHistory';
 
 
 // Dashboard Components (NEW STRUCTURE)
 import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout.jsx';
-import DashboardHome from './components/Dashboard/DashboardHome';
+import DashboardHome from './components/Dashboard/DashboardHome.jsx';
 // import FeaturesPage from '../../../Unused files/F/FeaturesPage.jsx';
-import CategoriesPage from './components/Dashboard/CategoriesPage';
+import CategoriesPage from './components/Dashboard/CategoriesPage.jsx';
 import ProductsPage from './components/Dashboard/ProductsPage.jsx';
 import SalesPage from './components/Dashboard/SalesPage.jsx';
 import OrdersPage from './components/Dashboard/OrdersPage.jsx';
@@ -75,7 +78,8 @@ function Layout() {
         <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} /> {/* All Medicines Page */}
         <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
         <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
-        <Route path="/orders" element={<OrderHistory />} />
+        {/* <Route path="/orders" element={<OrderHistory />} /> */}
+        <Route path="/pharmacyRegistration" element={<PharmacyRegistration />} />
 
       {/* NEW: Dashboard Routes with Layout */}
         <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>

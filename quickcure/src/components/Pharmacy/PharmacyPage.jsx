@@ -3619,8 +3619,31 @@ const PharmacyPage = () => {
           </div>
         )}
 
-        {/* Why Choose Us Section */}
-        <div className="bg-gradient-to-br from-[#174047]/5 via-[#2c6774]/5 to-[#5c878f]/5 rounded-xl p-6 mb-8 border border-[#c0d3dc]/20">
+
+        {/* Compact CTA Section */}
+        <div className="bg-gradient-to-r from-[#2c6774] to-[#174047] rounded-xl p-8 text-white overflow-hidden relative mb-8">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[#5c878f] rounded-full -translate-y-24 translate-x-12 opacity-20"></div>
+          <div className="relative z-10">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-white mb-3">Need Specific Medicines?</h3>
+              <p className="text-[#c0d3dc] mb-6 max-w-md mx-auto">
+                Search our complete medicine database from all partner pharmacies with prescription support
+              </p>
+              <Link
+                to="/medicines"
+                className="inline-flex items-center bg-white text-[#2c6774] px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+              >
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Search All Medicines
+              </Link>
+            </div>
+          </div>
+        </div>
+
+  {/* Why Choose Us Section */}
+        <div className="bg-gradient-to-br from-[#174047]/5 via-[#2c6774]/5 to-[#5c878f]/5 rounded-xl p-6 mb-6 border border-[#c0d3dc]/20">
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-2">Why Choose Our Platform?</h2>
             <p className="text-gray-600 text-sm max-w-2xl mx-auto">
@@ -3641,30 +3664,28 @@ const PharmacyPage = () => {
           </div>
         </div>
 
-        {/* Compact CTA Section - Updated with gradient from second code */}
-        <div className="bg-gradient-to-r from-[#2c6774] to-[#174047] rounded-xl p-8 text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-[#5c878f] rounded-full -translate-y-24 translate-x-12 opacity-20"></div>
-          <div className="relative z-10">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-white mb-3">Need Specific Medicines?</h3>
-              <p className="text-[#c0d3dc] mb-6 max-w-md mx-auto">
-                Search our complete medicine database from all partner pharmacies with prescription support
-              </p>
-              <Link
-                to="/medicines"
-                className="inline-flex items-center bg-white text-[#2c6774] px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
-              >
-                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Search All Medicines
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
 export default PharmacyPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Near me added 
