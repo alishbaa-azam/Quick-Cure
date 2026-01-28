@@ -1211,6 +1211,196 @@
 //   );
 // }
 
+// import React, { useState } from "react";
+// import googleLogo from "../../images/google.png";
+// import backgroundImage from "../../images/background.png";
+
+// // Firebase
+// import { auth, provider } from "../../firebase";
+// import { signInWithPopup } from "firebase/auth";
+
+// import { useNavigate } from "react-router-dom";
+
+// export default function LoginPage({ onLogin }) {
+//   const [isSignIn, setIsSignIn] = useState(true);
+//   const [username, setUsername] = useState("");
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [loading, setLoading] = useState(false);
+
+//   const navigate = useNavigate();
+
+//   const resetForm = () => {
+//     setUsername("");
+//     setEmail("");
+//     setPassword("");
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+
+//     if (!email || !password) return alert("Fill all fields");
+//     if (!isSignIn && !username) return alert("Enter username");
+
+//     setLoading(true);
+
+//     const signupUrl = "http://localhost:5000/api/users/signup";
+//     const loginUrl = "http://localhost:5000/api/users/login";
+
+//     try {
+//       // ---------------- LOGIN ----------------
+//       if (isSignIn) {
+//         const res = await fetch(loginUrl, {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({ email, password }),
+//         });
+
+//         const data = await res.json();
+//         if (!res.ok) throw new Error(data.message);
+
+//         localStorage.setItem("token", data.token);
+//         localStorage.setItem("user", JSON.stringify(data.user));
+//         onLogin?.(data.user);
+//         navigate("/");
+//       }
+
+//       // ---------------- SIGNUP + AUTO LOGIN ----------------
+//       else {
+//         // 1️⃣ SIGNUP
+//         const signupRes = await fetch(signupUrl, {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({
+//             name: username, // 🔴 backend expects `name`
+//             email,
+//             password,
+//           }),
+//         });
+
+//         const signupData = await signupRes.json();
+//         if (!signupRes.ok) throw new Error(signupData.message);
+
+//         // 2️⃣ AUTO LOGIN
+//         const loginRes = await fetch(loginUrl, {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({ email, password }),
+//         });
+
+//         const loginData = await loginRes.json();
+//         if (!loginRes.ok) throw new Error(loginData.message);
+
+//         localStorage.setItem("token", loginData.token);
+//         localStorage.setItem("user", JSON.stringify(loginData.user));
+//         onLogin?.(loginData.user);
+//         navigate("/");
+//       }
+//     } catch (err) {
+//       alert(err.message || "Something went wrong");
+//     } finally {
+//       setLoading(false);
+//       resetForm();
+//     }
+//   };
+
+//   // ---------------- GOOGLE LOGIN ----------------
+//   const handleGoogleSignIn = async () => {
+//     try {
+//       setLoading(true);
+//       const result = await signInWithPopup(auth, provider);
+//       const user = result.user;
+
+//       localStorage.setItem("token", user.uid);
+//       localStorage.setItem("user", JSON.stringify(user));
+//       onLogin?.(user);
+//       navigate("/");
+//     } catch {
+//       alert("Google Sign-In Failed");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div
+//       className="min-h-screen flex items-center justify-center bg-cover bg-center relative px-4"
+//       style={{ backgroundImage: `url(${backgroundImage})` }}
+//     >
+//       <div className="absolute inset-0 bg-gradient-to-r from-[#5c878f]/90 to-transparent"></div>
+
+//       <div className="relative z-10 w-full max-w-md bg-white/95 rounded-2xl shadow-2xl px-8 py-10">
+//         <h1 className="text-2xl font-semibold text-center text-[#2c6774]">
+//           {isSignIn ? "Welcome to QuickCure" : "Create an Account"}
+//         </h1>
+
+//         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+//           {!isSignIn && (
+//             <input
+//               placeholder="Username"
+//               className="w-full px-3 py-2 border rounded-md"
+//               value={username}
+//               onChange={(e) => setUsername(e.target.value)}
+//             />
+//           )}
+
+//           <input
+//             type="email"
+//             placeholder="Email"
+//             className="w-full px-3 py-2 border rounded-md"
+//             value={email}
+//             onChange={(e) => setEmail(e.target.value)}
+//           />
+
+//           <input
+//             type="password"
+//             placeholder="Password"
+//             className="w-full px-3 py-2 border rounded-md"
+//             value={password}
+//             onChange={(e) => setPassword(e.target.value)}
+//           />
+
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className={`w-full py-2 rounded-md text-white transition ${
+//               loading
+//                 ? "bg-gray-400"
+//                 : "bg-[#2c6774] hover:bg-[#1e4e56]"
+//             }`}
+//           >
+//             {loading ? "Please wait..." : isSignIn ? "Sign In" : "Sign Up"}
+//           </button>
+//         </form>
+
+//         {isSignIn && (
+//           <button
+//             onClick={handleGoogleSignIn}
+//             className="w-full mt-4 flex items-center justify-center gap-3 py-2 border rounded-md"
+//           >
+//             <img src={googleLogo} className="w-5 h-5" />
+//             Sign in with Google
+//           </button>
+//         )}
+
+//         <p className="text-center text-sm mt-4">
+//           {isSignIn ? "Don't have an account?" : "Already have an account?"}{" "}
+//           <span
+//             className="text-[#2c6774] font-semibold cursor-pointer"
+//             onClick={() => {
+//               setIsSignIn(!isSignIn);
+//               resetForm();
+//             }}
+//           >
+//             {isSignIn ? "Sign Up" : "Sign In"}
+//           </span>
+//         </p>
+//       </div>
+//     </div>
+//   );
+// }
+
+
 import React, { useState } from "react";
 import googleLogo from "../../images/google.png";
 import backgroundImage from "../../images/background.png";
@@ -1234,6 +1424,27 @@ export default function LoginPage({ onLogin }) {
     setUsername("");
     setEmail("");
     setPassword("");
+  };
+
+  // ✅ ADDED: Function to handle redirect after login
+  const handleRedirectAfterLogin = () => {
+    // Get query parameters from URL
+    const queryParams = new URLSearchParams(window.location.search);
+    const redirectUrl = queryParams.get('redirect');
+    const doctorId = queryParams.get('doctorId');
+
+    // If doctorId is present, go directly to booking page
+    if (doctorId) {
+      navigate(`/book-appointment/${doctorId}`);
+    } 
+    // If redirect URL exists, go back to that page
+    else if (redirectUrl) {
+      navigate(decodeURIComponent(redirectUrl));
+    } 
+    // Default: go to home page
+    else {
+      navigate("/");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -1262,7 +1473,9 @@ export default function LoginPage({ onLogin }) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         onLogin?.(data.user);
-        navigate("/");
+        
+        // ✅ UPDATED: Use redirect function
+        handleRedirectAfterLogin();
       }
 
       // ---------------- SIGNUP + AUTO LOGIN ----------------
@@ -1294,10 +1507,12 @@ export default function LoginPage({ onLogin }) {
         localStorage.setItem("token", loginData.token);
         localStorage.setItem("user", JSON.stringify(loginData.user));
         onLogin?.(loginData.user);
-        navigate("/");
+        
+        // ✅ UPDATED: Use redirect function
+        handleRedirectAfterLogin();
       }
     } catch (err) {
-      alert(err.message || "Something went wrong");
+      alert(err.message || "Already registered please login");
     } finally {
       setLoading(false);
       resetForm();
@@ -1314,7 +1529,9 @@ export default function LoginPage({ onLogin }) {
       localStorage.setItem("token", user.uid);
       localStorage.setItem("user", JSON.stringify(user));
       onLogin?.(user);
-      navigate("/");
+      
+      // ✅ UPDATED: Use redirect function
+      handleRedirectAfterLogin();
     } catch {
       alert("Google Sign-In Failed");
     } finally {
@@ -1333,6 +1550,15 @@ export default function LoginPage({ onLogin }) {
         <h1 className="text-2xl font-semibold text-center text-[#2c6774]">
           {isSignIn ? "Welcome to QuickCure" : "Create an Account"}
         </h1>
+
+        {/* ✅ ADDED: Show redirect info if coming from booking */}
+        {/* {window.location.search.includes('doctorId') && (
+          // <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          //   <p className="text-sm text-blue-800 text-center">
+          //     Login to book your appointment
+          //   </p>
+          // </div>
+        )} */}
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           {!isSignIn && (

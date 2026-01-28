@@ -88,7 +88,7 @@ export default function Footer() {
       </div>
 
       {/* ===== WhatsApp Float Button ===== */}
-      <a 
+      {/* <a 
         href="https://wa.me/1234567890" 
         className="whatsapp-btn" 
         target="_blank" 
@@ -96,7 +96,7 @@ export default function Footer() {
         aria-label="Contact us on WhatsApp"
       >
         <FaWhatsapp />
-      </a>
+      </a> */}
     </footer>
   );
 }
