@@ -15,6 +15,9 @@ import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
 import BookAppointment from './components/Doctors/appointmentBooking';
 import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
+import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
+
+import LabDashboard from "./components/LabDashboards/LabDashboard";
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
 
 import LabsPage from "./components/Lab/lab";
@@ -32,11 +35,12 @@ import MedicineBooking from "./components/Pharmacy/MedicineBooking";
 import PharmacyRegistration from "./components/Registration/PharmacyRegistration.jsx"
 // import OrderHistory from './components/Pharmacy/OrderHistory';
 
+
 // Dashboard Components (NEW STRUCTURE)
 import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout.jsx';
-import DashboardHome from './components/Dashboard/DashboardHome';
+import DashboardHome from './components/Dashboard/DashboardHome.jsx';
 // import FeaturesPage from '../../../Unused files/F/FeaturesPage.jsx';
-import CategoriesPage from './components/Dashboard/CategoriesPage';
+import CategoriesPage from './components/Dashboard/CategoriesPage.jsx';
 import ProductsPage from './components/Dashboard/ProductsPage.jsx';
 import SalesPage from './components/Dashboard/SalesPage.jsx';
 import OrdersPage from './components/Dashboard/OrdersPage.jsx';
