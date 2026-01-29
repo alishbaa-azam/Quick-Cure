@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-export default function BookAppointment({ doctorId }) {
+// export default function BookAppointment({ doctorId }) {
+import { useParams } from "react-router-dom";
+
+export default function BookAppointment() {
+  const { doctorId } = useParams();
+
   const navigate = useNavigate();
 
   const [doctor, setDoctor] = useState(null);

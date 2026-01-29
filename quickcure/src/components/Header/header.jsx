@@ -121,7 +121,9 @@ export default function Header() {
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
-
+  const CHUGHTAI_LAB_ID = "692b638f52ab6641e190e85e";
+  const ESSA_LAB_ID = "692c230d64f88713b962b08c";
+  const Excel_LAB_ID = "692c1f71b3255d0a7e054808";
   // Data for menus
   const menus = {
     doctor: [
@@ -140,9 +142,9 @@ export default function Header() {
       { label: "Medicines", to: "/medicines" },
     ],
     labs: [
-      { label: "Chughtai Lab", to: "/labs/chughtai" },
-      { label: "Dr. Essa's Laboratory", to: "/labs/essa" },
-      { label: "Excel Labs", to: "/labs/excel" },
+      { label: "Chughtai Lab", to:`/labs/${CHUGHTAI_LAB_ID}`},
+      { label: "Dr. Essa's Laboratory", to: `/labs/${ESSA_LAB_ID}` },
+      { label: "Excel Labs", to: `/labs/${Excel_LAB_ID}` },
       { label: "All Labs", to: "/labs" },
     ],
     joinUs: [
@@ -443,7 +445,8 @@ export default function Header() {
       )}
 
       {/* Spacer for content */}
-      <div className="h-16 sm:h-20" />
+      {/* <div className="h-16 sm:h-20" /> */}
+      <div className="h-[80px] sm:h-[60px]" />
     </div>
   );
 }
