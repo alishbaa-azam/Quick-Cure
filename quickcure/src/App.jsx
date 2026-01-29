@@ -21,13 +21,13 @@ import LabsPage from "./components/Lab/lab";
 import LabDetail from "./components/Lab/LabDetail";
 import LoginPage from "./components/Login/LoginPage";
 import TestBooking from "./components/Lab/LabTestBooking";
-// import LabRegistration from "./components/Registration/labregistration";
 
 import PharmacyPage from "./components/Pharmacy/PharmacyPage";
 import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
 import MedicinePage from "./components/Pharmacy/MedicinePage";
 import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
+import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
 // import OrderHistory from './components/Pharmacy/OrderHistory';
 
 // Dashboard Components (NEW STRUCTURE)
@@ -49,6 +49,7 @@ import SettingsPage from './components/Dashboard/SettingsPage.jsx';
 
 
 import ScrollToTop from "./ScrollToTop";  
+import LabRegistrationForm from './components/Registration/labRegistration.jsx';
 
 function Layout() {
   const location = useLocation();
@@ -77,7 +78,7 @@ function Layout() {
         <Route path="/labs" element={<LabsPage />} />
         <Route path="/labs/:id" element={<LabDetail />} />
         <Route path="/labs/:id/booking" element={<TestBooking />} />
-        {/* <Route path="/regis" element={<LabRegistration />} /> */}
+        <Route path="/regis" element={<LabRegistrationForm />} />
 
 
 
@@ -87,6 +88,7 @@ function Layout() {
         <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} /> {/* All Medicines Page */}
         <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} /> {/* Medicine Detail Page */}
         <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
+        <Route path="/reg" element={<PharmacyRegistration />} />
         {/* <Route path="/orders" element={<OrderHistory />} /> */}
 
       {/* NEW: Dashboard Routes with Layout */}

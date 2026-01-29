@@ -71,7 +71,7 @@ export default function DoctorsPage() {
         <div className="title-tabs-row">
           <h2 className="section-title">Most Viewed Specialities</h2>
 
-          <div className="tabs">
+          {/* <div className="tabs">
             <button
               className={`tab ${
                 activeTab === "Most Popular" ? "active" : ""
@@ -89,7 +89,7 @@ export default function DoctorsPage() {
             >
               All Specialties (a-z)
             </button>
-          </div>
+          </div> */}
         </div>
 
         <div className="cards-grid">
@@ -108,7 +108,7 @@ export default function DoctorsPage() {
 
               <div className="card-footer">
                 {/* <span>{item.doctors} doctor(s)</span> */}
-                <Link to={item.link}>1 doctor(s)</Link>
+                <Link to={item.link}>doctor(s)</Link>
                 <Link to={item.link}>Learn More</Link>
               </div>
             </div>
