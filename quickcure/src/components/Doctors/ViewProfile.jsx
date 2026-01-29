@@ -22,7 +22,10 @@ import {
   MessageSquare,
   PhoneCall,
   Heart,
-  TrendingUp
+  TrendingUp,
+  BookOpen,
+  Check,
+  Zap
 } from "lucide-react";
 
 export default function ViewProfile() {
@@ -57,6 +60,7 @@ export default function ViewProfile() {
   const [upcomingAvailability, setUpcomingAvailability] = useState([]);
   const [availabilitySchedule, setAvailabilitySchedule] = useState([]);
   const [nextAvailableSlots, setNextAvailableSlots] = useState([]);
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
   // Available tags for reviews
   const availableTags = [
@@ -73,6 +77,81 @@ export default function ViewProfile() {
   // Day mapping
   const DAYS = ['Sunday','Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Check if user is logged in and get user data - FIXED VERSION
+  useEffect(() => {
+    const checkLoggedInUser = () => {
+      try {
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
+        
+        if (token && userData) {
+          const parsedUser = JSON.parse(userData);
+          
+          // Debug: Log what we found
+          console.log("Parsed user data from localStorage:", parsedUser);
+          
+          // Handle different user data structures
+          let userObj = {};
+          
+          if (typeof parsedUser === 'object' && parsedUser !== null) {
+            // Check common user field names
+            userObj = {
+              name: parsedUser.name || parsedUser.username || parsedUser.fullName || parsedUser.displayName || "User",
+              email: parsedUser.email || "",
+              id: parsedUser._id || parsedUser.id || parsedUser.userId || "",
+              // Add other possible fields
+              firstName: parsedUser.firstName || "",
+              lastName: parsedUser.lastName || ""
+            };
+            
+            // If we have firstName and lastName but no name, combine them
+            if (!userObj.name && (userObj.firstName || userObj.lastName)) {
+              userObj.name = `${userObj.firstName || ''} ${userObj.lastName || ''}`.trim();
+            }
+          } else {
+            console.warn("User data is not an object:", parsedUser);
+          }
+          
+          setLoggedInUser(userObj);
+        } else {
+          console.log("No user data found in localStorage");
+          setLoggedInUser(null);
+        }
+      } catch (error) {
+        console.error("Error parsing user data from localStorage:", error);
+        setLoggedInUser(null);
+      }
+    };
+    
+    checkLoggedInUser();
+    
+    // Also check when localStorage changes
+    const handleStorageChange = () => {
+      checkLoggedInUser();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const isAuthenticated = () => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    return !!(token && user);
+  };
+
+  // Get user name safely
+  const getUserName = () => {
+    if (!loggedInUser) return "User";
+    return loggedInUser.name || loggedInUser.username || loggedInUser.email?.split('@')[0] || "User";
+  };
+
+  // Get user initials
+  const getUserInitials = () => {
+    const name = getUserName();
+    return getInitials(name);
+  };
 
   // Fetch doctor data from API
   useEffect(() => {
@@ -148,9 +227,7 @@ export default function ViewProfile() {
     const fetchReviews = async () => {
       try {
         setReviewLoading(true);
-        // const response = await axios.get(`${API_URL}/api/reviews/doctor/${id}`);
         const response = await axios.get(`${API_URL}/api/reviews/${id}`);
-
         console.log("Reviews data received:", response.data);
         setReviews(response.data);
         setReviewLoading(false);
@@ -344,16 +421,21 @@ export default function ViewProfile() {
     generateTimeSlotsForDate();
   }, [selectedDate, availabilitySchedule]);
 
-  const handleCardClick = () => {
-    if (bookBtnRef.current) {
-      const yOffset = -50;
-      const y = bookBtnRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
-  };
-
+  // Handle booking with login check
   const handleBooking = async () => {
-    // Validation
+    // Check if user is logged in
+    if (!isAuthenticated()) {
+      navigate('/login', { 
+        state: { 
+          from: `/doctor/${id}`,
+          message: "Please login to book an appointment",
+          redirectTo: `/book-appointment/${doctor._id}`
+        }
+      });
+      return;
+    }
+
+    // Validation for logged in users
     if (!patientName.trim()) {
       alert("Please enter your name!");
       setNameError(true);
@@ -422,9 +504,34 @@ export default function ViewProfile() {
     }
   };
 
+  const handleQuickBooking = () => {
+    // Check if user is logged in
+    if (!isAuthenticated()) {
+      navigate('/login', { 
+        state: { 
+          from: `/doctor/${id}`,
+          message: "Please login to book an appointment",
+          redirectTo: `/book-appointment/${doctor._id}`
+        }
+      });
+      return;
+    }
+    
+    // Navigate to booking page with doctor details
+    navigate(`/book-appointment/${doctor._id}`, {
+      state: {
+        doctorName: doctor.name,
+        doctorSpeciality: doctor.speciality,
+        doctorImage: doctor.image,
+        fee: doctor.fee || 1500,
+        availabilitySchedule: availabilitySchedule
+      }
+    });
+  };
+
   const handleShare = () => {
     const shareUrl = window.location.href;
-    const shareText = `Check out  ${doctor?.name} - ${doctor?.speciality} | ${doctor?.qualification} | Book Appointment Now`;
+    const shareText = `Check out ${doctor?.name} - ${doctor?.speciality} | ${doctor?.qualification} | Book Appointment Now`;
 
     if (navigator.share) {
       navigator.share({
@@ -438,16 +545,31 @@ export default function ViewProfile() {
     }
   };
 
-  // Handle review submission
+  // Handle review submission with login check - FIXED VERSION
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     
+    // Check if user is logged in
+    if (!isAuthenticated()) {
+      setShowReviewForm(false);
+      navigate('/login', { 
+        state: { 
+          from: `/doctor/${id}`,
+          message: "Please login to write a review"
+        }
+      });
+      return;
+    }
+
     if (!reviewForm.comment.trim()) {
       alert("Please write your review!");
       return;
     }
 
     try {
+      // Get user name properly
+      const userName = getUserName();
+      
       const reviewData = {
         rating: reviewForm.rating,
         comment: reviewForm.comment,
@@ -455,15 +577,17 @@ export default function ViewProfile() {
         consultationType: reviewForm.consultationType,
         doctorId: doctor._id,
         doctorName: doctor.name,
-        patientName: "Anonymous Patient"
+        patientName: userName, // Use actual user name
+        patientEmail: loggedInUser?.email || "",
+        userId: loggedInUser?.id || ""
       };
 
-      console.log("Submitting review:", reviewData);
+      console.log("Submitting review with user data:", reviewData);
       const response = await axios.post(`${API_URL}/api/reviews/${doctor._id}`, reviewData);
       console.log("Review response:", response.data);
       
       if (response.data.success) {
-        alert("Review submitted successfully!");
+        // alert("Review submitted successfully!");
         
         // Refresh reviews list
         const reviewsResponse = await axios.get(`${API_URL}/api/reviews/${doctor._id}`);
@@ -486,6 +610,121 @@ export default function ViewProfile() {
       console.error("Error submitting review:", error);
       alert(error.response?.data?.message || "Failed to submit review. Please try again.");
     }
+  };
+
+  // Handle review submission with login check - UPDATED VERSION
+// const handleReviewSubmit = async (e) => {
+//   e.preventDefault();
+  
+//   // Check if user is logged in
+//   if (!isAuthenticated()) {
+//     setShowReviewForm(false);
+//     navigate('/login', { 
+//       state: { 
+//         from: `/doctor/${id}`,
+//         message: "Please login to write a review"
+//       }
+//     });
+//     return;
+//   }
+
+//   if (!reviewForm.comment.trim()) {
+//     alert("Please write your review!");
+//     return;
+//   }
+
+//   try {
+//     // Get user ID properly - IMPORTANT!
+//     const userId = loggedInUser?.id || loggedInUser?._id || "";
+    
+//     if (!userId) {
+//       alert("Unable to get user information. Please login again.");
+//       return;
+//     }
+
+//     const reviewData = {
+//       rating: reviewForm.rating,
+//       comment: reviewForm.comment,
+//       tags: reviewForm.tags,
+//       consultationType: reviewForm.consultationType,
+//       patientName: getUserName(), // Use actual user name
+//       userId: userId, // Send user ID - REQUIRED by backend
+//       doctorId: doctor._id // Also send doctorId for clarity
+//     };
+
+//     console.log("Submitting review with user data:", reviewData);
+    
+//     // Send POST request with user ID
+//     const response = await axios.post(`${API_URL}/api/reviews/${doctor._id}`, reviewData, {
+//       headers: {
+//         'Authorization': `Bearer ${localStorage.getItem('token')}`, // Send token if needed
+//         'Content-Type': 'application/json'
+//       }
+//     });
+    
+//     console.log("Review response:", response.data);
+    
+//     if (response.data.success) {
+//       alert("Review submitted successfully!");
+      
+//       // Refresh reviews list
+//       const reviewsResponse = await axios.get(`${API_URL}/api/reviews/${doctor._id}`);
+//       setReviews(reviewsResponse.data);
+      
+//       // Update doctor's rating and total reviews
+//       const doctorResponse = await axios.get(`${API_URL}/api/doctors/${id}`);
+//       setDoctor(doctorResponse.data);
+      
+//       // Reset form and close
+//       setReviewForm({
+//         rating: 5,
+//         comment: "",
+//         tags: [],
+//         consultationType: "Video Consultation"
+//       });
+//       setShowReviewForm(false);
+//     }
+//   } catch (error) {
+//     console.error("Error submitting review:", error);
+//     alert(error.response?.data?.message || "Failed to submit review. Please try again.");
+//   }
+// };
+  // Handle review button click with login check
+  const handleWriteReviewClick = () => {
+    if (!isAuthenticated()) {
+      navigate('/login', { 
+        state: { 
+          from: `/doctor/${id}`,
+          message: "Please login to write a review"
+        }
+      });
+      return;
+    }
+    setShowReviewForm(true);
+  };
+
+  // Handle "Book This Slot" with login check
+  const handleBookSlotClick = (slot) => {
+    if (!isAuthenticated()) {
+      navigate('/login', { 
+        state: { 
+          from: `/doctor/${id}`,
+          message: "Please login to book an appointment",
+          redirectTo: `/book-appointment/${doctor._id}`
+        }
+      });
+      return;
+    }
+    
+    navigate(`/book-appointment/${doctor._id}`, {
+      state: {
+        defaultDate: slot.date.toISOString().split('T')[0],
+        defaultTime: slot.startTime,
+        doctorName: doctor.name,
+        doctorSpeciality: doctor.speciality,
+        fee: doctor.fee
+      }
+    });
   };
 
   // Handle tag selection
@@ -516,7 +755,7 @@ export default function ViewProfile() {
 
   // Get initials from name
   const getInitials = (name) => {
-    if (!name) return "??";
+    if (!name || typeof name !== 'string') return "??";
     return name
       .split(' ')
       .map(word => word[0])
@@ -551,7 +790,7 @@ export default function ViewProfile() {
   // Format experience
   const formatExperience = (exp) => {
     if (!exp) return "Not specified";
-    return `${exp} years experience`;
+    return `${exp}`;
   };
 
   // Check if doctor is currently available
@@ -603,6 +842,7 @@ export default function ViewProfile() {
     </div>
   );
 
+  const authStatus = isAuthenticated();
   const averageRating = calculateAverageRating();
   const totalReviews = reviews.length || doctor.totalReviews || 0;
   const dateOptions = generateDateOptions();
@@ -611,295 +851,208 @@ export default function ViewProfile() {
   const hasAvailability = availabilitySchedule.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8f9fa] to-[#e8f4f7]">
-      {/* Main Profile Card */}
-      <div className="bg-white rounded-2xl shadow-lg mx-4 mt-6 p-6 md:mx-6 lg:mx-8 border border-[#c0d3dc]/30">
-        <div className="flex flex-col md:flex-row items-start gap-6">
-          {/* Doctor Image */}
-          <div className="relative flex-shrink-0">
-            <div className="w-40 h-40 md:w-48 md:h-48">
-              <img 
-                src={doctor.image ? `${API_URL}${doctor.image}` : "/default-doctor.jpg"} 
-                alt={doctor.name}
-                className="w-full h-full object-cover rounded-2xl border-4 border-white shadow-lg"
-                onError={(e) => {
-                  e.target.src = "/default-doctor.jpg";
-                }}
-              />
+    <div className="min-h-screen bg-gradient-to-br from-[#9fbfc5]/10 to-[#c0d3dc]/10">
+      {/* Main Profile Card - Redesigned */}
+      <div className="bg-linear-to-r from-white to-[#f8f9fa] rounded-2xl shadow-xl mx-4 mt-6 p-6 md:mx-6 lg:mx-8 border border-[#c0d3dc]/30">
+        <div className="flex flex-col lg:flex-row items-start gap-8">
+          <div className="lg:w-1/4 flex flex-col items-center lg:items-start">
+            <div className="relative">
+              <div className="w-48 h-48 lg:w-56 lg:h-56  rounded-2xl overflow-hidden border-4 border-[#2c6774] shadow-2xl">
+                <img 
+                  src={doctor.image ? `${API_URL}${doctor.image}` : "/default-doctor.jpg"} 
+                  alt={doctor.name}
+                  className="w-full h-full object-contain "
+                  onError={(e) => {
+                    e.target.src = "/default-doctor.jpg";
+                  }}
+                />
+              </div>
+              <div className={`absolute -bottom-3 -right-3 px-5 py-2 rounded-full text-sm font-bold shadow-xl ${
+                doctor.isActive 
+                  ? "bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white animate-pulse"
+                  : "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
+              }`}>
+                {doctor.isActive ? "Active" : "Inactive"}
+              </div>
             </div>
-            {/* Active Status Badge */}
-            <div className={`absolute -bottom-2 -right-2 px-4 py-1.5 rounded-full text-xs font-bold shadow-lg ${
-              doctor.isActive 
-                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-                : "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
-            }`}>
-              {doctor.isActive ? "Active" : "Inactive"}
+
+            <div className="mt-6 w-full space-y-2">
+              <button
+                onClick={handleQuickBooking}
+                disabled={!doctor.isActive || !hasAvailability}
+                className={`w-full py-4 rounded-xl transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${
+                  authStatus
+                    ? "bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white hover:from-[#1e4e56] hover:to-[#174047]"
+                    : "bg-gradient-to-r from-[#3a8a9c] to-[#2c6774] text-white hover:from-[#2c6774] hover:to-[#1e4e56]"
+                }`}
+              >
+                <BookOpen size={22} />
+                <span>{authStatus ? "Book Appointment" : "Login to Book"}</span>
+              </button>
+              
+              <button
+                onClick={handleShare}
+                className="w-full py-3 bg-gradient-to-r from-white to-[#f8f9fa] border-2 border-[#2c6774]/30 text-[#2c6774] rounded-xl hover:border-[#2c6774] hover:bg-gradient-to-r hover:from-[#2c6774] hover:to-[#1e4e56] hover:text-white transition-all duration-300 font-medium flex items-center justify-center gap-2"
+              >
+                <Share2 size={20} />
+                <span>Share Profile</span>
+              </button>
             </div>
           </div>
 
-          {/* Doctor Info */}
-          <div className="flex-1">
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-[#174047] bg-linear-to-r from-[#174047] to-[#2c6774] bg-clip-text">
-                {doctor.name}
-                </h1>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="px-3 py-1 bg-[#e8f4f7] text-[#2c6774] rounded-full text-sm font-semibold">
-                    {doctor.speciality}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                    <span className="font-bold text-[#174047]">{averageRating.toFixed(1)}</span>
-                    <span className="text-sm text-[#5c878f] ml-1">
-                      ({formatReviewsCount(totalReviews)})
+          <div className="lg:w-3/4">
+            <div className="mb-6">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-[#174047]">
+                    {doctor.name}
+                  </h1>
+                  <div className="flex items-center flex-wrap gap-3 mt-2">
+                    <span className="px-4 py-1.5 bg-gradient-to-r from-[#9fbfc5]/20 to-[#c0d3dc]/20 text-[#2c6774] rounded-full text-sm font-semibold border border-[#2c6774]/20">
+                      {doctor.speciality}
                     </span>
+                    <div className="flex items-center gap-2 bg-yellow-50 px-3 py-1.5 rounded-full">
+                      <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                      <span className="font-bold text-[#174047]">{averageRating.toFixed(1)}</span>
+                      <span className="text-sm text-[#5c878f]">
+                        ({formatReviewsCount(totalReviews)})
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1.5 rounded-full">
+                      <Shield size={14} />
+                      <span className="text-sm font-medium">Verified</span>
+                    </div>
                   </div>
+                  
+                  <p className="text-[#5c878f] mt-4 font-medium flex items-center gap-2">
+                    <Award size={20} className="text-[#2c6774]" />
+                    {doctor.qualification || "Medical Professional"}
+                  </p>
                 </div>
                 
-                <p className="text-[#5c878f] mt-3 font-medium flex items-center gap-2">
-                  <Award size={18} className="text-[#2c6774]" />
-                  {doctor.qualification || "Medical Professional"}
+                <div className="bg-gradient-to-r from-[#9fbfc5]/10 to-[#c0d3dc]/10 p-5 rounded-xl border-2 border-[#2c6774]/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="text-3xl font-bold text-[#174047]">
+                      Rs {consultationFee}
+                    </div>
+                  </div>
+                  <div className="text-sm text-[#5c878f]">Consultation Fee</div>
+                  <p className="text-xs text-[#5c878f]/70 mt-1">Inclusive of all charges</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white p-4 rounded-xl border border-[#c0d3dc]/30 hover:border-[#2c6774]/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <BriefcaseMedical size={20} className="text-[#2c6774]" />
+                  <span className="text-sm text-[#5c878f] font-medium">Experience</span>
+                </div>
+                <p className="text-2xl font-bold text-[#174047]">
+                  {formatExperience(doctor.experience)}
                 </p>
-                
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="bg-gradient-to-br from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-xl border border-[#c0d3dc]/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BriefcaseMedical size={18} className="text-[#2c6774]" />
-                      <span className="text-sm text-[#5c878f] font-medium">Experience</span>
-                    </div>
-                    <p className="text-xl font-bold text-[#174047]">
-                      {formatExperience(doctor.experience)}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-xl border border-[#c0d3dc]/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign size={18} className="text-[#2c6774]" />
-                      <span className="text-sm text-[#5c878f] font-medium">Fee</span>
-                    </div>
-                    <p className="text-xl font-bold text-[#174047]">
-                      Rs. {consultationFee}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-linear-to-br from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-xl border border-[#c0d3dc]/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Star size={18} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-sm text-[#5c878f] font-medium">Rating</span>
-                    </div>
-                    <p className="text-xl font-bold text-[#174047]">
-                      {doctor.rating?.toFixed(1) || "0.0"}/5
-                    </p>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-[#f2f9fa] to-[#e8f4f7] p-4 rounded-xl border border-[#c0d3dc]/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CalendarClock size={18} className="text-[#2c6774]" />
-                      <span className="text-sm text-[#5c878f] font-medium">Status</span>
-                    </div>
-                    <p className={`text-xl font-bold ${currentlyAvailable ? 'text-green-600' : 'text-gray-600'}`}>
-                      {currentlyAvailable ? 'Available Now' : 'Available Soon'}
-                    </p>
-                  </div>
-                </div>
               </div>
               
-              {/* Share Button - Beautiful Design */}
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleShare}
-                  className="group flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-white to-gray-50 border-2 border-[#2c6774]/20 text-[#2c6774] rounded-xl hover:border-[#2c6774] hover:bg-gradient-to-r hover:from-[#2c6774] hover:to-[#1e4e56] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md"
-                >
-                  <Share2 size={20} className="group-hover:rotate-12 transition-transform" />
-                  <span className="font-semibold">Share Profile</span>
-                </button>
-                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
-                  <Shield size={14} />
-                  <span className="font-medium">Verified Profile</span>
+              <div className="bg-white p-4 rounded-xl border border-[#c0d3dc]/30 hover:border-[#2c6774]/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <CalendarClock size={20} className="text-[#2c6774]" />
+                  <span className="text-sm text-[#5c878f] font-medium">Status</span>
                 </div>
+                <p className={`text-2xl font-bold ${currentlyAvailable ? 'text-green-600' : 'text-amber-600'}`}>
+                  {currentlyAvailable ? 'Available' : 'Soon'}
+                </p>
+              </div>
+              
+              <div className="bg-white p-4 rounded-xl border border-[#c0d3dc]/30 hover:border-[#2c6774]/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Video size={20} className="text-[#2c6774]" />
+                  <span className="text-sm text-[#5c878f] font-medium">Consultation</span>
+                </div>
+                <p className="text-2xl font-bold text-[#174047]">
+                  Video
+                </p>
+              </div>
+              
+              <div className="bg-white p-4 rounded-xl border border-[#c0d3dc]/30 hover:border-[#2c6774]/30 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap size={20} className="text-amber-500" />
+                  <span className="text-sm text-[#5c878f] font-medium">Consultation Time</span>
+                </div>
+                <p className="text-2xl font-bold text-[#174047]">
+                  15 min
+                </p>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Services Section */}
-        {doctor.services && doctor.services.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-[#c0d3dc]/30">
-            <h3 className="text-xl font-bold text-[#174047] mb-4 flex items-center gap-2">
-              <BriefcaseMedical size={22} className="text-[#2c6774]" />
-              Services & Specializations
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {doctor.services.map((service, index) => (
-                <div 
-                  key={index}
-                  className="group px-4 py-2.5 bg-gradient-to-r from-[#f2f9fa] to-[#e8f4f7] border border-[#c0d3dc] text-[#174047] rounded-lg hover:from-[#2c6774] hover:to-[#1e4e56] hover:text-white hover:border-[#2c6774] transition-all duration-300 cursor-default"
-                >
-                  <span className="font-medium">{service}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Main Content */}
-      <div className="mx-4 mt-6 md:mx-6 lg:mx-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Reviews & Availability */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Availability Card */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#c0d3dc]/30">
-            <h2 className="text-xl font-bold text-[#174047] mb-6 flex items-center gap-2">
-              <CalendarDays size={22} className="text-[#2c6774]" />
-              Doctor's Availability Schedule
-            </h2>
-            
-            {hasAvailability ? (
-              <div className="space-y-6">
-                {/* Today's Availability */}
-                {todaysAvailability && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 mb-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 ${currentlyAvailable ? 'bg-green-500 animate-pulse' : 'bg-blue-500'} rounded-full`}></div>
-                        <div>
-                          <h3 className="font-bold text-green-800 text-lg">Today's Availability</h3>
-                          <p className="text-sm text-green-700 mt-1">
-                            {formatTimeRangeDisplay(todaysAvailability.startTime, todaysAvailability.endTime)}
-                          </p>
-                          {currentlyAvailable && (
-                            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                              <Clock size={12} />
-                              Currently accepting appointments
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleCardClick}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
-                      >
-                        Book Now
-                      </button>
+            {doctor.services && doctor.services.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold text-[#174047] mb-4 flex items-center gap-2">
+                  <BriefcaseMedical size={22} className="text-[#2c6774]" />
+                  Services & Specializations
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {doctor.services.map((service, index) => (
+                    <div 
+                      key={index}
+                      className="group px-4 py-2.5 bg-gradient-to-r from-white to-[#f8f9fa] border border-[#c0d3dc] text-[#174047] rounded-lg hover:from-[#2c6774] hover:to-[#1e4e56] hover:text-white hover:border-[#2c6774] transition-all duration-300 cursor-default"
+                    >
+                      <span className="font-medium">{service}</span>
                     </div>
-                  </div>
-                )}
-
-                {/* Next Available Slots */}
-                {nextAvailableSlots.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-[#174047] mb-4 flex items-center gap-2">
-                      <Calendar size={18} className="text-[#2c6774]" />
-                      Next Available Slots
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {nextAvailableSlots.map((slot, index) => (
-                        <div
-                          key={index}
-                          className="p-4 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50 hover:border-blue-300 hover:shadow-md transition-all duration-300"
-                        >
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-bold text-blue-800">{slot.shortDay}</span>
-                            <div className="flex items-center gap-1 text-blue-600">
-                              <CheckCircle size={14} />
-                              <span className="text-xs font-medium">Available</span>
-                            </div>
-                          </div>
-                          <p className="text-sm text-blue-700 mb-1">{slot.formattedDate}</p>
-                          <div className="text-sm text-blue-700 flex items-center gap-2">
-                            <Clock size={14} />
-                            {formatTimeRangeDisplay(slot.startTime, slot.endTime)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Weekly Schedule */}
-                <div>
-                  <h3 className="font-semibold text-[#174047] mb-4 flex items-center gap-2">
-                    <Clock size={18} className="text-[#2c6774]" />
-                    Weekly Schedule
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {availabilitySchedule.map((slot, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 rounded-xl border transition-all duration-300 ${
-                          slot.isAvailable
-                            ? slot.day === (todaysAvailability?.day || '')
-                              ? "border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 hover:border-green-400 hover:shadow-md"
-                              : "border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50 hover:border-blue-300 hover:shadow-md"
-                            : "border-gray-200 bg-gray-50 opacity-75"
-                        }`}
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <span className={`font-bold ${
-                            slot.isAvailable 
-                              ? slot.day === (todaysAvailability?.day || '') 
-                                ? "text-green-800" 
-                                : "text-blue-800"
-                              : "text-gray-500"
-                          }`}>
-                            {slot.day}
-                          </span>
-                          {slot.isAvailable ? (
-                            <div className="flex items-center gap-1 text-green-600">
-                              <CheckCircle size={16} />
-                              <span className="text-xs font-medium">Available</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-gray-400">
-                              <X size={16} />
-                              <span className="text-xs">Not Available</span>
-                            </div>
-                          )}
-                        </div>
-                        {slot.isAvailable ? (
-                          <div className="text-sm flex items-center gap-2">
-                            <Clock size={14} className={
-                              slot.day === (todaysAvailability?.day || '') 
-                                ? "text-green-700" 
-                                : "text-blue-700"
-                            } />
-                            <span className={
-                              slot.day === (todaysAvailability?.day || '') 
-                                ? "text-green-700 font-medium" 
-                                : "text-blue-700"
-                            }>
-                              {formatTimeRangeDisplay(slot.startTime, slot.endTime)}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="text-sm text-gray-500 italic">Not Available</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-                
-                {/* Note */}
-                <div className="mt-6 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <p className="font-medium mb-2">Important Information:</p>
-                  <ul className="list-disc list-inside space-y-1 text-gray-500">
-                    <li>All times are displayed in 12-hour format (AM/PM)</li>
-                    <li>Appointments are confirmed instantly upon booking</li>
-                    <li>You will receive a confirmation SMS with details</li>
-                    <li>Video consultation link will be shared 15 minutes before appointment</li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <CalendarDays size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-lg font-medium">No availability schedule set</p>
-                <p className="text-sm mt-2">Please contact the clinic for appointment timings</p>
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="mx-4 mt-8 md:mx-6 lg:mx-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Availability & Reviews */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Next Available Slots - Prominent Display */}
+          {nextAvailableSlots.length > 0 && (
+            <div className="bg-linear-to-r from-[#9fbfc5]/10 to-[#c0d3dc]/10 rounded-2xl shadow-lg p-6 border border-[#c0d3dc]/30">
+              <h2 className="text-xl font-bold text-[#174047] mb-6 flex items-center gap-2">
+                <Calendar size={24} className="text-[#2c6774]" />
+                Next Available Slots
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {nextAvailableSlots.map((slot, index) => (
+                  <div
+                    key={index}
+                    className="bg-white p-5 rounded-xl border-2 border-[#c0d3dc]/30 hover:border-[#2c6774]/50 hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={18} className="text-[#2c6774]" />
+                        <span className="font-bold text-[#174047]">{slot.shortDay}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                        <CheckCircle size={14} />
+                        <span className="text-xs font-medium">Available</span>
+                      </div>
+                    </div>
+                    <p className="text-lg font-bold text-[#174047] mb-1">{slot.formattedDate}</p>
+                    <div className="text-sm text-[#5c878f] flex items-center gap-2 mb-4">
+                      <Clock size={16} />
+                      {formatTimeRangeDisplay(slot.startTime, slot.endTime)}
+                    </div>
+                    <button
+                      onClick={() => handleBookSlotClick(slot)}
+                      className={`w-full py-2.5 rounded-lg transition-all duration-300 font-medium text-sm ${
+                        authStatus
+                          ? "bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white hover:from-[#1e4e56] hover:to-[#174047]"
+                          : "bg-gradient-to-r from-[#3a8a9c] to-[#2c6774] text-white hover:from-[#2c6774] hover:to-[#1e4e56]"
+                      }`}
+                    >
+                      {authStatus ? "Book This Slot" : "Login to Book"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Reviews Card */}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#c0d3dc]/30">
@@ -911,7 +1064,7 @@ export default function ViewProfile() {
               </h2>
               
               {/* Rating Summary */}
-              <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e8f4f7] rounded-xl p-6 border border-[#c0d3dc]/30">
+              <div className="bg-gradient-to-r from-[#9fbfc5]/10 to-[#c0d3dc]/10 rounded-xl p-6 border border-[#c0d3dc]/30">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                   <div className="text-center">
                     <div className="text-5xl font-bold text-[#174047] mb-2">
@@ -968,9 +1121,6 @@ export default function ViewProfile() {
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="border-t border-[#c0d3dc]/30 my-6"></div>
-
             {/* Reviews List */}
             {reviewLoading ? (
               <div className="text-center py-12">
@@ -1026,19 +1176,13 @@ export default function ViewProfile() {
                         {review.tags.map((tag, index) => (
                           <span
                             key={index}
-                            className="px-3 py-1 bg-gradient-to-r from-[#e8f4f7] to-[#d4e9f0] text-[#174047] text-xs rounded-full font-medium"
+                            className="px-3 py-1 bg-gradient-to-r from-[#9fbfc5]/20 to-[#c0d3dc]/20 text-[#174047] text-xs rounded-full font-medium"
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
                     )}
-
-                    {/* Consultation Type */}
-                    <div className="flex items-center gap-2 text-sm text-[#5c878f]">
-                      <Video size={14} />
-                      {review.consultationType || "Video Consultation"}
-                    </div>
                   </div>
                 ))}
               </div>
@@ -1055,192 +1199,113 @@ export default function ViewProfile() {
                 </button>
               )}
               <button
-                onClick={() => setShowReviewForm(true)}
-                className="px-6 py-3 bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white rounded-xl hover:from-[#1e4e56] hover:to-[#174047] transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                onClick={handleWriteReviewClick}
+                className={`px-6 py-3 rounded-xl transition-all duration-300 font-medium shadow-md hover:shadow-lg ${
+                  authStatus
+                    ? "bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white hover:from-[#1e4e56] hover:to-[#174047]"
+                    : "bg-gradient-to-r from-[#3a8a9c] to-[#2c6774] text-white hover:from-[#2c6774] hover:to-[#1e4e56]"
+                }`}
               >
-                Write a Review
+                {authStatus ? "Write a Review" : "Login to Review"}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column - Booking */}
+        {/* Right Column - Weekly Schedule */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#c0d3dc]/30 sticky top-6">
-            <h2 className="text-xl font-bold text-[#174047] mb-6">
-              Book <span className="text-[#2c6774]">Appointment</span>
+            <h2 className="text-xl font-bold text-[#174047] mb-6 flex items-center gap-2">
+              <CalendarDays size={22} className="text-[#2c6774]" />
+              Weekly Schedule
             </h2>
-
-            {/* Consultation Fee Display */}
-            <div className="mb-6">
-              <div className="bg-gradient-to-r from-[#f2f9fa] to-[#e8f4f7] p-5 rounded-xl border-2 border-[#2c6774]/20 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <DollarSign size={24} className="text-[#2c6774]" />
-                  <div className="text-4xl font-bold text-[#174047]">
-                    Rs. {consultationFee}
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">Video Consultation Fee</div>
-                <p className="text-xs text-gray-500 mt-2">Inclusive of all charges</p>
-              </div>
-            </div>
-
-            {/* Date & Time Selection */}
-            <div className="mb-6">
-              <h3 className="font-semibold text-[#174047] mb-4 flex items-center gap-2">
-                <Calendar size={18} className="text-[#2c6774]" />
-                Select Date & Time
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#174047] mb-2">
-                    Appointment Date *
-                  </label>
-                  <select
-                    value={selectedDate}
-                    onChange={(e) => {
-                      setSelectedDate(e.target.value);
-                      setSelectedTime("");
-                    }}
-                    className="w-full p-3.5 border-2 border-[#c0d3dc] rounded-xl focus:border-[#2c6774] focus:ring-2 focus:ring-[#2c6774]/20 outline-none transition-colors bg-white"
-                    disabled={!doctor.isActive || !hasAvailability}
+            
+            {hasAvailability ? (
+              <div className="space-y-3">
+                {availabilitySchedule.map((slot, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-xl border transition-all duration-300 ${
+                      slot.isAvailable
+                        ? slot.day === (todaysAvailability?.day || '')
+                          ? "border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 hover:border-green-400 hover:shadow-md"
+                          : "border-[#c0d3dc]/30 bg-gradient-to-br from-[#9fbfc5]/10 to-[#c0d3dc]/10 hover:border-[#2c6774]/50 hover:shadow-md"
+                        : "border-gray-200 bg-gray-50 opacity-75"
+                    }`}
                   >
-                    <option value="">Choose a date</option>
-                    {dateOptions.length > 0 ? (
-                      dateOptions.map((date, index) => (
-                        <option key={index} value={date.value}>
-                          {date.label}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>No available dates</option>
-                    )}
-                  </select>
-                  {!doctor.isActive && (
-                    <p className="text-sm text-red-500 mt-2">
-                      Doctor is currently not accepting appointments
-                    </p>
-                  )}
-                  {!hasAvailability && doctor.isActive && (
-                    <p className="text-sm text-yellow-600 mt-2">
-                      No availability schedule set. Please contact clinic.
-                    </p>
-                  )}
-                  {selectedDate && doctor.isActive && hasAvailability && (
-                    <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
-                      <CheckCircle size={14} />
-                      Available for booking
-                    </p>
-                  )}
-                </div>
-                
-                {selectedDate && availableTimeSlots.length > 0 && doctor.isActive && (
-                  <div>
-                    <label className="block text-sm font-medium text-[#174047] mb-2">
-                      Select Time Slot *
-                    </label>
-                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
-                      {availableTimeSlots.map((slot, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => setSelectedTime(slot.value)}
-                          className={`p-3 border-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                            selectedTime === slot.value
-                              ? "border-[#2c6774] bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white shadow-md"
-                              : "border-[#c0d3dc] text-[#5c878f] hover:border-[#2c6774] hover:text-[#174047]"
-                          }`}
-                        >
-                          {slot.label}
-                        </button>
-                      ))}
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`font-bold ${
+                        slot.isAvailable 
+                          ? slot.day === (todaysAvailability?.day || '') 
+                            ? "text-green-800" 
+                            : "text-[#174047]"
+                          : "text-gray-500"
+                      }`}>
+                        {slot.day}
+                      </span>
+                      {slot.isAvailable ? (
+                        <div className="flex items-center gap-1 text-green-600">
+                          <CheckCircle size={16} />
+                          <span className="text-xs font-medium">Available</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-gray-400">
+                          <X size={16} />
+                          <span className="text-xs">Not Available</span>
+                        </div>
+                      )}
                     </div>
+                    {slot.isAvailable ? (
+                      <div className="text-sm flex items-center gap-2">
+                        <Clock size={14} className={
+                          slot.day === (todaysAvailability?.day || '') 
+                            ? "text-green-700" 
+                            : "text-[#5c878f]"
+                        } />
+                        <span className={
+                          slot.day === (todaysAvailability?.day || '') 
+                            ? "text-green-700 font-medium" 
+                            : "text-[#5c878f]"
+                        }>
+                          {formatTimeRangeDisplay(slot.startTime, slot.endTime)}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500 italic">Not Available</div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            </div>
-
-            {/* Patient Details */}
-            <div className="mb-6">
-              <h3 className="font-semibold text-[#174047] mb-4 flex items-center gap-2">
-                <User size={18} className="text-[#2c6774]" />
-                Patient Details
-              </h3>
-              <div className="space-y-4">
-                <div className="relative">
-                  <User className="absolute left-4 top-4 text-[#5c878f]" size={18} />
-                  <input
-                    type="text"
-                    value={patientName}
-                    onChange={(e) => {
-                      setPatientName(e.target.value);
-                      setNameError(false);
-                    }}
-                    className={`w-full pl-12 p-3.5 border-2 ${
-                      nameError ? "border-red-500" : "border-[#c0d3dc]"
-                    } rounded-xl focus:border-[#2c6774] focus:ring-2 focus:ring-[#2c6774]/20 outline-none transition-colors`}
-                    placeholder="Full Name *"
-                    required
-                    disabled={!doctor.isActive || !hasAvailability}
-                  />
-                </div>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-4 text-[#5c878f]" size={18} />
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => {
-                      setPhoneNumber(e.target.value);
-                      setPhoneError(false);
-                    }}
-                    className={`w-full pl-12 p-3.5 border-2 ${
-                      phoneError ? "border-red-500" : "border-[#c0d3dc]"
-                    } rounded-xl focus:border-[#2c6774] focus:ring-2 focus:ring-[#2c6774]/20 outline-none transition-colors`}
-                    placeholder="Phone Number *"
-                    maxLength="10"
-                    required
-                    disabled={!doctor.isActive || !hasAvailability}
-                  />
-                </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <CalendarDays size={48} className="mx-auto text-gray-300 mb-4" />
+                <p className="text-lg font-medium">No availability schedule set</p>
               </div>
-            </div>
+            )}
 
-            {/* Book Button */}
-            <button
-              ref={bookBtnRef}
-              onClick={handleBooking}
-              disabled={bookingLoading || !selectedDate || !selectedTime || !patientName || !phoneNumber || !doctor.isActive || !hasAvailability}
-              className="w-full py-3.5 bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white rounded-xl hover:from-[#1e4e56] hover:to-[#174047] transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {bookingLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Clock size={20} className="animate-spin" />
-                  Processing...
-                </span>
-              ) : !doctor.isActive ? (
-                "Doctor Not Available"
-              ) : !hasAvailability ? (
-                "No Schedule Available"
-              ) : (
-                "Confirm Appointment"
-              )}
-            </button>
-
-            {/* Guarantee */}
-            <div className="mt-4 text-center">
-              <div className="inline-flex items-center gap-2 text-sm text-green-600 bg-green-50 px-4 py-2 rounded-full">
-                <CheckCircle size={14} />
-                <span className="font-medium">Instant Confirmation</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-3">
-                * Confirmation SMS will be sent to your phone
+            {/* Quick Book Button at Bottom */}
+            <div className="mt-8 pt-6 border-t border-[#c0d3dc]/30">
+              <button
+                onClick={handleQuickBooking}
+                disabled={!doctor.isActive || !hasAvailability}
+                className={`w-full py-4 rounded-xl transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${
+                  authStatus
+                    ? "bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white hover:from-[#1e4e56] hover:to-[#174047]"
+                    : "bg-gradient-to-r from-[#3a8a9c] to-[#2c6774] text-white hover:from-[#2c6774] hover:to-[#1e4e56]"
+                }`}
+              >
+                <BookOpen size={22} />
+                <span>{authStatus ? "Book Appointment Now" : "Login to Book"}</span>
+              </button>
+              <p className="text-xs text-[#5c878f] mt-3 text-center">
+                Instant confirmation • Secure payment • Video consultation
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Review Modal */}
+      {/* Review Modal - FIXED VERSION */}
       {showReviewForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -1257,6 +1322,23 @@ export default function ViewProfile() {
               <p className="text-sm text-[#5c878f] mt-2">
                 Share your experience with {doctor.name}
               </p>
+              
+              {/* Show logged in user's name - FIXED */}
+              {authStatus && loggedInUser && (
+                <div className="mt-3 flex items-center gap-2 p-3 bg-gradient-to-r from-[#9fbfc5]/10 to-[#c0d3dc]/10 rounded-lg">
+                  <div className="w-8 h-8 bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white rounded-full flex items-center justify-center font-bold">
+                    {getUserInitials()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#174047]">
+                      Reviewing as: {getUserName()}
+                    </p>
+                    <p className="text-xs text-[#5c878f]">
+                      Your name will be displayed with the review
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleReviewSubmit} className="p-6">
@@ -1306,23 +1388,6 @@ export default function ViewProfile() {
                 />
               </div>
 
-              {/* Consultation Type */}
-              <div className="mb-6">
-                <label className="block text-[#174047] font-medium mb-3">
-                  Consultation Type
-                </label>
-                <select
-                  value={reviewForm.consultationType}
-                  onChange={(e) =>
-                    setReviewForm({ ...reviewForm, consultationType: e.target.value })
-                  }
-                  className="w-full p-3.5 border-2 border-[#c0d3dc] rounded-xl focus:border-[#2c6774] focus:ring-2 focus:ring-[#2c6774]/20 outline-none transition-colors"
-                >
-                  <option value="Video Consultation">Video Consultation</option>
-                  <option value="Physical Visit">Physical Visit</option>
-                </select>
-              </div>
-
               {/* Tags */}
               <div className="mb-8">
                 <label className="block text-[#174047] font-medium mb-3">
@@ -1337,7 +1402,7 @@ export default function ViewProfile() {
                       className={`px-4 py-2 text-sm rounded-xl transition-all duration-300 ${
                         reviewForm.tags.includes(tag)
                           ? "bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white shadow-md"
-                          : "bg-gradient-to-r from-[#e8f4f7] to-[#d4e9f0] text-[#174047] hover:shadow-md"
+                          : "bg-gradient-to-r from-[#9fbfc5]/20 to-[#c0d3dc]/20 text-[#174047] hover:shadow-md"
                       }`}
                     >
                       {tag}
@@ -1347,6 +1412,58 @@ export default function ViewProfile() {
                 <p className="text-sm text-[#5c878f] mt-3">
                   Selected: {reviewForm.tags.length} tag(s)
                 </p>
+              </div>
+
+              {/* Preview of how review will appear */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-[#9fbfc5]/10 to-[#c0d3dc]/10 rounded-xl border border-[#c0d3dc]/30">
+                <h4 className="text-sm font-medium text-[#174047] mb-3">
+                  Preview of your review:
+                </h4>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white rounded-full flex items-center justify-center font-bold">
+                    {getUserInitials()}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-[#174047] text-sm">
+                        {getUserName()}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={14}
+                            className={`${
+                              star <= reviewForm.rating
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-[#5c878f] line-clamp-2">
+                      {reviewForm.comment || "Your review will appear here..."}
+                    </p>
+                    {reviewForm.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {reviewForm.tags.slice(0, 2).map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-0.5 bg-gradient-to-r from-[#9fbfc5]/20 to-[#c0d3dc]/20 text-[#174047] text-xs rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {reviewForm.tags.length > 2 && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">
+                            +{reviewForm.tags.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Actions */}

@@ -420,7 +420,7 @@ export default function LabDetail() {
           </span>
 
           {/* ✅ ADDED: Login status indicator */}
-          <div className="mt-4">
+          {/* <div className="mt-4">
             {!isLoggedIn && (
               <div className="flex items-center gap-2 text-sm bg-white/20 px-3 py-1 rounded-full inline-flex">
                 <span className="text-yellow-300">⚠</span>
@@ -438,7 +438,7 @@ export default function LabDetail() {
                 </button>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
 
