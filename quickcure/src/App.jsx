@@ -36,7 +36,7 @@ import PharmacyDetailPage from "./components/Pharmacy/PharmacyDetailPage";
 import MedicinePage from "./components/Pharmacy/MedicinePage";
 import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
-import PharmacyRegistration from "./components/Registration/PharmacyRegistration.jsx"
+import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
 // import OrderHistory from './components/Pharmacy/OrderHistory';
 
 // Dashboard Components (NEW STRUCTURE)
@@ -101,6 +101,7 @@ function Layout() {
         <Route path="/medicines" element={<MedicinePage cart={cart} setCart={setCart} />} />
         <Route path="/medicine/:id" element={<MedicineDetail cart={cart} setCart={setCart} />} />
         <Route path="/booking" element={<MedicineBooking cart={cart} setCart={setCart} />} />
+        <Route path="/reg" element={<PharmacyRegistration />} />
         {/* <Route path="/orders" element={<OrderHistory />} /> */}
 
         {/* NEW: Dashboard Routes with Layout */}
