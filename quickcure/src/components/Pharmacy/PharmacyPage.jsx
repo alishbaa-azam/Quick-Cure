@@ -3145,8 +3145,562 @@
 
 
 //--------------------Perfect New style Approved by me-------------
+// import React, { useState, useEffect } from 'react';
+// import { Link } from 'react-router-dom';
+
+// const PharmacyPage = () => {
+//   // State for pharmacies fetched from API
+//   const [pharmacies, setPharmacies] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+  
+//   // Stats state
+//   const [stats, setStats] = useState({
+//     totalPharmacies: 0,
+//     openPharmacies: 0,
+//     cities: 0,
+//     emergencyService: '24/7',
+//     avgDelivery: '30 mins',
+//     authenticity: '100%'
+//   });
+  
+//   // Cities state (fetched from API)
+//   const [cities, setCities] = useState(['all']);
+  
+//   // Filter states
+//   const [searchTerm, setSearchTerm] = useState('');
+//   const [filterOpen, setFilterOpen] = useState(false);
+//   const [sortBy, setSortBy] = useState('distance');
+//   const [showFilters, setShowFilters] = useState(false);
+//   const [selectedCity, setSelectedCity] = useState('all');
+
+//   // UI-only data for features
+//   const features = [
+//     {
+//       icon: (
+//         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+//         </svg>
+//       ),
+//       title: 'Verified Pharmacies',
+//       description: 'All pharmacies are certified and authenticated'
+//     },
+//     {
+//       icon: (
+//         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+//         </svg>
+//       ),
+//       title: 'Fast Delivery',
+//       description: 'Get medicines delivered within 30 minutes'
+//     },
+//     {
+//       icon: (
+//         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+//         </svg>
+//       ),
+//       title: '24/7 Support',
+//       description: 'Round-the-clock customer support available'
+//     },
+//     {
+//       icon: (
+//         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+//         </svg>
+//       ),
+//       title: 'Secure Payments',
+//       description: 'Safe and encrypted payment methods'
+//     }
+//   ];
+
+//   // Fetch pharmacies from API
+//   useEffect(() => {
+//     const fetchPharmacies = async () => {
+//       try {
+//         setLoading(true);
+        
+//         const params = new URLSearchParams();
+//         if (selectedCity !== 'all') params.append('city', selectedCity);
+//         if (filterOpen) params.append('open', 'true');
+//         if (searchTerm) params.append('search', searchTerm);
+//         params.append('sort', sortBy);
+        
+//         const queryString = params.toString();
+//         const url = `http://localhost:5000/api/pharmacies${queryString ? `?${queryString}` : ''}`;
+        
+//         const response = await fetch(url);
+//         const data = await response.json();
+        
+//         if (data.success) {
+//           setPharmacies(data.data);
+//         } else {
+//           setError('Failed to fetch pharmacies');
+//         }
+//       } catch (err) {
+//         console.error('Error fetching pharmacies:', err);
+//         setError('Error connecting to server');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+    
+//     fetchPharmacies();
+//   }, [selectedCity, filterOpen, searchTerm, sortBy]);
+
+//   // Fetch stats from API
+//   useEffect(() => {
+//     const fetchStats = async () => {
+//       try {
+//         const response = await fetch('http://localhost:5000/api/pharmacies/stats');
+//         const data = await response.json();
+        
+//         if (data.success) {
+//           setStats(data.data);
+//         }
+//       } catch (err) {
+//         console.error('Error fetching stats:', err);
+//       }
+//     };
+    
+//     fetchStats();
+//   }, []);
+
+//   // Fetch cities from API
+//   useEffect(() => {
+//     const fetchCities = async () => {
+//       try {
+//         const response = await fetch('http://localhost:5000/api/pharmacies/cities');
+//         const data = await response.json();
+        
+//         if (data.success) {
+//           setCities(['all', ...data.data]);
+//         }
+//       } catch (err) {
+//         console.error('Error fetching cities:', err);
+//       }
+//     };
+    
+//     fetchCities();
+//   }, []);
+
+//   // Handle "Near Me" button click
+//   const handleNearMe = () => {
+//     setSortBy('distance');
+//     alert('Showing pharmacies nearest to your location');
+//   };
+
+//   // Toggle open filter
+//   const toggleOpenFilter = () => {
+//     setFilterOpen(!filterOpen);
+//   };
+
+//   // Clear all filters
+//   const clearAllFilters = () => {
+//     setSearchTerm('');
+//     setSelectedCity('all');
+//     setFilterOpen(false);
+//     setSortBy('distance');
+//   };
+
+//   // Loading state
+//   if (loading && pharmacies.length === 0) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center bg-gray-50">
+//         <div className="text-lg text-[#2c6774]">Loading pharmacies...</div>
+//       </div>
+//     );
+//   }
+
+//   // Error state
+//   if (error && pharmacies.length === 0) {
+//     return (
+//       <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-50">
+//         <svg className="w-16 h-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//         </svg>
+//         <h3 className="text-xl font-bold text-gray-800 mb-2">Error Loading Pharmacies</h3>
+//         <p className="text-gray-600 mb-4">{error}</p>
+//         <button
+//           onClick={() => window.location.reload()}
+//           className="px-6 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#1e4e56] transition-colors"
+//         >
+//           Try Again
+//         </button>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="min-h-screen bg-gray-50">
+//       {/* Updated Header Section - Taller */}
+//       <div className="bg-gradient-to-r from-[#174047] via-[#2c6774] to-[#5c878f] text-white">
+//         <div className="container mx-auto px-4 py-16 md:py-20"> {/* Increased padding */}
+//           <div className="max-w-3xl">
+//             <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight"> {/* Larger text */}
+//               Find Your Trusted Pharmacy
+//             </h1>
+//             <p className="text-[#c0d3dc] text-lg md:text-xl leading-relaxed"> {/* Larger paragraph */}
+//               Get authentic medicines delivered or ready for pickup from verified pharmacies across multiple cities
+//             </p>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Quick Stats Cards - Updated to 5 */}
+//       <div className="container mx-auto px-4 -mt-8 mb-8"> {/* Adjusted negative margin */}
+//         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+//           <div className="bg-white rounded-lg p-5 shadow-md border border-gray-200 text-center hover:shadow-lg transition-shadow duration-300">
+//             <div className="text-2xl md:text-3xl font-bold text-[#2c6774]">{stats.totalPharmacies}+</div>
+//             <div className="text-sm text-gray-600 mt-2">Pharmacies</div>
+//           </div>
+//           <div className="bg-white rounded-lg p-5 shadow-md border border-gray-200 text-center hover:shadow-lg transition-shadow duration-300">
+//             <div className="text-2xl md:text-3xl font-bold text-[#2c6774]">{stats.openPharmacies || '150+'}</div>
+//             <div className="text-sm text-gray-600 mt-2">Open Now</div>
+//           </div>
+//           <div className="bg-white rounded-lg p-5 shadow-md border border-gray-200 text-center hover:shadow-lg transition-shadow duration-300">
+//             <div className="text-2xl md:text-3xl font-bold text-[#2c6774]">{stats.avgDelivery}</div>
+//             <div className="text-sm text-gray-600 mt-2">Avg Delivery</div>
+//           </div>
+//           <div className="bg-white rounded-lg p-5 shadow-md border border-gray-200 text-center hover:shadow-lg transition-shadow duration-300">
+//             <div className="text-2xl md:text-3xl font-bold text-[#2c6774]">{stats.authenticity}</div>
+//             <div className="text-sm text-gray-600 mt-2">Authentic</div>
+//           </div>
+//           <div className="bg-white rounded-lg p-5 shadow-md border border-gray-200 text-center hover:shadow-lg transition-shadow duration-300">
+//             <div className="text-2xl md:text-3xl font-bold text-[#2c6774]">{stats.cities || '25+'}</div>
+//             <div className="text-sm text-gray-600 mt-2">Cities</div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="container mx-auto px-4 pb-8">
+//         {/* Search Section - Updated button styles */}
+//         <div className="mb-8">
+//           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+//             <div className="flex flex-col sm:flex-row gap-4">
+//               <div className="flex-1">
+//                 <div className="relative">
+//                   <input
+//                     type="text"
+//                     placeholder="Search pharmacies by name or location..."
+//                     value={searchTerm}
+//                     onChange={(e) => setSearchTerm(e.target.value)}
+//                     className="w-full px-5 py-3 pl-12 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] text-sm transition-all duration-300"
+//                   />
+//                   <svg 
+//                     className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" 
+//                     fill="none" 
+//                     stroke="currentColor" 
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+//                   </svg>
+//                 </div>
+//               </div>
+              
+//               <div className="flex gap-3">
+//                 <button 
+//                   onClick={() => setShowFilters(!showFilters)}
+//                   className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2 ${
+//                     showFilters 
+//                       ? 'bg-[#2c6774] text-white shadow-md' 
+//                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
+//                   }`}
+//                 >
+//                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+//                   </svg>
+//                   Filters
+//                 </button>
+                
+//                 <button 
+//                   onClick={handleNearMe}
+//                   className="px-5 py-3 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl font-semibold hover:from-[#1e4e56] hover:to-[#174047] transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2 shadow-md hover:shadow-lg"
+//                 >
+//                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+//                   </svg>
+//                   Near Me
+//                 </button>
+//               </div>
+//             </div>
+
+//             {/* Filters Dropdown - Updated button styles */}
+
+// {showFilters && (
+//               <div className="mt-4 pt-4 border-t border-gray-200">
+//                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+//                   <div>
+//                     <label className="block text-xs font-medium text-gray-700 mb-2">City</label>
+//                     <div className="flex flex-wrap gap-1">
+//                       {Array.from(new Set(cities)).slice(0, 5).map(city => (
+//                         <button
+//                           key={city}
+//                           onClick={() => setSelectedCity(city)}
+//                           className={`px-2 py-1 rounded text-xs ${
+//                             selectedCity === city 
+//                               ? 'bg-[#2c6774] text-white' 
+//                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+//                           }`}
+//                         >
+//                           {city === 'all' ? 'All Cities' : city}
+//                         </button>
+//                       ))}
+//                     </div>
+//                   </div>
+
+//                   <div>
+//                     <label className="block text-xs font-medium text-gray-700 mb-2">Sort By</label>
+//                     <select
+//                       value={sortBy}
+//                       onChange={(e) => setSortBy(e.target.value)}
+//                       className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#2c6774] focus:border-[#2c6774]"
+//                     >
+//                       <option value="distance">Nearest First</option>
+//                       <option value="rating">Highest Rated</option>
+//                       <option value="delivery">Fastest Delivery</option>
+//                     </select>
+//                   </div>
+
+//                   <div>
+//                     <label className="block text-xs font-medium text-gray-700 mb-2">Status</label>
+//                     <button
+//                       onClick={toggleOpenFilter}
+//                       className={`px-3 py-1.5 rounded flex items-center gap-1 text-sm ${
+//                         filterOpen 
+//                           ? 'bg-green-50 text-green-700 border border-green-300' 
+//                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+//                       }`}
+//                     >
+//                       {filterOpen ? 'Open Now' : 'Show Open Only'}
+//                     </button>
+//                   </div>
+//                 </div>
+                
+//                 <div className="mt-3 flex justify-between items-center">
+//                   <span className="text-xs text-gray-600">
+//                     {pharmacies.length} results
+//                   </span>
+//                   <button
+//                     onClick={clearAllFilters}
+//                     className="text-xs text-[#2c6774] hover:text-[#1e4e56] font-medium"
+//                   >
+//                     Clear filters
+//                   </button>
+//                 </div>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+
+
+//         {/* Results Header */}
+//         <div className="mb-6">
+//           <h2 className="text-2xl font-bold text-gray-900">Available Pharmacies</h2>
+//           <p className="text-gray-600 mt-2">
+//             {pharmacies.length} pharmacy{pharmacies.length !== 1 ? 's' : ''} found
+//             {selectedCity !== 'all' && ` in ${selectedCity}`}
+//             {filterOpen && ' • Open Now'}
+//           </p>
+//         </div>
+
+//         {/* COMPACT PHARMACY CARDS - Updated button styles */}
+//         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+//           {pharmacies.map((pharmacy) => (
+//             <div 
+//               key={pharmacy._id} 
+//               className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col group"
+//             >
+//               {/* Pharmacy Image - Smaller */}
+//               <div className="relative h-36">
+//                 <img 
+//                   src={pharmacy.image} 
+//                   alt={pharmacy.name}
+//                   className="w-full h-full object-cover"
+//                   onError={(e) => {
+//                     e.target.onerror = null;
+//                     e.target.src = 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=400&q=60';
+//                   }}
+//                 />
+//                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                
+//                 <div className="absolute top-3 left-3 flex items-center gap-2">
+//                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+//                     pharmacy.open 
+//                       ? 'bg-green-500 text-white' 
+//                       : 'bg-gray-600 text-white'
+//                   }`}>
+//                     {pharmacy.open ? 'OPEN' : 'CLOSED'}
+//                   </span>
+//                 </div>
+                
+//                 <div className="absolute top-3 right-3">
+//                   <div className="flex items-center bg-white/90 px-2 py-0.5 rounded shadow-sm">
+//                     <svg className="w-3 h-3 text-yellow-500 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+//                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+//                     </svg>
+//                     <span className="text-xs font-bold">{pharmacy.rating || '4.0'}</span>
+//                   </div>
+//                 </div>
+                
+//                 <div className="absolute bottom-3 left-3">
+//                   <span className="bg-[#2c6774] text-white px-2 py-0.5 rounded text-xs font-medium shadow-sm">
+//                     {pharmacy.city}
+//                   </span>
+//                 </div>
+//               </div>
+
+//               {/* Pharmacy Content - More compact */}
+//               <div className="p-3 flex-1 flex flex-col">
+//                 <h3 className="font-bold text-gray-900 text-sm mb-1 truncate">{pharmacy.name}</h3>
+                
+//                 <div className="flex items-start text-gray-600 mb-2">
+//                   <svg className="w-3 h-3 text-gray-400 mr-1 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+//                   </svg>
+//                   <span className="text-xs line-clamp-2">{pharmacy.address}</span>
+//                 </div>
+                
+//                 <div className="flex items-center text-gray-600 text-xs mb-2">
+//                   <svg className="w-3 h-3 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                   </svg>
+//                   <span>{pharmacy.deliveryTime || '15-20 mins'}</span>
+//                   {pharmacy.distance && (
+//                     <>
+//                       <span className="mx-1 text-gray-300">•</span>
+//                       <span className="text-gray-500">{pharmacy.distance}</span>
+//                     </>
+//                   )}
+//                 </div>
+
+//                 {/* Compact Services Tags */}
+//                 <div className="mb-3">
+//                   <div className="flex flex-wrap gap-1">
+//                     <span className="px-2 py-0.5 bg-[#2c6774]/10 text-[#2c6774] text-xs rounded transition-colors duration-300 hover:bg-[#2c6774] hover:text-white cursor-default">
+//                       Delivery
+//                     </span>
+//                     <span className="px-2 py-0.5 bg-[#2c6774]/10 text-[#2c6774] text-xs rounded transition-colors duration-300 hover:bg-[#2c6774] hover:text-white cursor-default">
+//                       Pickup
+//                     </span>
+//                   </div>
+//                 </div>
+
+//                 {/* Action Button - Updated with gradient */}
+//                 <div className="mt-auto">
+//                   <Link
+//                     to={`/pharmacies/${pharmacy._id}`}
+//                     className="block w-full bg-gradient-to-r from-[#2c6774] to-[#174047] text-white text-center py-2 rounded text-xs font-semibold transition-all duration-300 hover:from-[#1e4e56] hover:to-[#174047] transform hover:-translate-y-0.5 shadow-sm hover:shadow"
+//                   >
+//                     View Pharmacy
+//                   </Link>
+//                 </div>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+
+//         {/* Empty State - Updated button styles */}
+//         {pharmacies.length === 0 && !loading && (
+//           <div className="text-center py-8 bg-white rounded-xl border border-gray-200 shadow-sm">
+//             <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//             </svg>
+//             <h3 className="text-lg font-bold text-gray-800 mb-1">No pharmacies found</h3>
+//             <p className="text-gray-600 text-sm mb-4">Try adjusting your search criteria</p>
+//             <button
+//               onClick={clearAllFilters}
+//               className="px-4 py-2 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded text-sm font-semibold transition-all duration-300 hover:from-[#1e4e56] hover:to-[#174047] transform hover:-translate-y-0.5"
+//             >
+//               Clear Filters
+//             </button>
+//           </div>
+//         )}
+
+
+//         {/* Compact CTA Section */}
+//         <div className="bg-gradient-to-r from-[#2c6774] to-[#174047] rounded-xl p-8 text-white overflow-hidden relative mb-8">
+//           <div className="absolute top-0 right-0 w-48 h-48 bg-[#5c878f] rounded-full -translate-y-24 translate-x-12 opacity-20"></div>
+//           <div className="relative z-10">
+//             <div className="text-center">
+//               <h3 className="text-2xl font-bold text-white mb-3">Need Specific Medicines?</h3>
+//               <p className="text-[#c0d3dc] mb-6 max-w-md mx-auto">
+//                 Search our complete medicine database from all partner pharmacies with prescription support
+//               </p>
+//               <Link
+//                 to="/medicines"
+//                 className="inline-flex items-center bg-white text-[#2c6774] px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+//               >
+//                 <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+//                 </svg>
+//                 Search All Medicines
+//               </Link>
+//             </div>
+//           </div>
+//         </div>
+
+//   {/* Why Choose Us Section */}
+//         <div className="bg-gradient-to-br from-[#174047]/5 via-[#2c6774]/5 to-[#5c878f]/5 rounded-xl p-6 mb-6 border border-[#c0d3dc]/20">
+//           <div className="text-center mb-6">
+//             <h2 className="text-xl font-bold text-gray-900 mb-2">Why Choose Our Platform?</h2>
+//             <p className="text-gray-600 text-sm max-w-2xl mx-auto">
+//               We connect you with the best pharmacies to ensure you get quality medicines with convenience
+//             </p>
+//           </div>
+          
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+//             {features.map((feature, index) => (
+//               <div key={index} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300">
+//                 <div className="text-[#2c6774] mb-2">
+//                   {feature.icon}
+//                 </div>
+//                 <h3 className="font-bold text-gray-900 text-sm mb-1">{feature.title}</h3>
+//                 <p className="text-xs text-gray-600">{feature.description}</p>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default PharmacyPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ----------------without reviews check
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  FaSearch, 
+  FaFilter, 
+  FaMapMarkerAlt, 
+  FaClock, 
+  FaCheckCircle, 
+  FaShippingFast, 
+  FaHeadset, 
+  FaShieldAlt,
+  FaExclamationTriangle,
+  FaSadTear,
+  FaMapPin,
+  FaSyncAlt
+} from 'react-icons/fa';
 
 const PharmacyPage = () => {
   // State for pharmacies fetched from API
@@ -3177,42 +3731,57 @@ const PharmacyPage = () => {
   // UI-only data for features
   const features = [
     {
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: <FaCheckCircle className="w-6 h-6" />,
       title: 'Verified Pharmacies',
       description: 'All pharmacies are certified and authenticated'
     },
     {
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: <FaShippingFast className="w-6 h-6" />,
       title: 'Fast Delivery',
       description: 'Get medicines delivered within 30 minutes'
     },
     {
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-        </svg>
-      ),
+      icon: <FaHeadset className="w-6 h-6" />,
       title: '24/7 Support',
       description: 'Round-the-clock customer support available'
     },
     {
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-      ),
+      icon: <FaShieldAlt className="w-6 h-6" />,
       title: 'Secure Payments',
       description: 'Safe and encrypted payment methods'
     }
   ];
+
+  // Function to truncate address to max 2 lines
+  const truncateAddress = (address, maxLines = 2) => {
+    if (!address) return '';
+    
+    // Split by spaces
+    const words = address.split(' ');
+    let lines = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      if (currentLine.length + word.length + 1 <= 30) { // ~30 chars per line
+        currentLine += (currentLine ? ' ' : '') + word;
+      } else {
+        if (lines.length < maxLines - 1) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          // If we're at the last line, add ellipsis
+          currentLine += '...';
+          break;
+        }
+      }
+    }
+    
+    if (currentLine && lines.length < maxLines) {
+      lines.push(currentLine);
+    }
+    
+    return lines.slice(0, maxLines).join(' ');
+  };
 
   // Fetch pharmacies from API
   useEffect(() => {
@@ -3307,7 +3876,10 @@ const PharmacyPage = () => {
   if (loading && pharmacies.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-[#2c6774]">Loading pharmacies...</div>
+        <div className="text-lg text-[#2c6774] flex items-center gap-2">
+          <FaSyncAlt className="animate-spin" />
+          Loading pharmacies...
+        </div>
       </div>
     );
   }
@@ -3316,15 +3888,14 @@ const PharmacyPage = () => {
   if (error && pharmacies.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-50">
-        <svg className="w-16 h-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <FaExclamationTriangle className="w-16 h-16 text-red-400 mb-4" />
         <h3 className="text-xl font-bold text-gray-800 mb-2">Error Loading Pharmacies</h3>
         <p className="text-gray-600 mb-4">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#1e4e56] transition-colors"
+          className="px-6 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#1e4e56] transition-colors flex items-center gap-2"
         >
+          <FaSyncAlt />
           Try Again
         </button>
       </div>
@@ -3335,12 +3906,12 @@ const PharmacyPage = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Updated Header Section - Taller */}
       <div className="bg-gradient-to-r from-[#174047] via-[#2c6774] to-[#5c878f] text-white">
-        <div className="container mx-auto px-4 py-16 md:py-20"> {/* Increased padding */}
+        <div className="container mx-auto px-4 py-16 md:py-20">
           <div className="max-w-3xl">
-            <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight"> {/* Larger text */}
+            <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
               Find Your Trusted Pharmacy
             </h1>
-            <p className="text-[#c0d3dc] text-lg md:text-xl leading-relaxed"> {/* Larger paragraph */}
+            <p className="text-[#c0d3dc] text-lg md:text-xl leading-relaxed">
               Get authentic medicines delivered or ready for pickup from verified pharmacies across multiple cities
             </p>
           </div>
@@ -3348,7 +3919,7 @@ const PharmacyPage = () => {
       </div>
 
       {/* Quick Stats Cards - Updated to 5 */}
-      <div className="container mx-auto px-4 -mt-8 mb-8"> {/* Adjusted negative margin */}
+      <div className="container mx-auto px-4 -mt-8 mb-8">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white rounded-lg p-5 shadow-md border border-gray-200 text-center hover:shadow-lg transition-shadow duration-300">
             <div className="text-2xl md:text-3xl font-bold text-[#2c6774]">{stats.totalPharmacies}+</div>
@@ -3388,14 +3959,7 @@ const PharmacyPage = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-5 py-3 pl-12 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] text-sm transition-all duration-300"
                   />
-                  <svg 
-                    className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                  <FaSearch className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
               
@@ -3408,9 +3972,7 @@ const PharmacyPage = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
                   }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
+                  <FaFilter />
                   Filters
                 </button>
                 
@@ -3418,18 +3980,14 @@ const PharmacyPage = () => {
                   onClick={handleNearMe}
                   className="px-5 py-3 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl font-semibold hover:from-[#1e4e56] hover:to-[#174047] transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2 shadow-md hover:shadow-lg"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  <FaMapMarkerAlt />
                   Near Me
                 </button>
               </div>
             </div>
 
             {/* Filters Dropdown - Updated button styles */}
-
-{showFilters && (
+            {showFilters && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
@@ -3495,7 +4053,6 @@ const PharmacyPage = () => {
           </div>
         </div>
 
-
         {/* Results Header */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Available Pharmacies</h2>
@@ -3536,17 +4093,9 @@ const PharmacyPage = () => {
                   </span>
                 </div>
                 
-                <div className="absolute top-3 right-3">
-                  <div className="flex items-center bg-white/90 px-2 py-0.5 rounded shadow-sm">
-                    <svg className="w-3 h-3 text-yellow-500 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="text-xs font-bold">{pharmacy.rating || '4.0'}</span>
-                  </div>
-                </div>
-                
                 <div className="absolute bottom-3 left-3">
-                  <span className="bg-[#2c6774] text-white px-2 py-0.5 rounded text-xs font-medium shadow-sm">
+                  <span className="bg-[#2c6774] text-white px-2 py-0.5 rounded text-xs font-medium shadow-sm flex items-center gap-1">
+                    <FaMapPin className="w-3 h-3" />
                     {pharmacy.city}
                   </span>
                 </div>
@@ -3556,17 +4105,18 @@ const PharmacyPage = () => {
               <div className="p-3 flex-1 flex flex-col">
                 <h3 className="font-bold text-gray-900 text-sm mb-1 truncate">{pharmacy.name}</h3>
                 
-                <div className="flex items-start text-gray-600 mb-2">
-                  <svg className="w-3 h-3 text-gray-400 mr-1 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  </svg>
-                  <span className="text-xs line-clamp-2">{pharmacy.address}</span>
+                {/* Fixed Height Address Container - 2 lines max */}
+                <div className="mb-2 min-h-[2.5rem] max-h-[2.5rem] overflow-hidden">
+                  <div className="flex items-start text-gray-600">
+                    <FaMapMarkerAlt className="w-3 h-3 text-gray-400 mr-1 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs leading-tight">
+                      {truncateAddress(pharmacy.address)}
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="flex items-center text-gray-600 text-xs mb-2">
-                  <svg className="w-3 h-3 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <FaClock className="w-3 h-3 text-gray-400 mr-1" />
                   <span>{pharmacy.deliveryTime || '15-20 mins'}</span>
                   {pharmacy.distance && (
                     <>
@@ -3576,14 +4126,12 @@ const PharmacyPage = () => {
                   )}
                 </div>
 
-                {/* Compact Services Tags */}
+                {/* Delivery Service Tag Only */}
                 <div className="mb-3">
                   <div className="flex flex-wrap gap-1">
-                    <span className="px-2 py-0.5 bg-[#2c6774]/10 text-[#2c6774] text-xs rounded transition-colors duration-300 hover:bg-[#2c6774] hover:text-white cursor-default">
-                      Delivery
-                    </span>
-                    <span className="px-2 py-0.5 bg-[#2c6774]/10 text-[#2c6774] text-xs rounded transition-colors duration-300 hover:bg-[#2c6774] hover:text-white cursor-default">
-                      Pickup
+                    <span className="px-2 py-0.5 bg-[#2c6774]/10 text-[#2c6774] text-xs rounded transition-colors duration-300 hover:bg-[#2c6774] hover:text-white cursor-default flex items-center gap-1">
+                      <FaShippingFast className="w-3 h-3" />
+                      Delivery Available
                     </span>
                   </div>
                 </div>
@@ -3605,9 +4153,7 @@ const PharmacyPage = () => {
         {/* Empty State - Updated button styles */}
         {pharmacies.length === 0 && !loading && (
           <div className="text-center py-8 bg-white rounded-xl border border-gray-200 shadow-sm">
-            <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <FaSadTear className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-gray-800 mb-1">No pharmacies found</h3>
             <p className="text-gray-600 text-sm mb-4">Try adjusting your search criteria</p>
             <button
@@ -3618,7 +4164,6 @@ const PharmacyPage = () => {
             </button>
           </div>
         )}
-
 
         {/* Compact CTA Section */}
         <div className="bg-gradient-to-r from-[#2c6774] to-[#174047] rounded-xl p-8 text-white overflow-hidden relative mb-8">
@@ -3633,16 +4178,14 @@ const PharmacyPage = () => {
                 to="/medicines"
                 className="inline-flex items-center bg-white text-[#2c6774] px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
               >
-                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <FaSearch className="mr-3" />
                 Search All Medicines
               </Link>
             </div>
           </div>
         </div>
 
-  {/* Why Choose Us Section */}
+        {/* Why Choose Us Section */}
         <div className="bg-gradient-to-br from-[#174047]/5 via-[#2c6774]/5 to-[#5c878f]/5 rounded-xl p-6 mb-6 border border-[#c0d3dc]/20">
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-2">Why Choose Our Platform?</h2>
@@ -3669,23 +4212,4 @@ const PharmacyPage = () => {
   );
 };
 
-export default PharmacyPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Near me added 
+export default PharmacyPage; 

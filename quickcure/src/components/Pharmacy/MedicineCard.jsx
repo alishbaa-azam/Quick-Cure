@@ -1192,6 +1192,811 @@
 
 
 //--------------------- login corrected-----------------
+// import React, { useState, useEffect } from 'react';
+// import { Link, useNavigate } from 'react-router-dom';
+
+// const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
+//   const navigate = useNavigate();
+//   const [showPopup, setShowPopup] = useState(false);
+//   const [popupMessage, setPopupMessage] = useState('');
+//   const [popupType, setPopupType] = useState('error'); // 'error' or 'info'
+//   const [isPharmacy, setIsPharmacy] = useState(false);
+//   const [isLoggedIn, setIsLoggedIn] = useState(false);
+//   const [userData, setUserData] = useState(null);
+
+//   // Initialize auth state from localStorage
+//   useEffect(() => {
+//     const checkAuth = () => {
+//       try {
+//         // Use same keys as pharmacy dashboard
+//         const token = localStorage.getItem('token');
+//         const userStr = localStorage.getItem('user');
+        
+//         if (token && userStr) {
+//           const user = JSON.parse(userStr);
+//           setIsLoggedIn(true);
+//           setUserData(user);
+//           // Check if user is pharmacy (same logic as pharmacy dashboard)
+//           setIsPharmacy(user.role === 'pharmacy');
+//         } else {
+//           setIsLoggedIn(false);
+//           setUserData(null);
+//           setIsPharmacy(false);
+//         }
+//       } catch (error) {
+//         console.error('Error checking auth:', error);
+//         setIsLoggedIn(false);
+//         setUserData(null);
+//         setIsPharmacy(false);
+//       }
+//     };
+
+//     checkAuth();
+
+//     // Listen for storage changes
+//     const handleStorageChange = () => {
+//       checkAuth();
+//     };
+
+//     window.addEventListener('storage', handleStorageChange);
+    
+//     return () => {
+//       window.removeEventListener('storage', handleStorageChange);
+//     };
+//   }, []);
+
+//   // Show popup message
+//   const showPopupMessage = (message, type = 'error') => {
+//     setPopupMessage(message);
+//     setPopupType(type);
+//     setShowPopup(true);
+//   };
+
+//   // Close popup
+//   const closePopup = () => {
+//     setShowPopup(false);
+//     setPopupMessage('');
+//   };
+
+//   // Handle add to cart with proper validation
+//   const handleAddToCart = (medicine) => {
+//     // Direct check from localStorage (same as pharmacy dashboard)
+//     const token = localStorage.getItem('token');
+//     const userStr = localStorage.getItem('user');
+    
+//     if (!token || !userStr) {
+//       // Not logged in - redirect to login
+//       navigate('/login', { 
+//         state: { 
+//           redirectTo: window.location.pathname,
+//           message: 'Please login to add to cart' 
+//         } 
+//       });
+//       return;
+//     }
+
+//     // Parse user data
+//     let user = null;
+//     try {
+//       user = JSON.parse(userStr);
+//     } catch (error) {
+//       console.error('Error parsing user data:', error);
+//       // Invalid user data - redirect to login
+//       navigate('/login', { 
+//         state: { 
+//           redirectTo: window.location.pathname,
+//           message: 'Session expired. Please login again.' 
+//         } 
+//       });
+//       return;
+//     }
+
+//     // Check if pharmacy user (same logic as pharmacy dashboard)
+//     if (user && user.role === 'pharmacy') {
+//       // Pharmacy user - show popup message
+//       showPopupMessage('Pharmacy accounts cannot add items to cart. Please use a regular customer account.', 'error');
+//       return;
+//     }
+
+//     // Regular user - proceed with add to cart
+//     if (onAddToCart) {
+//       onAddToCart(medicine);
+//       // Optional: Show success message
+//       showPopupMessage('Item added to cart successfully!', 'info');
+//     }
+//   };
+
+//   // Handle navigation with login check (if needed for details)
+//   const handleViewDetails = (e, path) => {
+//     e.preventDefault();
+//     navigate(path);
+//   };
+
+//   // Determine if this is aggregated view or pharmacy-specific view
+//   const isAggregatedView = context === 'all-medicines' && medicine.priceStats;
+  
+//   // Calculate price based on context
+//   let finalPrice, originalPrice, discountPercentage, isDiscounted;
+  
+//   if (isAggregatedView) {
+//     // "All Medicines" page - aggregated data
+//     finalPrice = medicine.priceStats?.displayPrice || medicine.price || 0;
+//     originalPrice = medicine.priceStats?.lowestPrice || medicine.price || 0;
+//     discountPercentage = medicine.priceStats?.discountPercentage || 0;
+//     isDiscounted = medicine.priceStats?.hasDiscount || false;
+//   } else {
+//     // Pharmacy Detail page - specific pharmacy price
+//     finalPrice = medicine.discountedPrice || 
+//       (medicine.discountPercentage > 0 
+//         ? medicine.price * (1 - medicine.discountPercentage / 100)
+//         : medicine.price);
+//     originalPrice = medicine.price || 0;
+//     discountPercentage = medicine.discountPercentage || 0;
+//     isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+//   }
+  
+//   // Check availability based on context
+//   const isAvailable = isAggregatedView 
+//     ? (medicine.availableAtCount > 0 || medicine.inStock)
+//     : (medicine.inStock !== false);
+
+//   return (
+//     <>
+//       {/* Popup/Modal */}
+//       {showPopup && (
+//         <div 
+//           onClick={closePopup}
+//           style={{
+//             position: 'fixed',
+//             top: 0,
+//             left: 0,
+//             right: 0,
+//             bottom: 0,
+//             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+//             display: 'flex',
+//             alignItems: 'center',
+//             justifyContent: 'center',
+//             zIndex: 1000
+//           }}
+//         >
+//           <div 
+//             onClick={(e) => e.stopPropagation()}
+//             style={{
+//               backgroundColor: 'white',
+//               borderRadius: '8px',
+//               padding: '20px',
+//               width: '90%',
+//               maxWidth: '400px',
+//               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+//             }}
+//           >
+//             <div style={{
+//               display: 'flex',
+//               justifyContent: 'space-between',
+//               alignItems: 'center',
+//               marginBottom: '15px'
+//             }}>
+//               <h3 style={{
+//                 margin: 0,
+//                 color: popupType === 'error' ? '#dc2626' : '#059669',
+//                 fontSize: '18px'
+//               }}>
+//                 {popupType === 'error' ? 'Error' : 'Success'}
+//               </h3>
+//               <button
+//                 onClick={closePopup}
+//                 style={{
+//                   background: 'none',
+//                   border: 'none',
+//                   fontSize: '20px',
+//                   cursor: 'pointer',
+//                   color: '#666'
+//                 }}
+//               >
+//                 ×
+//               </button>
+//             </div>
+            
+//             <p style={{
+//               marginBottom: '20px',
+//               color: '#333',
+//               lineHeight: '1.5'
+//             }}>
+//               {popupMessage}
+//             </p>
+            
+//             <div style={{
+//               display: 'flex',
+//               justifyContent: 'flex-end'
+//             }}>
+//               <button
+//                 onClick={closePopup}
+//                 style={{
+//                   backgroundColor: popupType === 'error' ? '#dc2626' : '#059669',
+//                   color: 'white',
+//                   border: 'none',
+//                   padding: '8px 16px',
+//                   borderRadius: '4px',
+//                   cursor: 'pointer',
+//                   fontSize: '14px'
+//                 }}
+//               >
+//                 OK
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Medicine Card */}
+//       <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto">
+        
+//         {/* Medicine Image */}
+//         <div className="relative h-24 bg-gray-50 flex items-center justify-center">
+//           <img
+//             src={medicine.image}
+//             alt={medicine.name}
+//             className="w-full h-full object-cover"
+//             onError={(e) => {
+//               e.target.onerror = null;
+//               e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+//             }}
+//           />
+          
+//           {/* Discount badge */}
+//           {isDiscounted && (
+//             <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//               {discountPercentage > 0 ? `${discountPercentage}%` : 'SALE'}
+//             </div>
+//           )}
+          
+//           {/* Out of stock badge */}
+//           {!isAvailable && (
+//             <div className="absolute top-1 right-1 bg-gray-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//               OOS
+//             </div>
+//           )}
+          
+//           {/* Available at multiple pharmacies badge (only in aggregated view) */}
+//           {isAggregatedView && medicine.availableAtCount > 1 && (
+//             <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//               {medicine.availableAtCount} stores
+//             </div>
+//           )}
+//         </div>
+        
+//         {/* Medicine Info */}
+//         <div className="p-1.5">
+//           <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
+//             {medicine.name}
+//           </h3>
+          
+//           {medicine.genericName && (
+//             <p className="text-[10px] text-gray-500 mb-0.5">{medicine.genericName}</p>
+//           )}
+        
+//           <div className="mb-1.0 min-h-[2.5rem]">
+//             <p className="text-[10px] text-gray-600 line-clamp-2">
+//               {medicine.description}
+//             </p>
+//           </div>
+
+//           <div className="flex justify-between items-center mb-1.5">
+//             <div className="flex items-center">
+//               <span className="text-sm font-bold text-green-600">
+//                 Rs. {finalPrice.toFixed(2)}
+//               </span>
+              
+//               {/* Show original price if discounted */}
+//               {isDiscounted && originalPrice > finalPrice && (
+//                 <span className="text-[10px] text-gray-500 line-through ml-1">
+//                   Rs. {originalPrice.toFixed(2)}
+//                 </span>
+//               )}
+              
+//               {/* Show price range for aggregated view */}
+//               {isAggregatedView && medicine.priceStats && (
+//                 <span className="text-[10px] text-gray-500 ml-1">
+//                   ({medicine.availableAtCount} stores)
+//                 </span>
+//               )}
+//             </div>
+            
+//             {/* Prescription badge */}
+//             {medicine.prescriptionRequired && (
+//               <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+//                 Rx
+//               </span>
+//             )}
+//           </div>
+          
+//           {/* Buttons */}
+//           <div className="flex space-x-1">
+//             <button
+//               onClick={() => handleAddToCart(medicine)}
+//               disabled={!isAvailable || isPharmacy}
+//               className={`flex-1 py-1 px-1.5 rounded text-[10px] font-medium transition-colors ${
+//                 isAvailable && !isPharmacy
+//                   ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)]'
+//                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+//               }`}
+//             >
+//               {isAvailable ? (isPharmacy ? 'Not Allowed' : 'Add to Cart') : 'Out of Stock'}
+//             </button>
+            
+//             {/* Link to medicine detail page */}
+//             {isAggregatedView ? (
+//               // Link to aggregated medicine detail (by name)
+//               <Link
+//                 to={`/medicines/${encodeURIComponent(medicine.name)}`}
+//                 onClick={(e) => handleViewDetails(e, `/medicines/${encodeURIComponent(medicine.name)}`)}
+//                 className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+//               >
+//                 Compare
+//               </Link>
+//             ) : (
+//               // Link to medicine detail page (by ID)
+//               <Link
+//                 to={`/medicine/${medicine._id}`}
+//                 onClick={(e) => handleViewDetails(e, `/medicine/${medicine._id}`)}
+//                 className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+//               >
+//                 Details
+//               </Link>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default MedicineCard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//--------------cart persistence check---------------
+// import React, { useState, useEffect } from 'react';
+// import { Link, useNavigate } from 'react-router-dom';
+
+// const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
+//   const navigate = useNavigate();
+//   const [showPopup, setShowPopup] = useState(false);
+//   const [popupMessage, setPopupMessage] = useState('');
+//   const [popupType, setPopupType] = useState('error'); // 'error' or 'info'
+//   const [isPharmacy, setIsPharmacy] = useState(false);
+//   const [isLoggedIn, setIsLoggedIn] = useState(false);
+//   const [userData, setUserData] = useState(null);
+
+//   // Initialize auth state from localStorage
+//   useEffect(() => {
+//     const checkAuth = () => {
+//       try {
+//         // Use same keys as pharmacy dashboard
+//         const token = localStorage.getItem('token');
+//         const userStr = localStorage.getItem('user');
+        
+//         if (token && userStr) {
+//           const user = JSON.parse(userStr);
+//           setIsLoggedIn(true);
+//           setUserData(user);
+//           // Check if user is pharmacy (same logic as pharmacy dashboard)
+//           setIsPharmacy(user.role === 'pharmacy');
+//         } else {
+//           setIsLoggedIn(false);
+//           setUserData(null);
+//           setIsPharmacy(false);
+//         }
+//       } catch (error) {
+//         console.error('Error checking auth:', error);
+//         setIsLoggedIn(false);
+//         setUserData(null);
+//         setIsPharmacy(false);
+//       }
+//     };
+
+//     checkAuth();
+
+//     // Listen for storage changes
+//     const handleStorageChange = () => {
+//       checkAuth();
+//     };
+
+//     window.addEventListener('storage', handleStorageChange);
+    
+//     return () => {
+//       window.removeEventListener('storage', handleStorageChange);
+//     };
+//   }, []);
+
+//   // Show popup message
+//   const showPopupMessage = (message, type = 'error') => {
+//     setPopupMessage(message);
+//     setPopupType(type);
+//     setShowPopup(true);
+//   };
+
+//   // Close popup
+//   const closePopup = () => {
+//     setShowPopup(false);
+//     setPopupMessage('');
+//   };
+
+//   // Get user-specific cart key
+//   const getUserCartKey = (userId) => {
+//     return userId ? `medicineCart_${userId}` : 'medicineCart';
+//   };
+
+//   // Handle add to cart with proper validation and user-specific storage
+//   const handleAddToCart = (medicine) => {
+//     // Direct check from localStorage (same as pharmacy dashboard)
+//     const token = localStorage.getItem('token');
+//     const userStr = localStorage.getItem('user');
+    
+//     if (!token || !userStr) {
+//       // Not logged in - redirect to login
+//       navigate('/login', { 
+//         state: { 
+//           redirectTo: window.location.pathname,
+//           message: 'Please login to add to cart' 
+//         } 
+//       });
+//       return;
+//     }
+
+//     // Parse user data
+//     let user = null;
+//     try {
+//       user = JSON.parse(userStr);
+//     } catch (error) {
+//       console.error('Error parsing user data:', error);
+//       // Invalid user data - redirect to login
+//       navigate('/login', { 
+//         state: { 
+//           redirectTo: window.location.pathname,
+//           message: 'Session expired. Please login again.' 
+//         } 
+//       });
+//       return;
+//     }
+
+//     // Check if pharmacy user (same logic as pharmacy dashboard)
+//     if (user && user.role === 'pharmacy') {
+//       // Pharmacy user - show popup message
+//       showPopupMessage('Pharmacy accounts cannot add items to cart. Please use a regular customer account.', 'error');
+//       return;
+//     }
+
+//     // Regular user - proceed with add to cart
+//     if (onAddToCart) {
+//       onAddToCart(medicine);
+//       // Optional: Show success message
+//       showPopupMessage('Item added to cart successfully!', 'info');
+      
+//       // Get user ID for cart storage
+//       const userId = user._id || user.id;
+//       if (userId) {
+//         // Load existing cart for this user
+//         const cartKey = getUserCartKey(userId);
+//         const savedCart = localStorage.getItem(cartKey);
+//         let cart = [];
+        
+//         if (savedCart) {
+//           try {
+//             cart = JSON.parse(savedCart);
+//           } catch (error) {
+//             console.error('Error parsing cart:', error);
+//           }
+//         }
+        
+//         // Add medicine to cart
+//         const existingItem = cart.find(item => item._id === medicine._id || item.id === medicine.id);
+//         if (existingItem) {
+//           cart = cart.map(item =>
+//             (item._id === medicine._id || item.id === medicine.id)
+//               ? { ...item, quantity: (item.quantity || 1) + 1 }
+//               : item
+//           );
+//         } else {
+//           cart.push({
+//             ...medicine,
+//             id: medicine._id || medicine.id,
+//             quantity: 1
+//           });
+//         }
+        
+//         // Save to user-specific cart
+//         localStorage.setItem(cartKey, JSON.stringify(cart));
+//       }
+//     }
+//   };
+
+//   // Handle navigation with login check (if needed for details)
+//   const handleViewDetails = (e, path) => {
+//     e.preventDefault();
+//     navigate(path);
+//   };
+
+//   // Determine if this is aggregated view or pharmacy-specific view
+//   const isAggregatedView = context === 'all-medicines' && medicine.priceStats;
+  
+//   // Calculate price based on context
+//   let finalPrice, originalPrice, discountPercentage, isDiscounted;
+  
+//   if (isAggregatedView) {
+//     // "All Medicines" page - aggregated data
+//     finalPrice = medicine.priceStats?.displayPrice || medicine.price || 0;
+//     originalPrice = medicine.priceStats?.lowestPrice || medicine.price || 0;
+//     discountPercentage = medicine.priceStats?.discountPercentage || 0;
+//     isDiscounted = medicine.priceStats?.hasDiscount || false;
+//   } else {
+//     // Pharmacy Detail page - specific pharmacy price
+//     finalPrice = medicine.discountedPrice || 
+//       (medicine.discountPercentage > 0 
+//         ? medicine.price * (1 - medicine.discountPercentage / 100)
+//         : medicine.price);
+//     originalPrice = medicine.price || 0;
+//     discountPercentage = medicine.discountPercentage || 0;
+//     isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
+//   }
+  
+//   // Check availability based on context
+//   const isAvailable = isAggregatedView 
+//     ? (medicine.availableAtCount > 0 || medicine.inStock)
+//     : (medicine.inStock !== false);
+
+//   return (
+//     <>
+//       {/* Popup/Modal */}
+//       {showPopup && (
+//         <div 
+//           onClick={closePopup}
+//           style={{
+//             position: 'fixed',
+//             top: 0,
+//             left: 0,
+//             right: 0,
+//             bottom: 0,
+//             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+//             display: 'flex',
+//             alignItems: 'center',
+//             justifyContent: 'center',
+//             zIndex: 1000
+//           }}
+//         >
+//           <div 
+//             onClick={(e) => e.stopPropagation()}
+//             style={{
+//               backgroundColor: 'white',
+//               borderRadius: '8px',
+//               padding: '20px',
+//               width: '90%',
+//               maxWidth: '400px',
+//               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+//             }}
+//           >
+//             <div style={{
+//               display: 'flex',
+//               justifyContent: 'space-between',
+//               alignItems: 'center',
+//               marginBottom: '15px'
+//             }}>
+//               <h3 style={{
+//                 margin: 0,
+//                 color: popupType === 'error' ? '#dc2626' : '#059669',
+//                 fontSize: '18px'
+//               }}>
+//                 {popupType === 'error' ? 'Error' : 'Success'}
+//               </h3>
+//               <button
+//                 onClick={closePopup}
+//                 style={{
+//                   background: 'none',
+//                   border: 'none',
+//                   fontSize: '20px',
+//                   cursor: 'pointer',
+//                   color: '#666'
+//                 }}
+//               >
+//                 ×
+//               </button>
+//             </div>
+            
+//             <p style={{
+//               marginBottom: '20px',
+//               color: '#333',
+//               lineHeight: '1.5'
+//             }}>
+//               {popupMessage}
+//             </p>
+            
+//             <div style={{
+//               display: 'flex',
+//               justifyContent: 'flex-end'
+//             }}>
+//               <button
+//                 onClick={closePopup}
+//                 style={{
+//                   backgroundColor: popupType === 'error' ? '#dc2626' : '#059669',
+//                   color: 'white',
+//                   border: 'none',
+//                   padding: '8px 16px',
+//                   borderRadius: '4px',
+//                   cursor: 'pointer',
+//                   fontSize: '14px'
+//                 }}
+//               >
+//                 OK
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Medicine Card */}
+//       <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto">
+        
+//         {/* Medicine Image */}
+//         <div className="relative h-24 bg-gray-50 flex items-center justify-center">
+//           <img
+//             src={medicine.image}
+//             alt={medicine.name}
+//             className="w-full h-full object-cover"
+//             onError={(e) => {
+//               e.target.onerror = null;
+//               e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+//             }}
+//           />
+          
+//           {/* Discount badge */}
+//           {isDiscounted && (
+//             <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//               {discountPercentage > 0 ? `${discountPercentage}%` : 'SALE'}
+//             </div>
+//           )}
+          
+//           {/* Out of stock badge */}
+//           {!isAvailable && (
+//             <div className="absolute top-1 right-1 bg-gray-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//               OOS
+//             </div>
+//           )}
+          
+//           {/* Available at multiple pharmacies badge (only in aggregated view) */}
+//           {isAggregatedView && medicine.availableAtCount > 1 && (
+//             <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded">
+//               {medicine.availableAtCount} stores
+//             </div>
+//           )}
+//         </div>
+        
+//         {/* Medicine Info */}
+//         <div className="p-1.5">
+//           <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
+//             {medicine.name}
+//           </h3>
+          
+//           {medicine.genericName && (
+//             <p className="text-[10px] text-gray-500 mb-0.5">{medicine.genericName}</p>
+//           )}
+        
+//           <div className="mb-1.0 min-h-[2.5rem]">
+//             <p className="text-[10px] text-gray-600 line-clamp-2">
+//               {medicine.description}
+//             </p>
+//           </div>
+
+//           <div className="flex justify-between items-center mb-1.5">
+//             <div className="flex items-center">
+//               <span className="text-sm font-bold text-green-600">
+//                 Rs. {finalPrice.toFixed(2)}
+//               </span>
+              
+//               {/* Show original price if discounted */}
+//               {isDiscounted && originalPrice > finalPrice && (
+//                 <span className="text-[10px] text-gray-500 line-through ml-1">
+//                   Rs. {originalPrice.toFixed(2)}
+//                 </span>
+//               )}
+              
+//               {/* Show price range for aggregated view */}
+//               {isAggregatedView && medicine.priceStats && (
+//                 <span className="text-[10px] text-gray-500 ml-1">
+//                   ({medicine.availableAtCount} stores)
+//                 </span>
+//               )}
+//             </div>
+            
+//             {/* Prescription badge */}
+//             {medicine.prescriptionRequired && (
+//               <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+//                 Rx
+//               </span>
+//             )}
+//           </div>
+          
+//           {/* Buttons */}
+//           <div className="flex space-x-1">
+//             <button
+//               onClick={() => handleAddToCart(medicine)}
+//               disabled={!isAvailable || isPharmacy}
+//               className={`flex-1 py-1 px-1.5 rounded text-[10px] font-medium transition-colors ${
+//                 isAvailable && !isPharmacy
+//                   ? 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)]'
+//                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+//               }`}
+//             >
+//               {isAvailable ? (isPharmacy ? 'Not Allowed' : 'Add to Cart') : 'Out of Stock'}
+//             </button>
+            
+//             {/* Link to medicine detail page */}
+//             {isAggregatedView ? (
+//               // Link to aggregated medicine detail (by name)
+//               <Link
+//                 to={`/medicines/${encodeURIComponent(medicine.name)}`}
+//                 onClick={(e) => handleViewDetails(e, `/medicines/${encodeURIComponent(medicine.name)}`)}
+//                 className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+//               >
+//                 Compare
+//               </Link>
+//             ) : (
+//               // Link to medicine detail page (by ID)
+//               <Link
+//                 to={`/medicine/${medicine._id}`}
+//                 onClick={(e) => handleViewDetails(e, `/medicine/${medicine._id}`)}
+//                 className="flex-1 bg-[var(--bg-light)] text-[var(--secondary-color)] py-1 px-1.5 rounded hover:bg-[var(--text-light)] transition-colors text-[10px] font-medium text-center"
+//               >
+//                 Details
+//               </Link>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default MedicineCard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//-------------check again
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -1199,24 +2004,47 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
-  const [popupType, setPopupType] = useState('error'); // 'error' or 'info'
+  const [popupType, setPopupType] = useState('error');
   const [isPharmacy, setIsPharmacy] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
 
-  // Initialize auth state from localStorage
+  // ================================
+  // AUTH EVENT HANDLERS (ADD THESE)
+  // ================================
+  const handleLoginSuccess = (userData) => {
+    // User data save karein localStorage mein
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', userData.token);
+    
+    // Event trigger karein taaki sab components update ho jaayein
+    window.dispatchEvent(new CustomEvent('userChanged'));
+    
+    // Redirect karein
+    navigate('/');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    
+    // Event trigger karein
+    window.dispatchEvent(new CustomEvent('userChanged'));
+    
+    navigate('/login');
+  };
+  // ================================
+
+  // Initialize auth state
   useEffect(() => {
     const checkAuth = () => {
       try {
-        // Use same keys as pharmacy dashboard
-        const token = localStorage.getItem('token');
         const userStr = localStorage.getItem('user');
         
-        if (token && userStr) {
+        if (userStr) {
           const user = JSON.parse(userStr);
           setIsLoggedIn(true);
           setUserData(user);
-          // Check if user is pharmacy (same logic as pharmacy dashboard)
           setIsPharmacy(user.role === 'pharmacy');
         } else {
           setIsLoggedIn(false);
@@ -1233,15 +2061,15 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
 
     checkAuth();
 
-    // Listen for storage changes
-    const handleStorageChange = () => {
+    // Listen for auth changes
+    const handleAuthChange = () => {
       checkAuth();
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userChanged', handleAuthChange);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userChanged', handleAuthChange);
     };
   }, []);
 
@@ -1258,14 +2086,26 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
     setPopupMessage('');
   };
 
+  // Get user-specific cart key
+  const getUserCartKey = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user._id || user.id ? `medicineCart_${user._id || user.id}` : 'medicineCart_guest';
+      }
+    } catch (error) {
+      console.error('Error getting user cart key:', error);
+    }
+    return 'medicineCart_guest';
+  };
+
   // Handle add to cart with proper validation
   const handleAddToCart = (medicine) => {
-    // Direct check from localStorage (same as pharmacy dashboard)
-    const token = localStorage.getItem('token');
+    // Direct check from localStorage
     const userStr = localStorage.getItem('user');
     
-    if (!token || !userStr) {
-      // Not logged in - redirect to login
+    if (!userStr) {
       navigate('/login', { 
         state: { 
           redirectTo: window.location.pathname,
@@ -1281,7 +2121,6 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
       user = JSON.parse(userStr);
     } catch (error) {
       console.error('Error parsing user data:', error);
-      // Invalid user data - redirect to login
       navigate('/login', { 
         state: { 
           redirectTo: window.location.pathname,
@@ -1291,41 +2130,86 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
       return;
     }
 
-    // Check if pharmacy user (same logic as pharmacy dashboard)
+    // Check if pharmacy user
     if (user && user.role === 'pharmacy') {
-      // Pharmacy user - show popup message
       showPopupMessage('Pharmacy accounts cannot add items to cart. Please use a regular customer account.', 'error');
       return;
     }
 
-    // Regular user - proceed with add to cart
+    // Get user-specific cart key
+    const cartKey = getUserCartKey();
+    
+    // Load existing cart
+    let cart = [];
+    try {
+      const savedCart = localStorage.getItem(cartKey);
+      if (savedCart) {
+        cart = JSON.parse(savedCart);
+      }
+    } catch (error) {
+      console.error('Error loading cart:', error);
+    }
+
+    // Check if item already exists
+    const existingIndex = cart.findIndex(item => 
+      item.id === medicine.id || 
+      (medicine._id && item._id === medicine._id) ||
+      (medicine.name && item.name === medicine.name)
+    );
+
+    if (existingIndex > -1) {
+      // Update quantity if item exists
+      cart[existingIndex].quantity = (cart[existingIndex].quantity || 1) + 1;
+    } else {
+      // Add new item
+      cart.push({
+        ...medicine,
+        id: medicine.id || medicine._id,
+        quantity: 1
+      });
+    }
+
+    // Save to user-specific cart
+    try {
+      localStorage.setItem(cartKey, JSON.stringify(cart));
+      
+      // Dispatch cart change event
+      window.dispatchEvent(new CustomEvent('cartUpdated', {
+        detail: { cart }
+      }));
+      
+      // Show success message
+      showPopupMessage('Item added to cart successfully!', 'info');
+    } catch (error) {
+      console.error('Error saving cart:', error);
+      showPopupMessage('Failed to add item to cart. Please try again.', 'error');
+      return;
+    }
+
+    // Call parent component's onAddToCart if provided
     if (onAddToCart) {
       onAddToCart(medicine);
-      // Optional: Show success message
-      showPopupMessage('Item added to cart successfully!', 'info');
     }
   };
 
-  // Handle navigation with login check (if needed for details)
+  // Handle navigation with login check
   const handleViewDetails = (e, path) => {
     e.preventDefault();
     navigate(path);
   };
 
-  // Determine if this is aggregated view or pharmacy-specific view
+  // Determine if this is aggregated view
   const isAggregatedView = context === 'all-medicines' && medicine.priceStats;
   
   // Calculate price based on context
   let finalPrice, originalPrice, discountPercentage, isDiscounted;
   
   if (isAggregatedView) {
-    // "All Medicines" page - aggregated data
     finalPrice = medicine.priceStats?.displayPrice || medicine.price || 0;
     originalPrice = medicine.priceStats?.lowestPrice || medicine.price || 0;
     discountPercentage = medicine.priceStats?.discountPercentage || 0;
     isDiscounted = medicine.priceStats?.hasDiscount || false;
   } else {
-    // Pharmacy Detail page - specific pharmacy price
     finalPrice = medicine.discountedPrice || 
       (medicine.discountPercentage > 0 
         ? medicine.price * (1 - medicine.discountPercentage / 100)
@@ -1335,7 +2219,7 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
     isDiscounted = medicine.discountedPrice || medicine.discountPercentage > 0;
   }
   
-  // Check availability based on context
+  // Check availability
   const isAvailable = isAggregatedView 
     ? (medicine.availableAtCount > 0 || medicine.inStock)
     : (medicine.inStock !== false);
@@ -1457,7 +2341,7 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
             </div>
           )}
           
-          {/* Available at multiple pharmacies badge (only in aggregated view) */}
+          {/* Available at multiple pharmacies badge */}
           {isAggregatedView && medicine.availableAtCount > 1 && (
             <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded">
               {medicine.availableAtCount} stores
@@ -1526,7 +2410,6 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
             
             {/* Link to medicine detail page */}
             {isAggregatedView ? (
-              // Link to aggregated medicine detail (by name)
               <Link
                 to={`/medicines/${encodeURIComponent(medicine.name)}`}
                 onClick={(e) => handleViewDetails(e, `/medicines/${encodeURIComponent(medicine.name)}`)}
@@ -1535,7 +2418,6 @@ const MedicineCard = ({ medicine, onAddToCart, context = 'all-medicines' }) => {
                 Compare
               </Link>
             ) : (
-              // Link to medicine detail page (by ID)
               <Link
                 to={`/medicine/${medicine._id}`}
                 onClick={(e) => handleViewDetails(e, `/medicine/${medicine._id}`)}
