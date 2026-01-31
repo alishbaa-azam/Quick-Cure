@@ -1523,7 +1523,7 @@ export default function LoginPage({ onLogin }) {
         handleRedirectAfterLogin();
       }
     } catch (err) {
-      alert(err.message || "Already registered please login");
+      alert(err.message || "Something went wrong");
     } finally {
       setLoading(false);
       resetForm();
@@ -1636,6 +1636,476 @@ export default function LoginPage({ onLogin }) {
     </div>
   );
 }
+
+
+
+// import React, { useState } from "react";
+// import googleLogo from "../../images/google.png";
+// import backgroundImage from "../../images/background.png";
+
+// // Firebase
+// import { auth, provider } from "../../firebase";
+// import { signInWithPopup } from "firebase/auth";
+// import { useNavigate } from "react-router-dom";
+
+// // ✅ API Configuration
+// const API_BASE_URL = "http://localhost:5000/api/users";
+
+// export default function LoginPage({ onLogin }) {
+//   const [isSignIn, setIsSignIn] = useState(true);
+//   const [username, setUsername] = useState("");
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [confirmPassword, setConfirmPassword] = useState("");
+//   const [errors, setErrors] = useState({});
+//   const [touched, setTouched] = useState({});
+//   const [loading, setLoading] = useState(false);
+
+//   const navigate = useNavigate();
+
+//   const resetForm = () => {
+//     setUsername("");
+//     setEmail("");
+//     setPassword("");
+//     setConfirmPassword("");
+//     setErrors({});
+//     setTouched({});
+//   };
+
+//   // ✅ Real-time validation on blur
+//   const handleBlur = (field) => {
+//     setTouched({ ...touched, [field]: true });
+//   };
+
+//   // ✅ Form validation before submission
+//   const validateForm = () => {
+//     const newErrors = {};
+    
+//     // Basic frontend validation
+//     if (!email.trim()) {
+//       newErrors.email = "Email is required";
+//     } else if (!/\S+@\S+\.\S+/.test(email)) {
+//       newErrors.email = "Please enter a valid email address";
+//     }
+    
+//     if (!password) {
+//       newErrors.password = "Password is required";
+//     } else if (password.length < 6) {
+//       newErrors.password = "Password must be at least 6 characters";
+//     }
+    
+//     // Signup-specific validations
+//     if (!isSignIn) {
+//       if (!username.trim()) {
+//         newErrors.username = "Username is required";
+//       } else if (username.length < 3) {
+//         newErrors.username = "Username must be at least 3 characters";
+//       }
+      
+//       if (!confirmPassword) {
+//         newErrors.confirmPassword = "Please confirm your password";
+//       } else if (password !== confirmPassword) {
+//         newErrors.confirmPassword = "Passwords do not match";
+//       }
+//     }
+    
+//     setErrors(newErrors);
+//     return Object.keys(newErrors).length === 0;
+//   };
+
+//   // ✅ Redirect logic
+//   const handleRedirectAfterLogin = () => {
+//     const queryParams = new URLSearchParams(window.location.search);
+//     const redirectUrl = queryParams.get("redirect");
+//     const doctorId = queryParams.get("doctorId");
+
+//     if (doctorId) {
+//       navigate(`/book-appointment/${doctorId}`);
+//     } else if (redirectUrl) {
+//       navigate(decodeURIComponent(redirectUrl));
+//     } else {
+//       navigate("/");
+//     }
+//   };
+
+//   // ✅ API: User Login
+//   const apiLogin = async (email, password) => {
+//     try {
+//       const response = await fetch(`${API_BASE_URL}/login`, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           email,
+//           password,
+//           remember: true // You can make this configurable
+//         }),
+//       });
+
+//       const data = await response.json();
+      
+//       if (!response.ok) {
+//         throw new Error(data.msg || "Login failed");
+//       }
+
+//       return data;
+//     } catch (error) {
+//       throw error;
+//     }
+//   };
+
+//   // ✅ API: User Signup
+//   const apiSignup = async (name, email, password) => {
+//     try {
+//       const response = await fetch(`${API_BASE_URL}/signup`, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           name,
+//           email,
+//           password,
+//           role: "user" // Default role
+//         }),
+//       });
+
+//       const data = await response.json();
+      
+//       if (!response.ok) {
+//         throw new Error(data.msg || "Signup failed");
+//       }
+
+//       return data;
+//     } catch (error) {
+//       throw error;
+//     }
+//   };
+
+//   // ✅ API: Google Login
+//   const apiGoogleLogin = async (googleUser) => {
+//     try {
+//       const response = await fetch(`${API_BASE_URL}/google`, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           email: googleUser.email,
+//           name: googleUser.displayName || googleUser.email.split('@')[0],
+//           googleId: googleUser.uid,
+//           role: "user"
+//         }),
+//       });
+
+//       const data = await response.json();
+      
+//       if (!response.ok) {
+//         throw new Error(data.msg || "Google login failed");
+//       }
+
+//       return data;
+//     } catch (error) {
+//       throw error;
+//     }
+//   };
+
+//   // ✅ Handle form submission
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+    
+//     // Mark all fields as touched for error display
+//     const allFields = ["email", "password"];
+//     if (!isSignIn) {
+//       allFields.push("username", "confirmPassword");
+//     }
+//     const touchedFields = {};
+//     allFields.forEach(field => touchedFields[field] = true);
+//     setTouched(touchedFields);
+
+//     if (!validateForm()) return;
+
+//     setLoading(true);
+//     setErrors({ ...errors, api: "" });
+
+//     try {
+//       if (isSignIn) {
+//         // Login
+//         const data = await apiLogin(email, password);
+        
+//         localStorage.setItem("token", data.token);
+//         localStorage.setItem("user", JSON.stringify(data.user));
+//         onLogin?.(data.user);
+//         handleRedirectAfterLogin();
+//       } else {
+//         // Signup
+//         const signupData = await apiSignup(username, email, password);
+        
+//         // Auto login after successful signup
+//         const loginData = await apiLogin(email, password);
+        
+//         localStorage.setItem("token", loginData.token);
+//         localStorage.setItem("user", JSON.stringify(loginData.user));
+//         onLogin?.(loginData.user);
+//         handleRedirectAfterLogin();
+//       }
+//     } catch (err) {
+//       setErrors({ api: err.message || "Something went wrong. Please try again." });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // ✅ Google Login
+//   const handleGoogleSignIn = async () => {
+//     try {
+//       setLoading(true);
+//       setErrors({ ...errors, api: "" });
+      
+//       const result = await signInWithPopup(auth, provider);
+//       const googleUser = result.user;
+
+//       // Send Google user data to your backend
+//       const data = await apiGoogleLogin(googleUser);
+      
+//       localStorage.setItem("token", data.token);
+//       localStorage.setItem("user", JSON.stringify(data.user));
+//       onLogin?.(data.user);
+//       handleRedirectAfterLogin();
+//     } catch (error) {
+//       console.error("Google Sign-In Error:", error);
+//       setErrors({ api: error.message || "Google Sign-In Failed" });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div
+//       className="min-h-screen flex items-center justify-center bg-cover bg-center relative px-4"
+//       style={{ backgroundImage: `url(${backgroundImage})` }}
+//     >
+//       <div className="absolute inset-0 bg-gradient-to-r from-[#5c878f]/90 to-transparent"></div>
+
+//       <div className="relative z-10 w-full max-w-md bg-white/95 rounded-2xl shadow-2xl px-8 py-10">
+//         <h1 className="text-2xl font-semibold text-center text-[#2c6774]">
+//           {isSignIn ? "Welcome to QuickCure" : "Create an Account"}
+//         </h1>
+
+//         {/* API Error Display */}
+//         {errors.api && (
+//           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+//             <p className="text-red-600 text-sm text-center font-medium">
+//               {errors.api}
+//             </p>
+//           </div>
+//         )}
+
+//         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+//           {/* Username Field (Signup only) */}
+//           {!isSignIn && (
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 Full Name *
+//               </label>
+//               <input
+//                 placeholder="Enter your full name"
+//                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#2c6774]/50 ${
+//                   errors.username && touched.username
+//                     ? "border-red-500"
+//                     : "border-gray-300"
+//                 }`}
+//                 value={username}
+//                 onChange={(e) => {
+//                   setUsername(e.target.value);
+//                   if (errors.username) {
+//                     setErrors({ ...errors, username: "" });
+//                   }
+//                 }}
+//                 onBlur={() => handleBlur("username")}
+//                 disabled={loading}
+//               />
+//               {errors.username && touched.username && (
+//                 <p className="text-red-500 text-sm mt-1">
+//                   {errors.username}
+//                 </p>
+//               )}
+//             </div>
+//           )}
+
+//           {/* Email Field */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-1">
+//               Email *
+//             </label>
+//             <input
+//               type="email"
+//               placeholder="Enter your email"
+//               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#2c6774]/50 ${
+//                 errors.email && touched.email
+//                   ? "border-red-500"
+//                   : "border-gray-300"
+//               }`}
+//               value={email}
+//               onChange={(e) => {
+//                 setEmail(e.target.value);
+//                 if (errors.email) {
+//                   setErrors({ ...errors, email: "" });
+//                 }
+//               }}
+//               onBlur={() => handleBlur("email")}
+//               disabled={loading}
+//             />
+//             {errors.email && touched.email && (
+//               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+//             )}
+//           </div>
+
+//           {/* Password Field */}
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700 mb-1">
+//               Password *
+//             </label>
+//             <input
+//               type="password"
+//               placeholder="Enter password"
+//               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#2c6774]/50 ${
+//                 errors.password && touched.password
+//                   ? "border-red-500"
+//                   : "border-gray-300"
+//               }`}
+//               value={password}
+//               onChange={(e) => {
+//                 setPassword(e.target.value);
+//                 if (errors.password) {
+//                   setErrors({ ...errors, password: "" });
+//                 }
+//                 // Clear confirm password error if both passwords match
+//                 if (confirmPassword && e.target.value === confirmPassword) {
+//                   setErrors({ ...errors, confirmPassword: "" });
+//                 }
+//               }}
+//               onBlur={() => handleBlur("password")}
+//               disabled={loading}
+//             />
+//             {errors.password && touched.password && (
+//               <p className="text-red-500 text-sm mt-1">
+//                 {errors.password}
+//               </p>
+//             )}
+//           </div>
+
+//           {/* Confirm Password Field (Signup only) */}
+//           {!isSignIn && (
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 Confirm Password *
+//               </label>
+//               <input
+//                 type="password"
+//                 placeholder="Confirm your password"
+//                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#2c6774]/50 ${
+//                   errors.confirmPassword && touched.confirmPassword
+//                     ? "border-red-500"
+//                     : "border-gray-300"
+//                 }`}
+//                 value={confirmPassword}
+//                 onChange={(e) => {
+//                   setConfirmPassword(e.target.value);
+//                   if (errors.confirmPassword) {
+//                     setErrors({ ...errors, confirmPassword: "" });
+//                   }
+//                 }}
+//                 onBlur={() => handleBlur("confirmPassword")}
+//                 disabled={loading}
+//               />
+//               {errors.confirmPassword && touched.confirmPassword && (
+//                 <p className="text-red-500 text-sm mt-1">
+//                   {errors.confirmPassword}
+//                 </p>
+//               )}
+//             </div>
+//           )}
+
+//           {/* Submit Button */}
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className={`w-full py-3 rounded-md text-white font-medium transition duration-300 ${
+//               loading
+//                 ? "bg-gray-400 cursor-not-allowed"
+//                 : "bg-[#2c6774] hover:bg-[#1e4e56] transform hover:-translate-y-0.5"
+//             }`}
+//           >
+//             {loading ? (
+//               <span className="flex items-center justify-center">
+//                 <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+//                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+//                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+//                 </svg>
+//                 {isSignIn ? "Signing In..." : "Creating Account..."}
+//               </span>
+//             ) : (
+//               isSignIn ? "Sign In" : "Sign Up"
+//             )}
+//           </button>
+//         </form>
+
+//         {/* Google Sign In (Login only) */}
+//         {isSignIn && (
+//           <div className="mt-4">
+//             <div className="relative flex items-center justify-center">
+//               <div className="flex-grow border-t border-gray-300"></div>
+//               <span className="mx-4 text-sm text-gray-500">or</span>
+//               <div className="flex-grow border-t border-gray-300"></div>
+//             </div>
+//             <button
+//               onClick={handleGoogleSignIn}
+//               disabled={loading}
+//               className="w-full mt-4 flex items-center justify-center gap-3 py-3 border rounded-md hover:bg-gray-50 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+//             >
+//               <img src={googleLogo} className="w-5 h-5" alt="Google logo" />
+//               Sign in with Google
+//             </button>
+//           </div>
+//         )}
+
+//         {/* Toggle between Login/Signup */}
+//         <p className="text-center text-sm mt-6 text-gray-600">
+//           {isSignIn ? "Don't have an account?" : "Already have an account?"}{" "}
+//           <span
+//             className="text-[#2c6774] font-semibold cursor-pointer hover:underline"
+//             onClick={() => {
+//               if (!loading) {
+//                 setIsSignIn(!isSignIn);
+//                 resetForm();
+//               }
+//             }}
+//           >
+//             {isSignIn ? "Sign Up" : "Sign In"}
+//           </span>
+//         </p>
+
+//         {/* Additional Links */}
+//         {isSignIn && (
+//           <div className="mt-4 text-center">
+//             <a
+//               href="/forgot-password"
+//               className="text-sm text-[#2c6774] hover:underline"
+//             >
+//               Forgot Password?
+//             </a>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
 
 
 

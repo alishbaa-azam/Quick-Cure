@@ -15,7 +15,6 @@ import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
 import BookAppointment from './components/Doctors/appointmentBooking';
 import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
-import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
 
 import LabDashboard from "./components/LabDashboards/LabDashboard";
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';

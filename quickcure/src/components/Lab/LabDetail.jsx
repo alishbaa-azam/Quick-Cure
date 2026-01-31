@@ -231,6 +231,564 @@
 // }
 
 
+// import React, { useEffect, useState } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import axios from "axios";
+// import { FaSearch } from "react-icons/fa";
+
+// export default function LabDetail() {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+
+//   const [lab, setLab] = useState(null);
+//   const [tests, setTests] = useState([]);
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [selectedTests, setSelectedTests] = useState(() => {
+//     // try to restore from localStorage so user doesn't lose selection
+//     try {
+//       const s = localStorage.getItem(`selectedTests_lab_${id}`);
+//       return s ? JSON.parse(s) : [];
+//     } catch {
+//       return [];
+//     }
+//   });
+
+//   useEffect(() => {
+//     let mounted = true;
+
+//     const load = async () => {
+//       try {
+//         const [labRes, testsRes] = await Promise.all([
+//           axios.get(`http://localhost:5000/api/labs/${id}`),
+//           axios.get(`http://localhost:5000/api/tests/lab/${id}`),
+//         ]);
+//         if (!mounted) return;
+//         setLab(labRes.data);
+//         setTests(Array.isArray(testsRes.data) ? testsRes.data : []);
+//       } catch (err) {
+//         console.error("Error loading lab/tests:", err);
+//         // optional fallback if you keep local data: setLab(localLab) etc.
+//       }
+//     };
+
+//     load();
+//     return () => {
+//       mounted = false;
+//     };
+//   }, [id]);
+
+//   useEffect(() => {
+//     // persist selection for this lab so user won't lose it on accidental refresh
+//     try {
+//       localStorage.setItem(`selectedTests_lab_${id}`, JSON.stringify(selectedTests));
+//     } catch {}
+//   }, [selectedTests, id]);
+
+//   if (!lab) return <div className="text-center py-10">Loading...</div>;
+
+//   const filteredTests = tests.filter((test) =>
+//     (test.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+//   );
+
+//   const toggleSelect = (testId) => {
+//     setSelectedTests((prev) =>
+//       prev.includes(testId) ? prev.filter((x) => x !== testId) : [...prev, testId]
+//     );
+//   };
+
+//   const calculateDiscountedPrice = (price, discount) => {
+//     const p = Number(price) || 0;
+//     const d = Number(discount) || 0;
+//     if (d <= 0) return Math.round(p);
+//     return Math.round(p - (p * d) / 100);
+//   };
+
+//   const calculateTotals = () => {
+//     const selected = tests.filter((t) => selectedTests.includes(t._id));
+//     let original = 0;
+//     let discount = 0;
+
+//     selected.forEach((t) => {
+//       const p = Number(t.price) || 0;
+//       const d = Number(t.discount) || 0;
+//       original += p;
+//       discount += (p * d) / 100;
+//     });
+
+//     const final = Math.round(original - discount);
+//     return {
+//       original: Math.round(original),
+//       discount: Math.round(discount),
+//       final,
+//       count: selected.length,
+//     };
+//   };
+
+//   const totals = calculateTotals();
+
+//   return (
+//     <div className="max-w-6xl mx-auto px-4 py-6">
+//       {/* Lab Header */}
+//       <div className="p-6 rounded-xl flex gap-6" style={{ backgroundColor: "var(--bg-light)" }}>
+//         <img src={`http://localhost:5000/uploads/${lab.logo}`} className="w-28 h-28 object-contain bg-white p-2 rounded" alt={lab.name} />
+//         <div>
+//           <h1 className="text-2xl font-bold" style={{ color: "var(--secondary-color)" }}>
+//             {lab.name}
+//           </h1>
+//           <p style={{ color: "var(--accent-color)" }}>{lab.branches}</p>
+
+//           <button
+//             className="px-4 py-2 rounded mt-2 text-white"
+//             style={{ backgroundColor: "var(--primary-color)" }}
+//           >
+//             Get {lab.discount}% Discount
+//           </button>
+//         </div>
+//       </div>
+
+//       {/* Search Box */}
+//       <div className="relative mt-8 max-w-xl mx-auto">
+//         <FaSearch className="absolute left-4 top-3" style={{ color: "var(--accent-color)" }} />
+//         <input
+//           type="text"
+//           placeholder="Search Test..."
+//           className="w-full border rounded-lg py-2 pl-10 pr-4"
+//           style={{ borderColor: "var(--accent-color)", color: "var(--secondary-color)" }}
+//           value={searchTerm}
+//           onChange={(e) => setSearchTerm(e.target.value)}
+//         />
+//       </div>
+
+//       {/* Total Bar */}
+//       {selectedTests.length > 0 && (
+//         <div
+//           className="p-4 rounded-lg mt-6 flex justify-between"
+//           style={{ backgroundColor: "var(--primary-color)", color: "var(--white)" }}
+//         >
+//           <div>Selected {totals.count} tests</div>
+
+//           <div>
+//             <s>Rs {totals.original}</s> → <strong>Rs {totals.final}</strong>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Tests Grid */}
+//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+//         {filteredTests.map((test) => {
+//           const checked = selectedTests.includes(test._id);
+//           return (
+//             <div
+//               key={test._id}
+//               onClick={() => toggleSelect(test._id)}
+//               className="p-4 border rounded-xl cursor-pointer"
+//               style={{
+//                 borderColor: checked ? "var(--primary-color)" : "var(--accent-color)",
+//                 backgroundColor: checked ? "var(--bg-light)" : "var(--white)",
+//               }}
+//             >
+//               <input
+//                 type="checkbox"
+//                 checked={checked}
+//                 className="float-right"
+//                 onChange={(e) => {
+//                   // prevent parent onClick from toggling twice
+//                   e.stopPropagation();
+//                   toggleSelect(test._id);
+//                 }}
+//               />
+
+//               <h3 className="text-lg font-semibold" style={{ color: "var(--secondary-color)" }}>
+//                 {test.name}
+//               </h3>
+
+//               <p style={{ color: "var(--accent-color)" }}>{test.description}</p>
+
+//               <div className="mt-2">
+//                 <strong style={{ color: "var(--secondary-color)" }}>
+//                   Rs {calculateDiscountedPrice(test.price, test.discount)}
+//                 </strong>
+
+//                 <s className="ml-2" style={{ color: "var(--accent-color)" }}>
+//                   Rs {test.price}
+//                 </s>
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+
+//       {/* Book Button */}
+//       <div className="text-center mt-8">
+//         <button
+//           disabled={selectedTests.length === 0}
+//           onClick={() => {
+//             // pass selectedTests array of ids to booking page
+//             navigate(`/labs/${id}/booking`, { state: { selectedTests } });
+//           }}
+//           className="px-8 py-3 rounded-lg"
+//           style={{
+//             backgroundColor: selectedTests.length ? "var(--primary-color)" : "var(--accent-color)",
+//             color: "white",
+//             cursor: selectedTests.length ? "pointer" : "not-allowed",
+//           }}
+//         >
+//           Book Tests – Rs {totals.final}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+// import React, { useEffect, useState } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import axios from "axios";
+// import { FaSearch, FaTag } from "react-icons/fa";
+
+// export default function LabDetail() {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+
+//   const [lab, setLab] = useState(null);
+//   const [tests, setTests] = useState([]);
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [selectedTests, setSelectedTests] = useState(() => {
+//     try {
+//       const s = localStorage.getItem(`selectedTests_lab_${id}`);
+//       return s ? JSON.parse(s) : [];
+//     } catch {
+//       return [];
+//     }
+//   });
+
+//   useEffect(() => {
+//     const load = async () => {
+//       const [labRes, testsRes] = await Promise.all([
+//         axios.get(`http://localhost:5000/api/labs/${id}`),
+//         axios.get(`http://localhost:5000/api/tests/lab/${id}`),
+//       ]);
+//       setLab(labRes.data);
+//       setTests(testsRes.data || []);
+//     };
+//     load();
+//   }, [id]);
+
+//   useEffect(() => {
+//     localStorage.setItem(
+//       `selectedTests_lab_${id}`,
+//       JSON.stringify(selectedTests)
+//     );
+//   }, [selectedTests, id]);
+
+//   if (!lab) return <div className="text-center py-10">Loading...</div>;
+
+//   // ✅ LAB discount applied everywhere
+//   const getDiscountedPrice = (price) => {
+//     const p = Number(price) || 0;
+//     const d = Number(lab.discount) || 0;
+//     return Math.round(p - (p * d) / 100);
+//   };
+
+//   const filteredTests = tests.filter((t) =>
+//     t.name.toLowerCase().includes(searchTerm.toLowerCase())
+//   );
+
+//   const toggleSelect = (testId) => {
+//     setSelectedTests((prev) =>
+//       prev.includes(testId)
+//         ? prev.filter((x) => x !== testId)
+//         : [...prev, testId]
+//     );
+//   };
+
+//   const totals = () => {
+//     let original = 0;
+//     let final = 0;
+
+//     tests
+//       .filter((t) => selectedTests.includes(t._id))
+//       .forEach((t) => {
+//         original += Number(t.price);
+//         final += getDiscountedPrice(t.price);
+//       });
+
+//     return { original, final };
+//   };
+
+//   const total = totals();
+
+//   return (
+//     <div className="max-w-6xl mx-auto px-4 py-6">
+//       {/* LAB CARD */}
+//       <div className="bg-white shadow rounded-xl p-6 flex gap-6 items-center">
+//         <img
+//           src={`http://localhost:5000/uploads/${lab.logo}`}
+//           className="w-24 h-24 object-contain border rounded"
+//           alt={lab.name}
+//         />
+//         <div className="flex-1">
+//           <h1 className="text-2xl font-bold">{lab.name}</h1>
+//           <p className="text-gray-500">{lab.branches}</p>
+
+//           <span className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+//             <FaTag /> {lab.discount}% OFF on all tests
+//           </span>
+//         </div>
+//       </div>
+
+//       {/* SEARCH */}
+//       <div className="relative mt-8 max-w-xl mx-auto">
+//         <FaSearch className="absolute left-4 top-3 text-gray-400" />
+//         <input
+//           type="text"
+//           placeholder="Search test"
+//           className="w-full border rounded-lg py-2 pl-10 pr-4"
+//           value={searchTerm}
+//           onChange={(e) => setSearchTerm(e.target.value)}
+//         />
+//       </div>
+
+//       {/* TOTAL BAR */}
+//       {selectedTests.length > 0 && (
+//         <div className="mt-6 bg-indigo-600 text-white p-4 rounded-lg flex justify-between">
+//           <div>{selectedTests.length} Tests Selected</div>
+//           <div>
+//             <s className="opacity-80">Rs {total.original}</s>{" "}
+//             <strong>Rs {total.final}</strong>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* TESTS */}
+//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+//         {filteredTests.map((test) => {
+//           const checked = selectedTests.includes(test._id);
+//           return (
+//             <div
+//               key={test._id}
+//               onClick={() => toggleSelect(test._id)}
+//               className={`p-5 border rounded-xl cursor-pointer transition
+//                 ${checked ? "border-indigo-600 bg-indigo-50" : "hover:shadow"}
+//               `}
+//             >
+//               <input
+//                 type="checkbox"
+//                 checked={checked}
+//                 className="float-right"
+//                 onChange={(e) => e.stopPropagation()}
+//               />
+
+//               <h3 className="text-lg font-semibold">{test.name}</h3>
+//               <p className="text-gray-500 text-sm">{test.description}</p>
+
+//               <div className="mt-3">
+//                 <span className="text-xl font-bold text-indigo-600">
+//                   Rs {getDiscountedPrice(test.price)}
+//                 </span>
+//                 <s className="ml-2 text-gray-400">
+//                   Rs {test.price}
+//                 </s>
+//               </div>
+
+//               <p className="text-xs text-green-600 mt-1">
+//                 {lab.discount}% lab discount applied
+//               </p>
+//             </div>
+//           );
+//         })}
+//       </div>
+
+//       {/* BOOK */}
+//       <div className="text-center mt-10">
+//         <button
+//           disabled={!selectedTests.length}
+//           onClick={() =>
+//             navigate(`/labs/${id}/booking`, {
+//               state: { selectedTests },
+//             })
+//           }
+//           className={`px-10 py-3 rounded-lg text-white text-lg
+//             ${selectedTests.length ? "bg-indigo-600" : "bg-gray-400"}
+//           `}
+//         >
+//           Book Tests – Rs {total.final}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+// import React, { useEffect, useState } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import axios from "axios";
+// import { FaSearch, FaTag, FaCheckCircle } from "react-icons/fa";
+
+// export default function LabDetail() {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+
+//   const [lab, setLab] = useState(null);
+//   const [tests, setTests] = useState([]);
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [selectedTests, setSelectedTests] = useState(() => {
+//     try {
+//       const s = localStorage.getItem(`selectedTests_lab_${id}`);
+//       return s ? JSON.parse(s) : [];
+//     } catch {
+//       return [];
+//     }
+//   });
+
+//   useEffect(() => {
+//     Promise.all([
+//       axios.get(`http://localhost:5000/api/labs/${id}`),
+//       axios.get(`http://localhost:5000/api/tests/lab/${id}`),
+//     ]).then(([labRes, testsRes]) => {
+//       setLab(labRes.data);
+//       setTests(testsRes.data || []);
+//     });
+//   }, [id]);
+
+//   useEffect(() => {
+//     localStorage.setItem(
+//       `selectedTests_lab_${id}`,
+//       JSON.stringify(selectedTests)
+//     );
+//   }, [selectedTests, id]);
+
+//   if (!lab) return <div className="text-center py-20">Loading...</div>;
+
+//   const getDiscountedPrice = (price) =>
+//     Math.round(price - (price * lab.discount) / 100);
+
+//   const filteredTests = tests.filter((t) =>
+//     t.name.toLowerCase().includes(searchTerm.toLowerCase())
+//   );
+
+//   const toggleSelect = (testId) => {
+//     setSelectedTests((prev) =>
+//       prev.includes(testId)
+//         ? prev.filter((x) => x !== testId)
+//         : [...prev, testId]
+//     );
+//   };
+
+//   const total = filteredTests.reduce(
+//     (acc, t) => {
+//       if (selectedTests.includes(t._id)) {
+//         acc.original += Number(t.price);
+//         acc.final += getDiscountedPrice(t.price);
+//       }
+//       return acc;
+//     },
+//     { original: 0, final: 0 }
+//   );
+
+//   return (
+//     <div className="max-w-7xl mx-auto px-4 pb-32">
+
+//       {/* LAB HEADER */}
+//       <div className="mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white flex items-center gap-6 shadow-lg">
+//         <img
+//           src={`http://localhost:5000/uploads/${lab.logo}`}
+//           className="w-24 h-24 bg-white rounded-xl object-contain p-2"
+//           alt={lab.name}
+//         />
+//         <div className="flex-1">
+//           <h1 className="text-3xl font-bold">{lab.name}</h1>
+//           <p className="opacity-90">{lab.branches}</p>
+//           <span className="inline-flex items-center gap-2 mt-3 bg-white/20 px-4 py-1 rounded-full text-sm">
+//             <FaTag /> {lab.discount}% OFF on all tests
+//           </span>
+//         </div>
+//       </div>
+
+//       {/* SEARCH */}
+//       <div className="mt-10 max-w-lg mx-auto relative">
+//         <FaSearch className="absolute left-4 top-3.5 text-gray-400" />
+//         <input
+//           type="text"
+//           placeholder="Search medical test..."
+//           className="w-full border rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-indigo-500 outline-none"
+//           value={searchTerm}
+//           onChange={(e) => setSearchTerm(e.target.value)}
+//         />
+//       </div>
+
+//       {/* TEST LIST */}
+//       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+//         {filteredTests.map((test) => {
+//           const checked = selectedTests.includes(test._id);
+//           return (
+//             <div
+//               key={test._id}
+//               onClick={() => toggleSelect(test._id)}
+//               className={`relative p-6 rounded-2xl border cursor-pointer transition-all
+//                 ${checked
+//                   ? "border-indigo-600 bg-indigo-50 shadow-lg"
+//                   : "hover:shadow-md bg-white"}
+//               `}
+//             >
+//               {checked && (
+//                 <FaCheckCircle className="absolute top-4 right-4 text-indigo-600 text-xl" />
+//               )}
+
+//               <h3 className="text-lg font-semibold">{test.name}</h3>
+//               <p className="text-gray-500 text-sm mt-1">
+//                 {test.description}
+//               </p>
+
+//               <div className="flex items-end gap-3 mt-4">
+//                 <span className="text-2xl font-bold text-indigo-600">
+//                   Rs {getDiscountedPrice(test.price)}
+//                 </span>
+//                 <s className="text-gray-400 text-sm">
+//                   Rs {test.price}
+//                 </s>
+//               </div>
+
+//               <span className="inline-block mt-2 text-xs text-green-600">
+//                 {lab.discount}% lab discount applied
+//               </span>
+//             </div>
+//           );
+//         })}
+//       </div>
+
+//       {/* STICKY TOTAL BAR */}
+//       {selectedTests.length > 0 && (
+//         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-xl p-4 z-50">
+//           <div className="max-w-7xl mx-auto flex justify-between items-center">
+//             <div>
+//               <p className="font-semibold">
+//                 {selectedTests.length} Tests Selected
+//               </p>
+//               <p className="text-sm text-gray-500">
+//                 <s>Rs {total.original}</s> →{" "}
+//                 <span className="text-indigo-600 font-bold">
+//                   Rs {total.final}
+//                 </span>
+//               </p>
+//             </div>
+//             <button
+//               onClick={() =>
+//                 navigate(`/labs/${id}/booking`, {
+//                   state: { selectedTests },
+//                 })
+//               }
+//               className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-semibold"
+//             >
+//               Book Now
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
