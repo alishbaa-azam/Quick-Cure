@@ -3653,37 +3653,37 @@ const MedicineDetail = ({ cart, setCart, favorites, setFavorites }) => {
   const incrementQuantity = () => quantity < 10 && setQuantity(prev => prev + 1);
   const decrementQuantity = () => quantity > 1 && setQuantity(prev => prev - 1);
 
-  const toggleFavorite = () => {
-    // Direct check from localStorage
-    const user = getCurrentUser();
+  // const toggleFavorite = () => {
+  //   // Direct check from localStorage
+  //   const user = getCurrentUser();
     
-    if (!user) {
-      navigate('/login', { 
-        state: { 
-          redirectTo: `/medicine/${id}`,
-          message: 'Please login to add to wishlist' 
-        } 
-      });
-      return;
-    }
+  //   if (!user) {
+  //     navigate('/login', { 
+  //       state: { 
+  //         redirectTo: `/medicine/${id}`,
+  //         message: 'Please login to add to wishlist' 
+  //       } 
+  //     });
+  //     return;
+  //   }
 
     // Check if pharmacy user
-    if (user && user.role === 'pharmacy') {
-      setSuccessMessage('Pharmacy accounts cannot add to wishlist. Please use a regular customer account.');
-      setShowPharmacyErrorModal(true);
-      return;
-    }
+  //   if (user && user.role === 'pharmacy') {
+  //     setSuccessMessage('Pharmacy accounts cannot add to wishlist. Please use a regular customer account.');
+  //     setShowPharmacyErrorModal(true);
+  //     return;
+  //   }
     
-    if (!medicine) return;
-    setIsFavorite(!isFavorite);
+  //   if (!medicine) return;
+  //   setIsFavorite(!isFavorite);
     
-    // Show success modal for wishlist
-    setSuccessMessage(!isFavorite 
-      ? 'Added to wishlist' 
-      : 'Removed from wishlist'
-    );
-    setShowSuccessModal(true);
-  };
+  //   // Show success modal for wishlist
+  //   setSuccessMessage(!isFavorite 
+  //     ? 'Added to wishlist' 
+  //     : 'Removed from wishlist'
+  //   );
+  //   setShowSuccessModal(true);
+  // };
 
   const calculateFinalPrice = () => {
     if (!medicine) return 0;
@@ -3788,12 +3788,12 @@ const MedicineDetail = ({ cart, setCart, favorites, setFavorites }) => {
             </button>
             
             <div className="flex items-center space-x-4">
-              <button 
+              {/* <button 
                 onClick={toggleFavorite}
                 className="p-2 text-gray-600 hover:text-red-500 transition-colors"
               >
                 <FaHeart className={isFavorite ? "text-red-500 fill-red-500" : ""} />
-              </button>
+              </button> */}
               <button 
                 onClick={handleShare}
                 className="p-2 text-gray-600 hover:text-[var(--primary-color)] transition-colors"
@@ -3915,7 +3915,7 @@ const MedicineDetail = ({ cart, setCart, favorites, setFavorites }) => {
                         <div className="font-medium">{medicine.strength || 'Not specified'}</div>
                       </div>
                     </div>
-                    <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    {/* <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                       <FaPrescriptionBottle className="text-[var(--primary-color)] mr-3" />
                       <div>
                         <div className="text-sm text-gray-600">Prescription</div>
@@ -3923,7 +3923,7 @@ const MedicineDetail = ({ cart, setCart, favorites, setFavorites }) => {
                           {medicine.prescriptionRequired ? 'Required' : 'Not Required'}
                         </div>
                       </div>
-                    </div>
+                    </div>  */}
                   </div>
 
                   {/* Stock Status */}
