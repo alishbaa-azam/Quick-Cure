@@ -2087,7 +2087,7 @@ const LabUserDashboard = () => {
       key: 'price',
       width: 100,
       render: (price) => (
-        <Text strong style={{ color: theme.primary }}>₹{price || 0}</Text>
+        <Text strong style={{ color: theme.primary }}>Rs.{price || 0}</Text>
       )
     },
     {
@@ -2176,7 +2176,7 @@ const LabUserDashboard = () => {
       width: 100,
       render: (_, record) => (
         <Text strong style={{ color: theme.primary }}>
-          ₹{record.totals?.discounted || 0}
+          Rs.{record.totals?.discounted || 0}
         </Text>
       )
     },
@@ -2285,7 +2285,7 @@ const LabUserDashboard = () => {
           <Col>
             <Button 
               icon={<SyncOutlined />}
-              style={{ color: theme.white, borderColor: theme.white }}
+              style={{ color: theme.green, borderColor: theme.white }}
               onClick={() => {
                 fetchLabData();
                 fetchTests();
@@ -2459,7 +2459,7 @@ const LabUserDashboard = () => {
                     description={
                       <Space direction="vertical" size={0}>
                         <Text style={{ fontSize: 12 }}>
-                          {booking.tests?.length || 0} tests • ₹{booking.totals?.discounted || 0}
+                          {booking.tests?.length || 0} tests • Rs.{booking.totals?.discounted || 0}
                         </Text>
                         <Text type="secondary" style={{ fontSize: 11 }}>
                           {dayjs(booking.createdAt).format('DD MMM YYYY, hh:mm A')}
@@ -2583,7 +2583,7 @@ const LabUserDashboard = () => {
               </Table.Summary.Cell>
               <Table.Summary.Cell index={3}>
                 <Text strong>
-                  Total Value: ₹{tests.reduce((sum, test) => sum + (test.price || 0), 0)}
+                  Total Value: Rs.{tests.reduce((sum, test) => sum + (test.price || 0), 0)}
                 </Text>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={4} colSpan={2} />
@@ -2671,7 +2671,7 @@ const LabUserDashboard = () => {
               </Table.Summary.Cell>
               <Table.Summary.Cell index={3}>
                 <Text strong>
-                  Total Revenue: ₹{filteredBookings
+                  Total Revenue: Rs.{filteredBookings
                     .filter(b => b.bookingStatus === 'completed')
                     .reduce((sum, b) => sum + (b.totals?.discounted || 0), 0)}
                 </Text>
@@ -2766,13 +2766,13 @@ const LabUserDashboard = () => {
           
           <Descriptions.Item label="Monthly Revenue">
             <Text strong style={{ color: theme.primary, fontSize: 18 }}>
-              ₹{stats.monthlyRevenue}
+              Rs.{stats.monthlyRevenue}
             </Text>
           </Descriptions.Item>
           
           <Descriptions.Item label="Overall Revenue">
             <Text strong style={{ color: theme.success, fontSize: 18 }}>
-              ₹{stats.totalRevenue}
+              Rs.{stats.totalRevenue}
             </Text>
           </Descriptions.Item>
         </Descriptions>
@@ -2918,7 +2918,7 @@ const LabUserDashboard = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <Text style={{ color: theme.textLight, fontSize: 12 }}>Monthly Revenue</Text>
-              <Text strong style={{ color: theme.success, fontSize: 12 }}>₹{stats.monthlyRevenue}</Text>
+              <Text strong style={{ color: theme.success, fontSize: 12 }}>Rs.{stats.monthlyRevenue}</Text>
             </div>
           </Space>
         </div>
@@ -2985,8 +2985,9 @@ const LabUserDashboard = () => {
           justifyContent: 'space-between',
           height: 64
         }}>
-          <div>
-            <Title level={4} style={{ margin: 0, color: theme.secondary }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Title level={4} style={{ color: theme.secondary }}>
+              {/* , color: theme.secondary }}> */}
               {activeTab === 'dashboard' && 'Lab Dashboard Overview'}
               {activeTab === 'tests' && 'Test Management'}
               {activeTab === 'bookings' && 'Booking Management'}
@@ -3080,7 +3081,7 @@ const LabUserDashboard = () => {
             <Col span={12}>
               <Form.Item
                 name="price"
-                label="Price (₹)"
+                label="Price (Rs.)"
                 rules={[{ required: true, message: 'Please enter price' }]}
               >
                 <InputNumber 
@@ -3325,7 +3326,7 @@ const LabUserDashboard = () => {
               renderItem={(test, index) => (
                 <List.Item
                   extra={
-                    <Text strong>₹{test.price}</Text>
+                    <Text strong>Rs.{test.price}</Text>
                   }
                 >
                   <List.Item.Meta
@@ -3335,8 +3336,8 @@ const LabUserDashboard = () => {
                       <Space>
                         {test.discount > 0 && (
                           <>
-                            <Text type="secondary" delete>₹{test.price}</Text>
-                            <Text strong>₹{test.price * (100 - test.discount) / 100}</Text>
+                            <Text type="secondary" delete>Rs.{test.price}</Text>
+                            <Text strong>Rs.{test.price * (100 - test.discount) / 100}</Text>
                             <Tag color="success" size="small">-{test.discount}%</Tag>
                           </>
                         )}
@@ -3350,15 +3351,15 @@ const LabUserDashboard = () => {
             <Divider />
             <div style={{ textAlign: 'right' }}>
               <Text strong style={{ fontSize: 16 }}>
-                Total Amount: ₹{selectedBooking.totals?.discounted || 0}
+                Total Amount: Rs.{selectedBooking.totals?.discounted || 0}
               </Text>
               {selectedBooking.totals?.original !== selectedBooking.totals?.discounted && (
                 <div>
                   <Text type="secondary" delete>
-                    Original: ₹{selectedBooking.totals?.original}
+                    Original: Rs.{selectedBooking.totals?.original}
                   </Text>
                   <Text type="success" style={{ marginLeft: 8 }}>
-                    Saved: ₹{selectedBooking.totals?.original - selectedBooking.totals?.discounted}
+                    Saved: Rs.{selectedBooking.totals?.original - selectedBooking.totals?.discounted}
                   </Text>
                 </div>
               )}

@@ -4098,15 +4098,15 @@ const MedicineBooking = ({ cart, setCart }) => {
                 >
                   Continue Shopping
                 </button>
-                <button
+                {/* <button
                   onClick={viewOrderHistory}
                   className="w-full border border-[var(--primary-color)] text-[var(--primary-color)] py-3 px-6 rounded-lg hover:bg-[var(--bg-light, #f8fafc)] transition-colors font-semibold flex items-center justify-center gap-2"
                 >
                   <FaHistory /> View Order History
-                </button>
-                <p className="text-sm text-gray-500 text-center mt-4">
+                </button> */}
+                {/* <p className="text-sm text-gray-500 text-center mt-4">
                   You can view your order details anytime in the Order History section
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
