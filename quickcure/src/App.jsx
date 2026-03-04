@@ -28,8 +28,8 @@ import LabsPage from "./components/Lab/lab";
 import LabDetail from "./components/Lab/LabDetail";
 import LoginPage from "./components/Login/LoginPage";
 import TestBooking from "./components/Lab/LabTestBooking";
-import LabRegistration from "./components/Registration/labregistration";
-import LabDashboard from './components/LabDashboards/LabDashboard';
+import LabRegistration from "./components/Registration/labRegistration";
+import LabUserDashboard from './components/LabDashboards/LabDashboard';
 
 //---------------------Pharmacy Module----------------------------------//
 
@@ -64,7 +64,7 @@ import ScrollToTop from "./ScrollToTop";
 function Layout() {
   const location = useLocation();
   const [cart, setCart] = useState([]);
-  const hideLayoutRoutes = ["/login"];
+  const hideLayoutRoutes = ["/login", "/lab/dashboard", "/PharmacyDashboard", "/DoctorDashboard"];
 
   const hideLayout = hideLayoutRoutes.includes(location.pathname);
 
@@ -89,7 +89,7 @@ function Layout() {
 {/* //-------------------------Lab Module---------------------------------------// */}
 
         {/* <Route path="/labs/692b638f52ab6641e190e85e" element={<LabDetail />} /> */}
-        <Route path='/lab/dashboard' element={<LabDashboard />} />
+        <Route path='/lab/dashboard' element={<LabUserDashboard />} />
         <Route path="/labs" element={<LabsPage />} />
         <Route path="/labs/:id" element={<LabDetail />} />
         <Route path="/labs/:id/booking" element={<TestBooking />} />
