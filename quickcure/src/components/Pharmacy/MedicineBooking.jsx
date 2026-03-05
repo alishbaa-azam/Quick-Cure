@@ -6259,69 +6259,70 @@ const MedicineBooking = ({ cart, setCart }) => {
   const cartPharmacies = getUniquePharmaciesFromCart();
 
   return (
-    <div ref={formRef} className="min-h-screen bg-gray-50 py-4 sm:py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Order Confirmation Modal */}
-        {showOrderConfirmation && currentOrder && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="text-center mb-6">
-                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FaCheckCircle className="w-10 h-10 text-green-600" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Order Confirmed!</h2>
-                  <p className="text-gray-600">Your order has been placed successfully</p>
+    <div ref={formRef} className="container mx-auto px-4 py-8">
+      {showOrderConfirmation && currentOrder && (
+        <div className="fixed inset-0 bg-[var(--text-light)] bg-opacity-30 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-gray-200">
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaCheckCircle className="w-8 h-8 text-green-600" />
                 </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
-                  <div className="text-center mb-4">
-                    <p className="text-sm text-gray-500">Order Number</p>
-                    <p className="text-xl font-bold text-[var(--primary-color)] break-all">{currentOrder.orderNumber}</p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-gray-600">Patient Name:</span>
-                      <span className="font-medium">{currentOrder.patientInfo.name || 'Not provided'}</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-gray-600">Phone:</span>
-                      <span className="font-medium">{currentOrder.patientInfo.phone || 'Not provided'}</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-gray-600">Total Amount:</span>
-                      <span className="font-bold text-[var(--primary-color)]">Rs. {currentOrder.total.toFixed(2)}</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <span className="font-medium text-green-600">{currentOrder.status}</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-gray-600">Date:</span>
-                      <span className="font-medium">{currentOrder.date}</span>
-                    </div>
-                  </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Order Confirmed!</h2>
+                <p className="text-gray-600">Your order has been placed successfully</p>
+              </div>
+              
+              <div className="bg-[var(--bg-light, #f8fafc)] p-4 rounded-lg mb-6 border border-[var(--text-light, #e2e8f0)]">
+                <div className="text-center mb-4">
+                  <p className="text-sm text-gray-500">Order Number</p>
+                  <p className="text-xl font-bold text-[var(--primary-color)]">{currentOrder.orderNumber}</p>
                 </div>
                 
                 <div className="space-y-3">
-                  <button
-                    onClick={closeOrderConfirmation}
-                    className="w-full bg-[var(--primary-color)] text-white py-3 px-6 rounded-lg hover:bg-[var(--secondary-color)] transition-colors font-semibold"
-                  >
-                    Continue Shopping
-                  </button>
-                  <button
-                    onClick={viewOrderHistory}
-                    className="w-full border border-[var(--primary-color)] text-[var(--primary-color)] py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-semibold flex items-center justify-center gap-2"
-                  >
-                    <FaHistory /> View Order History
-                  </button>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Patient Name:</span>
+                    <span className="font-medium">{currentOrder.patientInfo.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Phone:</span>
+                    <span className="font-medium">{currentOrder.patientInfo.phone}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Amount:</span>
+                    <span className="font-bold text-[var(--primary-color)]">Rs. {currentOrder.total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <span className="font-medium text-green-600">{currentOrder.status}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date:</span>
+                    <span className="font-medium">{currentOrder.date}</span>
+                  </div>
                 </div>
+              </div>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={closeOrderConfirmation}
+                  className="w-full bg-[var(--primary-color)] text-white py-3 px-6 rounded-lg hover:bg-[var(--secondary-color)] transition-colors font-semibold shadow-sm"
+                >
+                  Continue Shopping
+                </button>
+                <button
+                  onClick={viewOrderHistory}
+                  className="w-full border border-[var(--primary-color)] text-[var(--primary-color)] py-3 px-6 rounded-lg hover:bg-[var(--bg-light, #f8fafc)] transition-colors font-semibold flex items-center justify-center gap-2"
+                >
+                  <FaHistory /> View Order History
+                </button>
+                <p className="text-sm text-gray-500 text-center mt-4">
+                  You can view your order details anytime in the Order History section
+                </p>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">

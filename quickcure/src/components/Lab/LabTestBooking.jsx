@@ -1634,7 +1634,7 @@ export default function BookingPage() {
               </div>
 
               {/* Collection Type Selection */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-[#174047] mb-3">
                   How would you like to give the sample? *
                 </label>
@@ -1701,7 +1701,7 @@ export default function BookingPage() {
                     </div>
                   </button>
                 </div>
-              </div>
+              </div> */}
 
               {/* Address for Collection */}
               {appointmentDetails.sampleCollectionType === 'home' && (
@@ -1735,7 +1735,7 @@ export default function BookingPage() {
                 id="terms"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-1 w-5 h-5 rounded border-[#5c878f] text-[#2c6774] focus:ring-[#2c6774]"
+                className="mt-0.5 w-5 h-5 rounded border-[#5c878f] text-[#2c6774] focus:ring-[#2c6774]"
               />
               <label htmlFor="terms" className="text-sm text-[#174047] leading-relaxed">
                 <span className="font-semibold">Terms & Conditions:</span> I agree that the information provided is accurate. I understand that 
@@ -1866,7 +1866,7 @@ export default function BookingPage() {
                 {lab?.discount > 0 && (
                   <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-[#9fbfc5]/20 to-[#c0d3dc]/20 border border-[#5c878f]/30">
                     <p className="text-sm font-medium text-[#174047] flex items-center gap-2">
-                      <span className="text-lg">🎉</span>
+                      {/* <span className="text-lg">🎉</span> */}
                       You save Rs {total.original - total.final} with {lab.discount}% discount!
                     </p>
                   </div>
@@ -1901,10 +1901,10 @@ export default function BookingPage() {
                     <FaShieldAlt />
                     <span>Secure & Safe Booking</span>
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-xs text-[#5c878f]">
+                  {/* <div className="flex items-center justify-center gap-2 text-xs text-[#5c878f]">
                     <FaCreditCard />
                     <span>No payment required now</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

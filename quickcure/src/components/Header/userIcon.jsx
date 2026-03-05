@@ -441,7 +441,7 @@ export default function UserIcon({ user, onLogout }) {
           {
             label: "Doctor Dashboard",
             icon: FaUserMd,
-            path: "/doctor/dashboard",
+            path: "/DoctorDashboard",
             color: "text-green-600",
           },
         ];

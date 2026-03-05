@@ -28,6 +28,7 @@ import {
   Zap
 } from "lucide-react";
 
+
 export default function ViewProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -851,7 +852,7 @@ export default function ViewProfile() {
   const hasAvailability = availabilitySchedule.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9fbfc5]/10 to-[#c0d3dc]/10">
+    <div className="max-w-7xl mx-auto px-4 pb-36 bg-gradient-to-br from-[#9fbfc5]/10 to-[#c0d3dc]/10">
       {/* Main Profile Card - Redesigned */}
       <div className="bg-linear-to-r from-white to-[#f8f9fa] rounded-2xl shadow-xl mx-4 mt-6 p-6 md:mx-6 lg:mx-8 border border-[#c0d3dc]/30">
         <div className="flex flex-col lg:flex-row items-start gap-8">
@@ -882,8 +883,8 @@ export default function ViewProfile() {
                 disabled={!doctor.isActive || !hasAvailability}
                 className={`w-full py-4 rounded-xl transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${
                   authStatus
-                    ? "bg-gradient-to-r from-[#2c6774] to-[#1e4e56] text-white hover:from-[#1e4e56] hover:to-[#174047]"
-                    : "bg-gradient-to-r from-[#3a8a9c] to-[#2c6774] text-white hover:from-[#2c6774] hover:to-[#1e4e56]"
+                    ? "bg-linear-to-r from-[#2c6774] to-[#1e4e56] text-white hover:from-[#1e4e56] hover:to-[#174047]"
+                    : "bg-linear-to-r from-[#3a8a9c] to-[#2c6774] text-white hover:from-[#2c6774] hover:to-[#1e4e56]"
                 }`}
               >
                 <BookOpen size={22} />
@@ -892,7 +893,7 @@ export default function ViewProfile() {
               
               <button
                 onClick={handleShare}
-                className="w-full py-3 bg-gradient-to-r from-white to-[#f8f9fa] border-2 border-[#2c6774]/30 text-[#2c6774] rounded-xl hover:border-[#2c6774] hover:bg-gradient-to-r hover:from-[#2c6774] hover:to-[#1e4e56] hover:text-white transition-all duration-300 font-medium flex items-center justify-center gap-2"
+                className="w-full py-3 bg-linear-to-r from-white to-[#f8f9fa] border-2 border-[#2c6774]/30 text-[#2c6774] rounded-xl hover:border-[#2c6774] hover:bg-gradient-to-r hover:from-[#2c6774] hover:to-[#1e4e56] hover:text-white transition-all duration-300 font-medium flex items-center justify-center gap-2"
               >
                 <Share2 size={20} />
                 <span>Share Profile</span>
