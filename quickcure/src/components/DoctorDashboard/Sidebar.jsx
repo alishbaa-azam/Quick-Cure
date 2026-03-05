@@ -5,6 +5,7 @@ import {
   Users, 
   FilePlus, 
   Clock,
+  MessageSquare,
   Settings
 } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const Sidebar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
     { id: 'patients', label: 'Patients', icon: Users },
     { id: 'prescriptions', label: 'Prescriptions', icon: FilePlus },
     { id: 'schedule', label: 'Schedule', icon: Clock },
+    { id: 'reviews', label: 'Reviews', icon: MessageSquare }, 
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

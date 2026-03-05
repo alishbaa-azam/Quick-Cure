@@ -7,6 +7,7 @@ import Patients from './Patients';
 import PatientHistory from './PatientHistory';
 import Prescriptions from './Prescriptions';
 import Schedule from './Schedule';
+import Reviews from './Reviews';
 import Settings from './Settings';
 import { patients } from '../data/dummyData';
 
@@ -38,6 +39,7 @@ const DoctorDashboard = () => {
       );
       case 'prescriptions': return <Prescriptions />;
       case 'schedule': return <Schedule />;
+      case 'reviews': return <Reviews />;
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }

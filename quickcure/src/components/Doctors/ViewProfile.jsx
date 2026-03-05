@@ -570,6 +570,7 @@ export default function ViewProfile() {
     try {
       // Get user name properly
       const userName = getUserName();
+      const userId = loggedInUser?.id || loggedInUser?._id || "";
       
       const reviewData = {
         rating: reviewForm.rating,
