@@ -11,6 +11,7 @@ import {
   FaMoneyBillWave,
   FaWhatsapp
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -78,7 +79,7 @@ export default function Footer() {
         <a href="#">Order Medicines</a>
         <a href="#">Book Lab Test</a>
         <a href="#">About Us</a>
-        <a href="#">Doctors</a>
+        <Link to="/contact">Contact Us</Link>
         <a href="#">Terms & Policies</a>
       </div>
 
