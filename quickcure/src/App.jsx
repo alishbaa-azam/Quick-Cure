@@ -9,7 +9,8 @@ import {
 import Header from "./components/Header/header";
 import Footer from "./components/footer";
 import Home from "./components/Home/home";
-import AboutContactPage from './components/AboutContactPage';
+// import AboutContactPage from './components/AboutContactPage';
+import Contact from './components/ContactPage.jsx';
 
 //------------Doctor Module---------------------------------------//
 
@@ -64,7 +65,7 @@ import ScrollToTop from "./ScrollToTop";
 function Layout() {
   const location = useLocation();
   const [cart, setCart] = useState([]);
-  const hideLayoutRoutes = ["/login", "/lab/dashboard", "/PharmacyDashboard", "/DoctorDashboard"];
+  const hideLayoutRoutes = ["/login", "/lab/dashboard", "/PharmacyDashboard", "/DoctorDashboard","/reg","/regis","/registration"];
 
   const hideLayout = hideLayoutRoutes.includes(location.pathname);
 
@@ -75,8 +76,9 @@ function Layout() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<AboutContactPage />} />
+        {/* <Route path="/about" element={<AboutContactPage />} /> */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/contact" element={<Contact />} />
 {/* //-------------------------Doctor Module---------------------------------------// */}
 
         <Route path="/doctors" element={<DoctorsPage />} />
@@ -88,7 +90,6 @@ function Layout() {
 
 {/* //-------------------------Lab Module---------------------------------------// */}
 
-        {/* <Route path="/labs/692b638f52ab6641e190e85e" element={<LabDetail />} /> */}
         <Route path='/lab/dashboard' element={<LabUserDashboard />} />
         <Route path="/labs" element={<LabsPage />} />
         <Route path="/labs/:id" element={<LabDetail />} />

@@ -6770,7 +6770,7 @@ const MedicineBooking = ({ cart, setCart }) => {
           </div>
         </div>
       </div>
-    </div>
+    // </div>
   );
 };
 

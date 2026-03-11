@@ -4047,8 +4047,8 @@ const LabRegistrationForm = () => {
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>
             Need help? Call <span className="text-[#2c6774] font-medium">+92 300 1234567</span> or email{' '}
-            <a href="mailto:support@labconnect.com" className="text-[#2c6774] hover:text-[#174047]">
-              support@labconnect.com
+            <a href="mailto:quickcure@gmail.com" className="text-[#2c6774] hover:text-[#174047]">
+              quickcure@gmail.com
             </a>
           </p>
         </div>
