@@ -18,6 +18,7 @@ import SpecialityDoctors from "./components/Doctors/SpecialityDoctors";
 import BookAppointment from './components/Doctors/appointmentBooking';
 import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
+import AllReviews from './components/Doctors/AllReviews';
 
 import LabDashboard from "./components/LabDashboards/LabDashboard";
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
@@ -85,6 +86,7 @@ function Layout() {
         <Route path="/doctor/:id" element={<ViewProfile />} />
         <Route path="/registration" element={<DoctorRegistration />} />
         <Route path="/DoctorDashboard" element={<DoctorDashboard />} />
+        <Route path="/doctor-reviews/:id" element={<AllReviews />} />
 
 {/* //-------------------------Lab Module---------------------------------------// */}
 
