@@ -2373,7 +2373,7 @@ export default function ViewProfile() {
                 <img 
                   src={doctor.image ? `${API_URL}${doctor.image}` : "/default-doctor.jpg"} 
                   alt={doctor.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                   onError={(e) => {
                     e.target.src = "/default-doctor.jpg";
                   }}

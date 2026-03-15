@@ -33,6 +33,13 @@ import TestBooking from "./components/Lab/LabTestBooking";
 import LabRegistration from "./components/Registration/labRegistration";
 import LabUserDashboard from './components/LabDashboards/LabDashboard';
 
+//---------------------Lab Dashboard Components----------------------------------//
+// import LabLayout from './components/LabDashboards/LabLayout';
+// // import LabSidebar from './components/LabDashboards/LabSidebar';
+// import ManageTests from './components/LabDashboards/ManageTests';
+// import LabBookings from './components/LabDashboards/LabBookings';
+// // import LabProfile from './components/LabDashboards/LabProfile';
+
 //---------------------Pharmacy Module----------------------------------//
 
 import PharmacyPage from "./components/Pharmacy/PharmacyPage";
@@ -66,13 +73,17 @@ import ScrollToTop from "./ScrollToTop";
 function Layout() {
   const location = useLocation();
   const [cart, setCart] = useState([]);
-  const hideLayoutRoutes = ["/login", "/lab/dashboard", "/PharmacyDashboard", "/DoctorDashboard","/reg","/regis","/registration"];
+  const hideLayoutRoutes = ["/login", "/lab/dashboard/:id", "/PharmacyDashboard", "/DoctorDashboard","/reg","/regis","/registration"];
 
   const hideLayout = hideLayoutRoutes.includes(location.pathname);
 
+  const shouldHideLayout =
+  hideLayoutRoutes.includes(location.pathname) ||
+  location.pathname.startsWith("/lab/dashboard");
   return (
     <>
-      {!hideLayout && <Header />}
+      {!shouldHideLayout && <Header />}
+      {/* {!hideLayout && <Header />} */}
 
 
       <Routes>
@@ -87,16 +98,25 @@ function Layout() {
         <Route path="/book-appointment/:doctorId" element={<BookAppointment />} />
         <Route path="/doctor/:id" element={<ViewProfile />} />
         <Route path="/registration" element={<DoctorRegistration />} />
-        <Route path="/DoctorDashboard" element={<DoctorDashboard />} />
+        <Route path="/doctor/dashboard/:id" element={<DoctorDashboard />} />
         <Route path="/doctor-reviews/:id" element={<AllReviews />} />
 
 {/* //-------------------------Lab Module---------------------------------------// */}
 
-        <Route path='/lab/dashboard' element={<LabUserDashboard />} />
+        <Route path='/lab/dashboard/:id' element={<LabUserDashboard />} />
         <Route path="/labs" element={<LabsPage />} />
         <Route path="/labs/:id" element={<LabDetail />} />
         <Route path="/labs/:id/booking" element={<TestBooking />} />
         <Route path="/regis" element={<LabRegistration />} />
+
+{/* //-------------------------Lab Dashboard Module---------------------------------------// */}
+
+        {/* <Route path="/lab/dashboard/:labId" element={<LabUserDashboard />}>
+          <Route index element={<DashboardHome />} />
+          <Route path="tests" element={<ManageTests />} />
+          <Route path="bookings" element={<LabBookings />} />
+          {/* <Route path="profile" element={<LabProfile />} /> */}
+        {/* </Route>  */}
 
 {/* //-------------------------Pharmacy Module---------------------------------------// */}
 
@@ -110,7 +130,7 @@ function Layout() {
         {/* <Route path="/orders" element={<OrderHistory />} /> */}
 
         {/* NEW: Dashboard Routes with Layout */}
-        <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
+        <Route path="/PharmacyDashboard/:id" element={<PharmacyDashboardLayout />}>
           <Route index element={<DashboardHome />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="products" element={<ProductsPage />} />
@@ -127,7 +147,8 @@ function Layout() {
 
       </Routes>
 
-      {!hideLayout && <Footer />}
+      {/* {!hideLayout && <Footer />} */}
+      {!shouldHideLayout && <Footer />}
     </>
   );
 }
