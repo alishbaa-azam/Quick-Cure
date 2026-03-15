@@ -10,7 +10,7 @@ import Header from "./components/Header/header";
 import Footer from "./components/footer";
 import Home from "./components/Home/home";
 // import AboutContactPage from './components/AboutContactPage';
-import Contact from './components/ContactPage.jsx';
+// import Contact from './components/ContactPage.jsx';
 
 //------------Doctor Module---------------------------------------//
 
@@ -23,6 +23,7 @@ import AllReviews from './components/Doctors/AllReviews';
 
 import LabDashboard from "./components/LabDashboards/LabDashboard";
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
+import UserDashboard from './components/UserDashboard/UserDashboard';
 
 //---------------------Lab Module----------------------------------//
 
@@ -90,7 +91,7 @@ function Layout() {
         <Route path="/" element={<Home />} />
         {/* <Route path="/about" element={<AboutContactPage />} /> */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/contact" element={<Contact />} />
+        {/* <Route path="/contact" element={<Contact />} /> */}
 {/* //-------------------------Doctor Module---------------------------------------// */}
 
         <Route path="/doctors" element={<DoctorsPage />} />
@@ -98,7 +99,8 @@ function Layout() {
         <Route path="/book-appointment/:doctorId" element={<BookAppointment />} />
         <Route path="/doctor/:id" element={<ViewProfile />} />
         <Route path="/registration" element={<DoctorRegistration />} />
-        <Route path="/doctor/dashboard/:id" element={<DoctorDashboard />} />
+        <Route path="/DoctorDashboard" element={<DoctorDashboard />} />
+        <Route path="/userdashboard" element={<UserDashboard />} />
         <Route path="/doctor-reviews/:id" element={<AllReviews />} />
 
 {/* //-------------------------Lab Module---------------------------------------// */}
