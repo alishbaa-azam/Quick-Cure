@@ -1,167 +1,144 @@
-// LabDashboardSidebar.jsx
-import React from 'react';
-import { Layout, Menu, Avatar, Badge, Space, Button, Typography } from 'antd';
-import {
-  DashboardOutlined,
-  ExperimentOutlined,
-  CalendarOutlined,
-  ProfileOutlined,
-  MedicineBoxOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  StarOutlined
-} from '@ant-design/icons';
+// // src/components/LabDashboard/LabDashboardSidebar.jsx
+// import React from 'react';
 
-const { Sider } = Layout;
-const { Text, Title } = Typography;
+// export default function LabDashboardSidebar({ activeTab, setActiveTab, lab, stats, theme, onLogout }) {
+//   const menuItems = [
+//     { id: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+//     { id: 'bookings', label: 'Bookings', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+//     { id: 'patients', label: 'Patients', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+//     { id: 'tests', label: 'Tests', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 13.88a2 2 0 00-1.022.547 2 2 0 00-.548 1.022l-.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 01.517 3.86l-.477 2.387a2 2 0 00.548 1.022 2 2 0 001.022.548l2.387.477a6 6 0 003.86-.517l.318-.158a6 6 0 013.86-.517l2.387.477a2 2 0 001.022-.548 2 2 0 00.548-1.022l.477-2.387a6 6 0 00-.517-3.86l-.158-.318a6 6 0 01.517-3.86l.477-2.387a2 2 0 00-.548-1.022z M9 12h.01M12 12h.01M15 12h.01M9 15h.01M12 15h.01M15 15h.01' },
+//     { id: 'collections', label: 'Collections', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+//     { id: 'reports', label: 'Reports', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+//     { id: 'profile', label: 'Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+//   ];
+
+//   return (
+//     <div className="w-64 min-h-screen flex flex-col shadow-lg" style={{ backgroundColor: theme.secondary }}>
+//       {/* Logo Section */}
+//       <div className="p-6 border-b" style={{ borderColor: theme.primary }}>
+//         <div className="flex items-center gap-3">
+//           <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+//             {lab?.logo ? (
+//               <img src={`http://localhost:5000/uploads/${lab.logo}`} alt={lab.name} className="w-full h-full object-cover" />
+//             ) : (
+//               <span className="text-white font-bold text-xl">{lab?.name?.[0] || 'L'}</span>
+//             )}
+//           </div>
+//           <div>
+//             <h1 className="text-white font-bold text-lg">LabPro</h1>
+//             <p className="text-xs text-white/70">Lab Management</p>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Navigation */}
+//       <nav className="flex-1 py-6">
+//         {menuItems.map((item) => (
+//           <button
+//             key={item.id}
+//             onClick={() => setActiveTab(item.id)}
+//             className={`w-full flex items-center gap-3 px-6 py-3 transition-colors ${
+//               activeTab === item.id
+//                 ? 'bg-white/10 text-white'
+//                 : 'text-white/70 hover:bg-white/5 hover:text-white'
+//             }`}
+//           >
+//             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+//             </svg>
+//             <span className="text-sm font-medium">{item.label}</span>
+//             {item.id === 'bookings' && stats.pendingBookings > 0 && (
+//               <span className="ml-auto bg-yellow-500 text-white text-xs rounded-full px-2 py-0.5">
+//                 {stats.pendingBookings}
+//               </span>
+//             )}
+//             {item.id === 'collections' && stats.pendingCollections > 0 && (
+//               <span className="ml-auto bg-yellow-500 text-white text-xs rounded-full px-2 py-0.5">
+//                 {stats.pendingCollections}
+//               </span>
+//             )}
+//           </button>
+//         ))}
+//       </nav>
+
+//       {/* Footer */}
+//       <div className="p-6 border-t" style={{ borderColor: theme.primary }}>
+//         <button
+//           onClick={onLogout}
+//           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+//         >
+//           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+//           </svg>
+//           <span className="text-sm">Logout</span>
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+import React from 'react';
 
 export default function LabDashboardSidebar({ activeTab, setActiveTab, lab, stats, theme, onLogout }) {
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { id: 'bookings', label: 'Bookings', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { id: 'patients', label: 'Patients', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+    { id: 'tests', label: 'Tests', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 13.88a2 2 0 00-1.022.547 2 2 0 00-.548 1.022l-.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 01.517 3.86l-.477 2.387a2 2 0 00.548 1.022 2 2 0 001.022.548l2.387.477a6 6 0 003.86-.517l.318-.158a6 6 0 013.86-.517l2.387.477a2 2 0 001.022-.548 2 2 0 00.548-1.022l.477-2.387a6 6 0 00-.517-3.86l-.158-.318a6 6 0 01.517-3.86l.477-2.387a2 2 0 00-.548-1.022z' },
+    { id: 'collections', label: 'Collections', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+    { id: 'reports', label: 'Reports', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    { id: 'profile', label: 'Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+  ];
+
   return (
-    <Sider width={280} style={{ background: theme.secondary, position: 'relative' }}>
-      {/* Lab Info */}
-      <div style={{ padding: '24px 16px', textAlign: 'center' }}>
-        <Avatar
-          size={80}
-          src={lab?.logo ? `http://localhost:5000/uploads/${lab.logo}` : null}
-          icon={!lab?.logo && <MedicineBoxOutlined />}
-          style={{
-            backgroundColor: lab?.logo ? 'transparent' : theme.primary,
-            border: `4px solid ${theme.white}`,
-            marginBottom: 12
-          }}
-        />
-        <Title level={4} style={{ color: theme.white, margin: 0, marginBottom: 4 }}>
-          {lab?.name || 'Lab Dashboard'}
-        </Title>
-        <Text style={{ color: theme.textLight, fontSize: 12 }}>
-          Laboratory Management Portal
-        </Text>
-        <div style={{ marginTop: 8 }}>
-          <StarOutlined style={{ color: '#faad14' }} />
-          <StarOutlined style={{ color: '#faad14' }} />
-          <StarOutlined style={{ color: '#faad14' }} />
-          <StarOutlined style={{ color: '#faad14' }} />
-          <StarOutlined style={{ color: '#faad14' }} />
-        </div>
-      </div>
-
-      {/* Menu */}
-      <Menu
-        theme="dark"
-        mode="inline"
-        selectedKeys={[activeTab]}
-        onClick={({ key }) => setActiveTab(key)}
-        style={{ background: 'transparent', borderRight: 0, padding: '8px' }}
-        items={[
-          {
-            key: 'dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Dashboard',
-            style: {
-              margin: '4px 0',
-              borderRadius: 8,
-              color: activeTab === 'dashboard' ? theme.white : theme.textLight,
-              backgroundColor: activeTab === 'dashboard' ? theme.primary : 'transparent'
-            }
-          },
-          {
-            key: 'tests',
-            icon: <ExperimentOutlined />,
-            label: 'Test Management',
-            style: {
-              margin: '4px 0',
-              borderRadius: 8,
-              color: activeTab === 'tests' ? theme.white : theme.textLight,
-              backgroundColor: activeTab === 'tests' ? theme.primary : 'transparent'
-            }
-          },
-          {
-            key: 'bookings',
-            icon: <CalendarOutlined />,
-            label: (
-              <Space>
-                <span>Bookings</span>
-                {stats?.pendingBookings > 0 && (
-                  <Badge count={stats.pendingBookings} size="small" style={{ backgroundColor: theme.warning }} />
-                )}
-              </Space>
-            ),
-            style: {
-              margin: '4px 0',
-              borderRadius: 8,
-              color: activeTab === 'bookings' ? theme.white : theme.textLight,
-              backgroundColor: activeTab === 'bookings' ? theme.primary : 'transparent'
-            }
-          },
-          {
-            key: 'profile',
-            icon: <ProfileOutlined />,
-            label: 'Lab Profile',
-            style: {
-              margin: '4px 0',
-              borderRadius: 8,
-              color: activeTab === 'profile' ? theme.white : theme.textLight,
-              backgroundColor: activeTab === 'profile' ? theme.primary : 'transparent'
-            }
-          }
-        ]}
-      />
-
-      {/* Stats Summary */}
-      <div style={{
-        margin: 16,
-        padding: 16,
-        background: `${theme.hover}40`,
-        borderRadius: 8,
-        border: `1px solid ${theme.hover}`
-      }}>
-        <Text strong style={{ color: theme.white, display: 'block', marginBottom: 12 }}>
-          Lab Statistics
-        </Text>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text style={{ color: theme.textLight }}>Tests</Text>
-            <Badge count={stats?.totalTests || 0} style={{ backgroundColor: theme.primary }} />
+    <div className="w-64 min-h-screen flex flex-col shadow-lg" style={{ backgroundColor: theme.secondary }}>
+      <div className="p-6 border-b" style={{ borderColor: theme.primary }}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+            {lab?.logo ? (
+              <img src={`http://localhost:5000/uploads/${lab.logo}`} alt={lab.name} className="w-full h-full object-cover rounded-full" />
+            ) : (
+              <span className="text-white font-bold text-xl">{lab?.name?.[0] || 'L'}</span>
+            )}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text style={{ color: theme.textLight }}>Active Bookings</Text>
-            <Badge count={(stats?.pendingBookings || 0) + (stats?.confirmedBookings || 0)} 
-                   style={{ backgroundColor: theme.warning }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text style={{ color: theme.textLight }}>Monthly Revenue</Text>
-            <Text style={{ color: theme.success }}>Rs.{stats?.monthlyRevenue || 0}</Text>
-          </div>
-        </Space>
-      </div>
-
-      {/* User Profile & Logout */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: 16,
-        background: theme.hover,
-        borderTop: `1px solid ${theme.secondary}`
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-          <Avatar size={40} src="https://api.dicebear.com/7.x/avataaars/svg?seed=LabManager" style={{ marginRight: 8 }} />
           <div>
-            <Text style={{ color: theme.white }}>Lab Manager</Text>
-            <br />
-            <Text style={{ color: theme.textLight, fontSize: 12 }}>{lab?.name || 'Lab'} Admin</Text>
+            <h1 className="text-white font-bold text-lg">LabPro</h1>
+            <p className="text-xs text-white/70">Lab Management</p>
           </div>
         </div>
-        <Space style={{ width: '100%' }}>
-          <Button icon={<SettingOutlined />} block type="text" style={{ color: theme.textLight }}>
-            Settings
-          </Button>
-          <Button icon={<LogoutOutlined />} block type="text" danger onClick={onLogout}>
-            Logout
-          </Button>
-        </Space>
       </div>
-    </Sider>
+
+      <nav className="flex-1 py-6">
+        {menuItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className={`w-full flex items-center gap-3 px-6 py-3 transition-colors ${
+              activeTab === item.id ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+            </svg>
+            <span className="text-sm font-medium">{item.label}</span>
+            {item.id === 'bookings' && stats.pendingBookings > 0 && (
+              <span className="ml-auto bg-yellow-500 text-white text-xs rounded-full px-2 py-0.5">
+                {stats.pendingBookings}
+              </span>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      <div className="p-6 border-t" style={{ borderColor: theme.primary }}>
+        <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span className="text-sm">Logout</span>
+        </button>
+      </div>
+    </div>
   );
 }

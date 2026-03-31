@@ -147,7 +147,7 @@ const roleSpecificOptions = () => {
           {
             label: "User Profile",
             icon: FaUser,
-            path: "/profile",
+            path: "/userdashboard",
             color: "text-gray-700",
           },
         ]
