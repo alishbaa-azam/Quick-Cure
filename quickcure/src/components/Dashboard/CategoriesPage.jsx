@@ -1,1135 +1,34 @@
-// components/Dashboard/CategoriesPage.jsx
-// import React, { useState } from 'react';
-// import { Plus, Edit, Trash2, Search, Filter, TrendingUp } from 'lucide-react';
 
-// const CategoriesPage = () => {
-//   const [categories, setCategories] = useState([
-//     { id: 1, name: 'Pain Relief', description: 'Medicines for pain management', productCount: 24, status: 'Active' },
-//     { id: 2, name: 'Antibiotics', description: 'Anti-bacterial medications', productCount: 18, status: 'Active' },
-//     { id: 3, name: 'Allergy', description: 'Allergy relief medicines', productCount: 12, status: 'Active' },
-//     { id: 4, name: 'Digestive', description: 'Gastrointestinal medicines', productCount: 15, status: 'Active' },
-//     { id: 5, name: 'Vitamins', description: 'Nutritional supplements', productCount: 32, status: 'Active' },
-//   ]);
+//    grid view update
+// CategoriesPage.js - Desktop mein grid view hata diya
 
-//   const [searchTerm, setSearchTerm] = useState('');
-
-//   const handleAddCategory = () => {
-//     const name = prompt('Enter category name:');
-//     const description = prompt('Enter category description:');
-    
-//     if (name) {
-//       const newCategory = {
-//         id: categories.length + 1,
-//         name,
-//         description: description || '',
-//         productCount: 0,
-//         status: 'Active'
-//       };
-//       setCategories([...categories, newCategory]);
-//     }
-//   };
-
-//   const handleEditCategory = (id) => {
-//     const category = categories.find(c => c.id === id);
-//     const name = prompt('Enter new category name:', category.name);
-//     const description = prompt('Enter new description:', category.description);
-    
-//     if (name) {
-//       setCategories(categories.map(c => 
-//         c.id === id ? { ...c, name, description: description || '' } : c
-//       ));
-//     }
-//   };
-
-//   const handleDeleteCategory = (id) => {
-//     if (window.confirm('Are you sure you want to delete this category?')) {
-//       setCategories(categories.filter(c => c.id !== id));
-//     }
-//   };
-
-//   const filteredCategories = categories.filter(category =>
-//     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//     category.description.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   return (
-//     <div>
-//       {/* Page Header */}
-//       <div className="flex justify-between items-center mb-8">
-//         <div>
-//           <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
-//           <p className="text-gray-600">Manage your product categories</p>
-//         </div>
-//         <div className="flex space-x-3">
-//           <button className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-//             <Filter size={18} />
-//             <span>Filter</span>
-//           </button>
-//           <button
-//             onClick={handleAddCategory}
-//             className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:opacity-90"
-//           >
-//             <Plus size={20} />
-//             <span>Add Category</span>
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Search */}
-//       <div className="mb-6">
-//         <div className="relative max-w-md">
-//           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-//           <input
-//             type="text"
-//             placeholder="Search categories..."
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-//           />
-//         </div>
-//       </div>
-
-//       {/* Categories Table */}
-//       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-//         <div className="overflow-x-auto">
-//           <table className="w-full">
-//             <thead>
-//               <tr className="bg-gray-50 border-b border-gray-200">
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Category Name</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Description</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Products</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Status</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {filteredCategories.map((category) => (
-//                 <tr key={category.id} className="border-b border-gray-100 hover:bg-gray-50/50">
-//                   <td className="py-4 px-6 font-medium text-gray-800">{category.name}</td>
-//                   <td className="py-4 px-6">
-//                     <p className="text-gray-600 text-sm">{category.description}</p>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-//                       {category.productCount} items
-//                     </span>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-//                       category.status === 'Active' 
-//                         ? 'bg-green-100 text-green-700' 
-//                         : 'bg-red-100 text-red-700'
-//                     }`}>
-//                       {category.status}
-//                     </span>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <div className="flex space-x-2">
-//                       <button
-//                         onClick={() => handleEditCategory(category.id)}
-//                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-//                       >
-//                         <Edit size={18} />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDeleteCategory(category.id)}
-//                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-//                       >
-//                         <Trash2 size={18} />
-//                       </button>
-//                     </div>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CategoriesPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//----------With Modal Implementation----------//
-// import React, { useState } from 'react';
-// import { Plus, Edit, Trash2, Search, Filter, TrendingUp, X, Save } from 'lucide-react';
-
-// const CategoriesPage = () => {
-//   const [categories, setCategories] = useState([
-//     { id: 1, name: 'Pain Relief', description: 'Medicines for pain management', productCount: 24, status: 'Active' },
-//     { id: 2, name: 'Antibiotics', description: 'Anti-bacterial medications', productCount: 18, status: 'Active' },
-//     { id: 3, name: 'Allergy', description: 'Allergy relief medicines', productCount: 12, status: 'Active' },
-//     { id: 4, name: 'Digestive', description: 'Gastrointestinal medicines', productCount: 15, status: 'Active' },
-//     { id: 5, name: 'Vitamins', description: 'Nutritional supplements', productCount: 32, status: 'Active' },
-//   ]);
-
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [showModal, setShowModal] = useState(false);
-//   const [editingCategory, setEditingCategory] = useState(null);
-//   const [formData, setFormData] = useState({
-//     name: '',
-//     description: '',
-//     status: 'Active'
-//   });
-
-//   const handleAddCategory = () => {
-//     setEditingCategory(null);
-//     setFormData({
-//       name: '',
-//       description: '',
-//       status: 'Active'
-//     });
-//     setShowModal(true);
-//   };
-
-//   const handleEditCategory = (id) => {
-//     const category = categories.find(c => c.id === id);
-//     setEditingCategory(category);
-//     setFormData({
-//       name: category.name,
-//       description: category.description,
-//       status: category.status
-//     });
-//     setShowModal(true);
-//   };
-
-//   const handleDeleteCategory = (id) => {
-//     if (window.confirm('Are you sure you want to delete this category?')) {
-//       setCategories(categories.filter(c => c.id !== id));
-//     }
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-    
-//     if (!formData.name.trim()) {
-//       alert('Category name is required');
-//       return;
-//     }
-
-//     if (editingCategory) {
-//       // Update existing category
-//       setCategories(categories.map(c => 
-//         c.id === editingCategory.id 
-//           ? { 
-//               ...c, 
-//               name: formData.name, 
-//               description: formData.description,
-//               status: formData.status
-//             } 
-//           : c
-//       ));
-//     } else {
-//       // Add new category
-//       const newCategory = {
-//         id: categories.length + 1,
-//         name: formData.name,
-//         description: formData.description,
-//         productCount: 0,
-//         status: formData.status
-//       };
-//       setCategories([...categories, newCategory]);
-//     }
-    
-//     setShowModal(false);
-//     setFormData({ name: '', description: '', status: 'Active' });
-//     setEditingCategory(null);
-//   };
-
-//   const handleInputChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData(prev => ({
-//       ...prev,
-//       [name]: value
-//     }));
-//   };
-
-//   const toggleStatus = (id) => {
-//     setCategories(categories.map(c => 
-//       c.id === id ? { ...c, status: c.status === 'Active' ? 'Inactive' : 'Active' } : c
-//     ));
-//   };
-
-//   const filteredCategories = categories.filter(category =>
-//     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//     category.description.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   return (
-//     <div>
-//       {/* Page Header */}
-//       <div className="flex justify-between items-center mb-8">
-//         <div>
-//           <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
-//           <p className="text-gray-600">Manage your product categories</p>
-//         </div>
-//         <div className="flex space-x-3">
-//           <button className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-//             <Filter size={18} />
-//             <span>Filter</span>
-//           </button>
-//           <button
-//             onClick={handleAddCategory}
-//             className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:opacity-90"
-//           >
-//             <Plus size={20} />
-//             <span>Add Category</span>
-//           </button>
-//         </div>
-//       </div>
-
-
-//       {/* Stats Cards */}
-//       {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Total Categories</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">{categories.length}</p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-emerald-100">
-//               <TrendingUp className="text-emerald-600" size={24} />
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Active</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">
-//                 {categories.filter(c => c.status === 'Active').length}
-//               </p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-green-100">
-//               <div className="w-3 h-3 rounded-full bg-green-500"></div>
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Total Products</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">
-//                 {categories.reduce((sum, c) => sum + c.productCount, 0)}
-//               </p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-blue-100">
-//               <div className="w-8 h-8 flex items-center justify-center">
-//                 <div className="w-6 h-6 bg-blue-500 rounded-md"></div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Inactive</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">
-//                 {categories.filter(c => c.status === 'Inactive').length}
-//               </p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-red-100">
-//               <div className="w-3 h-3 rounded-full bg-red-500"></div>
-//             </div>
-//           </div>
-//         </div>
-//       </div> */}
-
-//         {/* Stats Cards */}
-// <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-//   {/* Keep the first two cards as they are */}
-//   <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//     <div className="flex items-center justify-between">
-//       <div>
-//         <p className="text-gray-600 text-sm">Total Categories</p>
-//         <p className="text-2xl font-bold text-gray-800 mt-1">{categories.length}</p>
-//       </div>
-//       <div className="p-3 rounded-lg bg-emerald-100">
-//         <TrendingUp className="text-emerald-600" size={24} />
-//       </div>
-//     </div>
-//   </div>
-  
-//   <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//     <div className="flex items-center justify-between">
-//       <div>
-//         <p className="text-gray-600 text-sm">Active</p>
-//         <p className="text-2xl font-bold text-gray-800 mt-1">
-//           {categories.filter(c => c.status === 'Active').length}
-//         </p>
-//       </div>
-//       <div className="p-3 rounded-lg bg-green-100">
-//         <div className="w-3 h-3 rounded-full bg-green-500"></div>
-//       </div>
-//     </div>
-//   </div>
-  
-//   {/* Updated Total Products Card */}
-//   <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//     <div className="flex items-center justify-between">
-//       <div>
-//         <p className="text-gray-600 text-sm">Total Products</p>
-//         <p className="text-2xl font-bold text-gray-800 mt-1">
-//           {categories.reduce((sum, c) => sum + c.productCount, 0)}
-//         </p>
-//       </div>
-//       <div className="p-3 rounded-lg bg-blue-100">
-//         <div className="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center">
-//           <span className="text-xs font-bold text-white">P</span>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-  
-//   {/* Updated Inactive Card */}
-//   <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//     <div className="flex items-center justify-between">
-//       <div>
-//         <p className="text-gray-600 text-sm">Inactive</p>
-//         <p className="text-2xl font-bold text-gray-800 mt-1">
-//           {categories.filter(c => c.status === 'Inactive').length}
-//         </p>
-//       </div>
-//       <div className="p-3 rounded-lg bg-red-100">
-//         <div className="relative w-6 h-6">
-//           <div className="absolute inset-0 flex items-center justify-center">
-//             <div className="w-4 h-0.5 bg-red-500 transform rotate-45"></div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// </div>
-
-
-//       {/* Search */}
-//       <div className="mb-6">
-//         <div className="relative max-w-md">
-//           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-//           <input
-//             type="text"
-//             placeholder="Search categories..."
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-//           />
-//         </div>
-//       </div>
-
-//       {/* Categories Table */}
-//       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-//         <div className="overflow-x-auto">
-//           <table className="w-full">
-//             <thead>
-//               <tr className="bg-gray-50 border-b border-gray-200">
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Category Name</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Description</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Products</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Status</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {filteredCategories.map((category) => (
-//                 <tr key={category.id} className="border-b border-gray-100 hover:bg-gray-50/50">
-//                   <td className="py-4 px-6 font-medium text-gray-800">{category.name}</td>
-//                   <td className="py-4 px-6">
-//                     <p className="text-gray-600 text-sm">{category.description}</p>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-//                       {category.productCount} items
-//                     </span>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <button
-//                       onClick={() => toggleStatus(category.id)}
-//                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-//                         category.status === 'Active'
-//                           ? 'bg-green-100 text-green-700 hover:bg-green-200'
-//                           : 'bg-red-100 text-red-700 hover:bg-red-200'
-//                       }`}
-//                     >
-//                       {category.status}
-//                     </button>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <div className="flex space-x-2">
-//                       <button
-//                         onClick={() => handleEditCategory(category.id)}
-//                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-//                         title="Edit"
-//                       >
-//                         <Edit size={18} />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDeleteCategory(category.id)}
-//                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-//                         title="Delete"
-//                       >
-//                         <Trash2 size={18} />
-//                       </button>
-//                     </div>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-
-//       {/* Modal for Add/Edit Category */}
-//       {showModal && (
-//         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-//           <div className="bg-white rounded-2xl w-full max-w-md animate-fadeIn">
-//             {/* Modal Header */}
-//             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-//               <h2 className="text-xl font-bold text-gray-800">
-//                 {editingCategory ? 'Edit Category' : 'Add New Category'}
-//               </h2>
-//               <button
-//                 onClick={() => setShowModal(false)}
-//                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-//               >
-//                 <X size={20} className="text-gray-500" />
-//               </button>
-//             </div>
-
-//             {/* Modal Form */}
-//             <form onSubmit={handleSubmit} className="p-6">
-//               <div className="space-y-4">
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
-//                     Category Name *
-//                   </label>
-//                   <input
-//                     type="text"
-//                     name="name"
-//                     value={formData.name}
-//                     onChange={handleInputChange}
-//                     className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
-//                     placeholder="Enter category name"
-//                     required
-//                     autoFocus
-//                   />
-//                 </div>
-
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
-//                     Description
-//                   </label>
-//                   <textarea
-//                     name="description"
-//                     value={formData.description}
-//                     onChange={handleInputChange}
-//                     className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
-//                     placeholder="Enter category description"
-//                     rows="3"
-//                   />
-//                 </div>
-
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
-//                     Status
-//                   </label>
-//                   <div className="flex space-x-4">
-//                     <label className="flex items-center">
-//                       <input
-//                         type="radio"
-//                         name="status"
-//                         value="Active"
-//                         checked={formData.status === 'Active'}
-//                         onChange={handleInputChange}
-//                         className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
-//                       />
-//                       <span className="ml-2 text-gray-700">Active</span>
-//                     </label>
-//                     <label className="flex items-center">
-//                       <input
-//                         type="radio"
-//                         name="status"
-//                         value="Inactive"
-//                         checked={formData.status === 'Inactive'}
-//                         onChange={handleInputChange}
-//                         className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
-//                       />
-//                       <span className="ml-2 text-gray-700">Inactive</span>
-//                     </label>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* Modal Footer */}
-//               <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-//                 <button
-//                   type="button"
-//                   onClick={() => setShowModal(false)}
-//                   className="px-5 py-2.5 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
-//                 >
-//                   Cancel
-//                 </button>
-//                 <button
-//                   type="submit"
-//                   className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium rounded-xl hover:opacity-90 transition-all"
-//                 >
-//                   <Save size={18} />
-//                   <span>{editingCategory ? 'Update' : 'Create'} Category</span>
-//                 </button>
-//               </div>
-//             </form>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Empty State */}
-//       {filteredCategories.length === 0 && (
-//         <div className="text-center py-12">
-//           <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-//             <div className="w-12 h-12 bg-gray-300 rounded-lg"></div>
-//           </div>
-//           <h3 className="text-xl font-semibold text-gray-800 mb-2">No categories found</h3>
-//           <p className="text-gray-600 mb-6">Try adding a new category or adjusting your search</p>
-//           <button
-//             onClick={handleAddCategory}
-//             className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:opacity-90"
-//           >
-//             Add Your First Category
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default CategoriesPage;
-
-
-
-
-
-
-
-
-
-
-
-
-// with delete confirmation modal
-// import React, { useState } from 'react';
-// import { Plus, Edit, Trash2, Search, Filter, TrendingUp, X, Save, AlertTriangle } from 'lucide-react';
-
-// const CategoriesPage = () => {
-//   const [categories, setCategories] = useState([
-//     { id: 1, name: 'Pain Relief', description: 'Medicines for pain management', productCount: 24, status: 'Active' },
-//     { id: 2, name: 'Antibiotics', description: 'Anti-bacterial medications', productCount: 18, status: 'Active' },
-//     { id: 3, name: 'Allergy', description: 'Allergy relief medicines', productCount: 12, status: 'Active' },
-//     { id: 4, name: 'Digestive', description: 'Gastrointestinal medicines', productCount: 15, status: 'Active' },
-//     { id: 5, name: 'Vitamins', description: 'Nutritional supplements', productCount: 32, status: 'Active' },
-//   ]);
-
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [showModal, setShowModal] = useState(false);
-//   const [showDeleteModal, setShowDeleteModal] = useState(false);
-//   const [categoryToDelete, setCategoryToDelete] = useState(null);
-//   const [editingCategory, setEditingCategory] = useState(null);
-//   const [formData, setFormData] = useState({
-//     name: '',
-//     description: '',
-//     status: 'Active'
-//   });
-
-//   const handleAddCategory = () => {
-//     setEditingCategory(null);
-//     setFormData({
-//       name: '',
-//       description: '',
-//       status: 'Active'
-//     });
-//     setShowModal(true);
-//   };
-
-//   const handleEditCategory = (id) => {
-//     const category = categories.find(c => c.id === id);
-//     setEditingCategory(category);
-//     setFormData({
-//       name: category.name,
-//       description: category.description,
-//       status: category.status
-//     });
-//     setShowModal(true);
-//   };
-
-//   const handleDeleteClick = (id) => {
-//     const category = categories.find(c => c.id === id);
-//     setCategoryToDelete(category);
-//     setShowDeleteModal(true);
-//   };
-
-//   const confirmDelete = () => {
-//     if (categoryToDelete) {
-//       setCategories(categories.filter(c => c.id !== categoryToDelete.id));
-//       setShowDeleteModal(false);
-//       setCategoryToDelete(null);
-//     }
-//   };
-
-//   const cancelDelete = () => {
-//     setShowDeleteModal(false);
-//     setCategoryToDelete(null);
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-    
-//     if (!formData.name.trim()) {
-//       alert('Category name is required');
-//       return;
-//     }
-
-//     if (editingCategory) {
-//       // Update existing category
-//       setCategories(categories.map(c => 
-//         c.id === editingCategory.id 
-//           ? { 
-//               ...c, 
-//               name: formData.name, 
-//               description: formData.description,
-//               status: formData.status
-//             } 
-//           : c
-//       ));
-//     } else {
-//       // Add new category
-//       const newCategory = {
-//         id: categories.length + 1,
-//         name: formData.name,
-//         description: formData.description,
-//         productCount: 0,
-//         status: formData.status
-//       };
-//       setCategories([...categories, newCategory]);
-//     }
-    
-//     setShowModal(false);
-//     setFormData({ name: '', description: '', status: 'Active' });
-//     setEditingCategory(null);
-//   };
-
-//   const handleInputChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData(prev => ({
-//       ...prev,
-//       [name]: value
-//     }));
-//   };
-
-//   const toggleStatus = (id) => {
-//     setCategories(categories.map(c => 
-//       c.id === id ? { ...c, status: c.status === 'Active' ? 'Inactive' : 'Active' } : c
-//     ));
-//   };
-
-//   const filteredCategories = categories.filter(category =>
-//     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//     category.description.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   // Add these at the top of your imports if you want to use them
-//   // import { Package, EyeOff } from 'lucide-react';
-
-//   return (
-//     <div>
-//       {/* Page Header */}
-//       <div className="flex justify-between items-center mb-8">
-//         <div>
-//           <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
-//           <p className="text-gray-600">Manage your product categories</p>
-//         </div>
-//         <div className="flex space-x-3">
-//           <button className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-//             <Filter size={18} />
-//             <span>Filter</span>
-//           </button>
-//           <button
-//             onClick={handleAddCategory}
-//             className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl font-medium hover:from-[#5c878f] hover:to-[#1e4e56] transition-all duration-300 shadow-md hover:shadow-lg"
-//             // className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-[#5c878f] to-[#174047] text-white rounded-xl font-medium hover:from-[#4a767d] hover:to-[#0f2c33] transition-all duration-300 shadow-sm hover:shadow-md"
-//           >
-//             <Plus size={20} />
-//             <span>Add Category</span>
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Stats Cards */}
-//       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Total Categories</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">{categories.length}</p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-emerald-100">
-//               <TrendingUp className="text-emerald-600" size={24} />
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Active</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">
-//                 {categories.filter(c => c.status === 'Active').length}
-//               </p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-green-100">
-//               <div className="w-3 h-3 rounded-full bg-green-500"></div>
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Total Products</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">
-//                 {categories.reduce((sum, c) => sum + c.productCount, 0)}
-//               </p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-blue-100">
-//               <div className="w-8 h-8 flex items-center justify-center">
-//                 <div className="w-6 h-6 bg-blue-500 rounded-md"></div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-600 text-sm">Inactive</p>
-//               <p className="text-2xl font-bold text-gray-800 mt-1">
-//                 {categories.filter(c => c.status === 'Inactive').length}
-//               </p>
-//             </div>
-//             <div className="p-3 rounded-lg bg-red-100">
-//               <div className="w-3 h-3 rounded-full bg-red-500"></div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Search */}
-//       <div className="mb-6">
-//         <div className="relative max-w-md">
-//           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-//           <input
-//             type="text"
-//             placeholder="Search categories..."
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-//           />
-//         </div>
-//       </div>
-
-//       {/* Categories Table */}
-//       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-//         <div className="overflow-x-auto">
-//           <table className="w-full">
-//             <thead>
-//               <tr className="bg-gray-50 border-b border-gray-200">
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Category Name</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Description</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Products</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Status</th>
-//                 <th className="text-left py-4 px-6 text-gray-600 font-medium">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {filteredCategories.map((category) => (
-//                 <tr key={category.id} className="border-b border-gray-100 hover:bg-gray-50/50">
-//                   <td className="py-4 px-6 font-medium text-gray-800">{category.name}</td>
-//                   <td className="py-4 px-6">
-//                     <p className="text-gray-600 text-sm">{category.description}</p>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-//                       {category.productCount} items
-//                     </span>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <button
-//                       onClick={() => toggleStatus(category.id)}
-//                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-//                         category.status === 'Active'
-//                           ? 'bg-green-100 text-green-700 hover:bg-green-200'
-//                           : 'bg-red-100 text-red-700 hover:bg-red-200'
-//                       }`}
-//                     >
-//                       {category.status}
-//                     </button>
-//                   </td>
-//                   <td className="py-4 px-6">
-//                     <div className="flex space-x-2">
-//                       <button
-//                         onClick={() => handleEditCategory(category.id)}
-//                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-//                         title="Edit"
-//                       >
-//                         <Edit size={18} />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDeleteClick(category.id)}
-//                         className="p-2 text-[red-600] hover:bg-red-50 rounded-lg"
-//                         title="Delete"
-//                       >
-//                         <Trash2 size={18} />
-//                       </button>
-//                     </div>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-
-//       {/* Modal for Add/Edit Category */}
-//       {showModal && (
-//         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-//           <div className="bg-white rounded-2xl w-full max-w-md animate-fadeIn">
-//             {/* Modal Header */}
-//             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-//               <h2 className="text-xl font-bold text-gray-800">
-//                 {editingCategory ? 'Edit Category' : 'Add New Category'}
-//               </h2>
-//               <button
-//                 onClick={() => setShowModal(false)}
-//                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-//               >
-//                 <X size={20} className="text-gray-500" />
-//               </button>
-//             </div>
-
-//             {/* Modal Form */}
-//             <form onSubmit={handleSubmit} className="p-6">
-//               <div className="space-y-4">
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
-//                     Category Name *
-//                   </label>
-//                   <input
-//                     type="text"
-//                     name="name"
-//                     value={formData.name}
-//                     onChange={handleInputChange}
-//                     className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
-//                     placeholder="Enter category name"
-//                     required
-//                     autoFocus
-//                   />
-//                 </div>
-
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
-//                     Description
-//                   </label>
-//                   <textarea
-//                     name="description"
-//                     value={formData.description}
-//                     onChange={handleInputChange}
-//                     className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
-//                     placeholder="Enter category description"
-//                     rows="3"
-//                   />
-//                 </div>
-
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
-//                     Status
-//                   </label>
-//                   <div className="flex space-x-4">
-//                     <label className="flex items-center">
-//                       <input
-//                         type="radio"
-//                         name="status"
-//                         value="Active"
-//                         checked={formData.status === 'Active'}
-//                         onChange={handleInputChange}
-//                         className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
-//                       />
-//                       <span className="ml-2 text-gray-700">Active</span>
-//                     </label>
-//                     <label className="flex items-center">
-//                       <input
-//                         type="radio"
-//                         name="status"
-//                         value="Inactive"
-//                         checked={formData.status === 'Inactive'}
-//                         onChange={handleInputChange}
-//                         className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
-//                       />
-//                       <span className="ml-2 text-gray-700">Inactive</span>
-//                     </label>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* Modal Footer */}
-//               <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-//                 <button
-//                   type="button"
-//                   onClick={() => setShowModal(false)}
-//                   className="px-5 py-2.5 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
-//                 >
-//                   Cancel
-//                 </button>
-//                 <button
-//                   type="submit"
-//                   className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#5c878f] text-white font-medium rounded-xl hover:opacity-90 transition-all"
-//                 >
-//                   <Save size={18} />
-//                   <span>{editingCategory ? 'Update' : 'Create'} Category</span>
-//                 </button>
-//               </div>
-//             </form>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Delete Confirmation Modal */}
-//       {showDeleteModal && categoryToDelete && (
-//         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-//           <div className="bg-white rounded-2xl w-full max-w-md animate-fadeIn">
-//             {/* Modal Header */}
-//             <div className="p-6 border-b border-gray-200">
-//               <div className="flex items-center space-x-3 mb-4">
-//                 <div className="p-2 rounded-lg bg-red-100">
-//                   <AlertTriangle className="text-red-600" size={24} />
-//                 </div>
-//                 <h2 className="text-xl font-bold text-gray-800">Delete Category</h2>
-//               </div>
-//               <p className="text-gray-600">
-//                 Are you sure you want to delete "<span className="font-semibold">{categoryToDelete.name}</span>"? 
-//                 This action cannot be undone.
-//               </p>
-              
-//               {categoryToDelete.productCount > 0 && (
-//                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-//                   <p className="text-amber-800 text-sm">
-//                     ⚠️ This category contains <span className="font-semibold">{categoryToDelete.productCount} products</span>. 
-//                     Deleting it will remove all associated products.
-//                   </p>
-//                 </div>
-//               )}
-//             </div>
-
-//             {/* Modal Footer */}
-//             <div className="flex justify-end space-x-3 p-6">
-//               <button
-//                 type="button"
-//                 onClick={cancelDelete}
-//                 className="px-5 py-2.5 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
-//               >
-//                 Cancel
-//               </button>
-//               <button
-//                 type="button"
-//                 onClick={confirmDelete}
-//                 className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#5c878f] text-white font-medium rounded-xl hover:opacity-90 transition-all"
-//               >
-//                 <Trash2 size={18} />
-//                 <span>Delete Category</span>
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Empty State */}
-//       {filteredCategories.length === 0 && (
-//         <div className="text-center py-12">
-//           <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-//             <div className="w-12 h-12 bg-gray-300 rounded-lg"></div>
-//           </div>
-//           <h3 className="text-xl font-semibold text-gray-800 mb-2">No categories found</h3>
-//           <p className="text-gray-600 mb-6">Try adding a new category or adjusting your search</p>
-//           <button
-//             onClick={handleAddCategory}
-//             // className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:opacity-90"
-//             // className="px-6 py-3 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl font-medium hover:from-[#1e4e56] hover:to-[#0f2c33] transition-all duration-300"
-//           >
-//             Add Your First Category
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default CategoriesPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// with filter update
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Filter, TrendingUp, X, Save, AlertTriangle } from 'lucide-react';
+import { 
+  Plus, Edit, Trash2, Search, Filter, 
+  TrendingUp, X, Save, AlertTriangle, 
+  FolderOpen, CheckCircle, XCircle, 
+  Package, MoreVertical, Eye, Grid, List,
+  ChevronLeft, ChevronRight, Link,
+  LayoutGrid, Menu, Star, Clock,
+  Pill, Activity, Leaf, Coffee, Apple, 
+  Heart, Droplet, Droplets, Syringe, 
+  Stethoscope, Box, FlaskConical,
+  Bone, Thermometer, Wind, Sparkles,
+  Shield, Zap, Cloud, Moon, Sun
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CategoriesPage = () => {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([
-    { id: 1, name: 'Pain Relief', description: 'Medicines for pain management', productCount: 24, status: 'Active' },
-    { id: 2, name: 'Antibiotics', description: 'Anti-bacterial medications', productCount: 18, status: 'Active' },
-    { id: 3, name: 'Allergy', description: 'Allergy relief medicines', productCount: 12, status: 'Active' },
-    { id: 4, name: 'Digestive', description: 'Gastrointestinal medicines', productCount: 15, status: 'Active' },
-    { id: 5, name: 'Vitamins', description: 'Nutritional supplements', productCount: 32, status: 'Active' },
+    { id: 1, name: 'Pain Relief', description: 'Medicines for pain management', productCount: 24, status: 'Active', icon: 'Pill' },
+    { id: 2, name: 'Antibiotics', description: 'Anti-bacterial medications', productCount: 18, status: 'Active', icon: 'FlaskConical' },
+    { id: 3, name: 'Allergy', description: 'Allergy relief medicines', productCount: 12, status: 'Active', icon: 'Wind' },
+    { id: 4, name: 'Digestive', description: 'Gastrointestinal medicines', productCount: 15, status: 'Active', icon: 'Coffee' },
+    { id: 5, name: 'Vitamins', description: 'Nutritional supplements', productCount: 32, status: 'Active', icon: 'Apple' },
+    { id: 6, name: 'Cardiac', description: 'Heart-related medicines', productCount: 8, status: 'Inactive', icon: 'Heart' },
+    { id: 7, name: 'Skin Care', description: 'Dermatological products', productCount: 21, status: 'Active', icon: 'Sparkles' },
+    { id: 8, name: 'Diabetes', description: 'Diabetes management', productCount: 14, status: 'Active', icon: 'Droplets' },
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -1137,27 +36,83 @@ const CategoriesPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [viewMode, setViewMode] = useState('list'); // Default to list view
+  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1);
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    status: 'Active'
+    status: 'Active',
+    icon: 'Package'
   });
 
-  // Add these state variables for filter functionality
-  const [showFilter, setShowFilter] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('All'); // 'All', 'Active', 'Inactive'
+  // Professional icons for selection
+  const iconOptions = [
+    { name: 'Pill', component: Pill },
+    { name: 'FlaskConical', component: FlaskConical },
+    { name: 'Wind', component: Wind },
+    { name: 'Coffee', component: Coffee },
+    { name: 'Apple', component: Apple },
+    { name: 'Heart', component: Heart },
+    { name: 'Sparkles', component: Sparkles },
+    { name: 'Droplets', component: Droplets },
+    { name: 'Syringe', component: Syringe },
+    { name: 'Stethoscope', component: Stethoscope },
+    { name: 'Box', component: Box },
+    { name: 'Bone', component: Bone },
+    { name: 'Thermometer', component: Thermometer },
+    { name: 'Shield', component: Shield },
+    { name: 'Zap', component: Zap },
+    { name: 'Moon', component: Moon }
+  ];
 
-  // Add this validation function
-  const validateDescription = (description) => {
-    return description.length <= 200; // or any limit you want
+  // Helper function to render icon based on name
+  const renderIcon = (iconName, className = "w-5 h-5") => {
+    const iconMap = {
+      Pill: Pill,
+      FlaskConical: FlaskConical,
+      Wind: Wind,
+      Coffee: Coffee,
+      Apple: Apple,
+      Heart: Heart,
+      Sparkles: Sparkles,
+      Droplets: Droplets,
+      Syringe: Syringe,
+      Stethoscope: Stethoscope,
+      Box: Box,
+      Bone: Bone,
+      Thermometer: Thermometer,
+      Shield: Shield,
+      Zap: Zap,
+      Moon: Moon,
+      Package: Package,
+      Activity: Activity,
+      Leaf: Leaf,
+      Droplet: Droplet,
+      Cloud: Cloud,
+      Sun: Sun
+    };
+    
+    const IconComponent = iconMap[iconName] || Package;
+    return <IconComponent className={className} />;
   };
+
+  // Calculate statistics
+  const totalCategories = categories.length;
+  const activeCategories = categories.filter(c => c.status === 'Active').length;
+  const inactiveCategories = categories.filter(c => c.status === 'Inactive').length;
+  const totalProducts = categories.reduce((sum, c) => sum + c.productCount, 0);
 
   const handleAddCategory = () => {
     setEditingCategory(null);
     setFormData({
       name: '',
       description: '',
-      status: 'Active'
+      status: 'Active',
+      icon: 'Package'
     });
     setShowModal(true);
   };
@@ -1168,7 +123,8 @@ const CategoriesPage = () => {
     setFormData({
       name: category.name,
       description: category.description,
-      status: category.status
+      status: category.status,
+      icon: category.icon || 'Package'
     });
     setShowModal(true);
   };
@@ -1181,15 +137,17 @@ const CategoriesPage = () => {
 
   const confirmDelete = () => {
     if (categoryToDelete) {
+      if (categoryToDelete.productCount > 0) {
+        alert('Cannot delete category with products. Please reassign or delete products first.');
+        setShowDeleteModal(false);
+        setCategoryToDelete(null);
+        return;
+      }
+      
       setCategories(categories.filter(c => c.id !== categoryToDelete.id));
       setShowDeleteModal(false);
       setCategoryToDelete(null);
     }
-  };
-
-  const cancelDelete = () => {
-    setShowDeleteModal(false);
-    setCategoryToDelete(null);
   };
 
   const handleSubmit = (e) => {
@@ -1200,38 +158,32 @@ const CategoriesPage = () => {
       return;
     }
 
-    // Add description validation
-    if (formData.description.length > 200) { // 200 character limit
-      alert('Description cannot exceed 200 characters');
-      return;
-    }
-
     if (editingCategory) {
-      // Update existing category
       setCategories(categories.map(c => 
         c.id === editingCategory.id 
           ? { 
               ...c, 
               name: formData.name, 
               description: formData.description,
-              status: formData.status
+              status: formData.status,
+              icon: formData.icon
             } 
           : c
       ));
     } else {
-      // Add new category
       const newCategory = {
         id: categories.length + 1,
         name: formData.name,
         description: formData.description,
         productCount: 0,
-        status: formData.status
+        status: formData.status,
+        icon: formData.icon
       };
       setCategories([...categories, newCategory]);
     }
     
     setShowModal(false);
-    setFormData({ name: '', description: '', status: 'Active' });
+    setFormData({ name: '', description: '', status: 'Active', icon: 'Package' });
     setEditingCategory(null);
   };
 
@@ -1249,143 +201,224 @@ const CategoriesPage = () => {
     ));
   };
 
-  // Update your filteredCategories logic:
+  const viewProductsInCategory = (categoryName) => {
+    navigate('/PharmacyDashboard/products', { 
+      state: { filterCategory: categoryName }
+    });
+  };
+
+  // Filter categories
   const filteredCategories = categories.filter(category => {
-    // Search filter
-    const matchesSearch = 
+    const matchesSearch = searchTerm === '' || 
       category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       category.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Status filter
-    const matchesStatus = 
-      filterStatus === 'All' || 
-      category.status === filterStatus;
+    const matchesStatus = filterStatus === 'All' || category.status === filterStatus;
     
     return matchesSearch && matchesStatus;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCategories = filteredCategories.slice(startIndex, startIndex + itemsPerPage);
+
+  // Status badge component
+  const StatusBadge = ({ status, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+        status === 'Active'
+          ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+          : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+      }`}
+    >
+      <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
+        status === 'Active' ? 'bg-green-500' : 'bg-red-500'
+      }`}></div>
+      {status}
+    </button>
+  );
+
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
-          <p className="text-gray-600">Manage your product categories</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Medicine Categories</h1>
+          <p className="text-sm text-gray-600 mt-1">Organize your products by categories</p>
         </div>
-        <div className="flex space-x-3">
-          <button 
-            onClick={() => setShowFilter(!showFilter)}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200"
-          >
-            <Filter size={18} />
-            <span>Filter</span>
-          </button>
+        <div className="flex gap-2">
           <button
             onClick={handleAddCategory}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl font-medium hover:from-[#5c878f] hover:to-[#1e4e56] transition-all duration-300 shadow-md hover:shadow-lg"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl hover:from-[#174047] hover:to-[#2c6774] transition-all duration-300 font-medium shadow-sm text-sm"
           >
-            <Plus size={20} />
-            <span>Add Category</span>
+            <Plus size={18} />
+            <span className="hidden sm:inline">Add Category</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Total Categories</p>
-              <p className="text-2xl font-bold text-gray-800 mt-1">{categories.length}</p>
+              <p className="text-xs text-gray-500">Total Categories</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{totalCategories}</p>
             </div>
-            <div className="p-3 rounded-lg bg-emerald-100">
-              <TrendingUp className="text-emerald-600" size={24} />
+            <div className="p-3 rounded-xl bg-blue-50">
+              <FolderOpen className="text-blue-600" size={22} />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600">Growth</span>
+              <span className="text-green-600 flex items-center gap-1">
+                <TrendingUp size={12} />
+                +12%
+              </span>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Active</p>
-              <p className="text-2xl font-bold text-gray-800 mt-1">
-                {categories.filter(c => c.status === 'Active').length}
-              </p>
+              <p className="text-xs text-gray-500">Active</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{activeCategories}</p>
             </div>
-            <div className="p-3 rounded-lg bg-green-100">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <div className="p-3 rounded-xl bg-green-50">
+              <CheckCircle className="text-green-600" size={22} />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-green-500 rounded-full transition-all"
+                style={{ width: `${(activeCategories / totalCategories) * 100}%` }}
+              ></div>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Total Products</p>
-              <p className="text-2xl font-bold text-gray-800 mt-1">
-                {categories.reduce((sum, c) => sum + c.productCount, 0)}
-              </p>
+              <p className="text-xs text-gray-500">Total Products</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{totalProducts}</p>
             </div>
-            <div className="p-3 rounded-lg bg-blue-100">
-              <div className="w-8 h-8 flex items-center justify-center">
-                <div className="w-6 h-6 bg-blue-500 rounded-md"></div>
-              </div>
+            <div className="p-3 rounded-xl bg-purple-50">
+              <Package className="text-purple-600" size={22} />
             </div>
           </div>
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500">Across all categories</p>
+          </div>
         </div>
-        
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Inactive</p>
-              <p className="text-2xl font-bold text-gray-800 mt-1">
-                {categories.filter(c => c.status === 'Inactive').length}
-              </p>
+              <p className="text-xs text-gray-500">Inactive</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{inactiveCategories}</p>
             </div>
-            <div className="p-3 rounded-lg bg-red-100">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="p-3 rounded-xl bg-red-50">
+              <XCircle className="text-red-600" size={22} />
             </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-xs text-amber-600">Need attention</p>
           </div>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search categories..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-          />
-        </div>
-      </div>
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search categories..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 text-sm"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            {/* View Toggle - Mobile Only */}
+            <div className="flex md:hidden bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
+                title="Grid View"
+              >
+                <Grid size={18} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
+                title="List View"
+              >
+                <List size={18} />
+              </button>
+            </div>
 
-      {/* Filter Panel */}
-      {showFilter && (
-        <div className="mb-6 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-gray-700">Filter Categories</h3>
             <button 
-              onClick={() => setShowFilter(false)}
-              className="text-gray-500 hover:text-gray-700"
+              onClick={() => setShowFilter(!showFilter)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-colors ${
+                showFilter ? 'bg-[#2c6774] text-white border-[#2c6774]' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              <X size={18} />
+              <Filter size={18} />
+              <span className="hidden sm:inline">Filter</span>
             </button>
+
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 bg-white text-sm"
+            >
+              <option value={4}>4</option>
+              <option value={8}>8</option>
+              <option value={12}>12</option>
+              <option value={20}>20</option>
+            </select>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">Status:</span>
-            <div className="flex space-x-3">
+        </div>
+
+        {/* Filter Panel */}
+        {showFilter && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 animate-slideDown">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-gray-700">Filter Categories</h3>
+              <button onClick={() => setShowFilter(false)} className="p-1 hover:bg-gray-200 rounded-lg">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {['All', 'Active', 'Inactive'].map((status) => (
                 <button
                   key={status}
-                  onClick={() => setFilterStatus(status)}
+                  onClick={() => {
+                    setFilterStatus(status);
+                    setCurrentPage(1);
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filterStatus === status
-                      ? 'bg-teal-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-[#2c6774] text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                   }`}
                 >
                   {status}
@@ -1393,174 +426,382 @@ const CategoriesPage = () => {
               ))}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Categories Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left py-4 px-6 text-gray-600 font-medium">Category Name</th>
-                <th className="text-left py-4 px-6 text-gray-600 font-medium">Description</th>
-                <th className="text-left py-4 px-6 text-gray-600 font-medium">Products</th>
-                <th className="text-left py-4 px-6 text-gray-600 font-medium">Status</th>
-                <th className="text-left py-4 px-6 text-gray-600 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCategories.map((category) => (
-                <tr key={category.id} className="border-b border-gray-100 hover:bg-gray-50/50">
-                  <td className="py-4 px-6 font-medium text-gray-800">{category.name}</td>
-                  <td className="py-4 px-6">
-                    <p className="text-gray-600 text-sm">{category.description}</p>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-                      {category.productCount} items
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <button
-                      onClick={() => toggleStatus(category.id)}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                        category.status === 'Active'
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-red-100 text-red-700 hover:bg-red-200'
-                      }`}
-                    >
-                      {category.status}
-                    </button>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditCategory(category.id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title="Edit"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(category.id)}
-                        className="p-2 text-[red-600] hover:bg-red-50 rounded-lg"
-                        title="Delete"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
+      {/* Categories Display - Desktop: Always List View, Mobile: Grid/List Toggle */}
+      
+      {/* Desktop List View */}
+      <div className="hidden md:block">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Category</th>
+                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Description</th>
+                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Products</th>
+                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginatedCategories.map((category) => (
+                  <tr key={category.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-50">
+                          {renderIcon(category.icon, "w-5 h-5 text-blue-600")}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{category.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">CAT-{category.id.toString().padStart(3, '0')}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-sm text-gray-600 hidden lg:table-cell max-w-xs truncate">
+                      {category.description}
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-gray-900">{category.productCount}</span>
+                        <button 
+                          onClick={() => viewProductsInCategory(category.name)}
+                          className="text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                        >
+                          View products
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <StatusBadge status={category.status} onClick={() => toggleStatus(category.id)} />
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEditCategory(category.id)}
+                          className="p-2 text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(category.id)}
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                          disabled={category.productCount > 0}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* Modal for Add/Edit Category */}
+      {/* Mobile Views */}
+      <div className="md:hidden">
+        {viewMode === 'grid' ? (
+          /* Mobile Grid View */
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {paginatedCategories.map((category) => (
+              <div key={category.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-50">
+                      {renderIcon(category.icon, "w-6 h-6 text-blue-600")}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">CAT-{category.id.toString().padStart(3, '0')}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
+
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-gray-500">Products</p>
+                    <p className="text-lg font-bold text-gray-900">{category.productCount}</p>
+                  </div>
+                  <StatusBadge status={category.status} onClick={() => toggleStatus(category.id)} />
+                </div>
+
+                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => viewProductsInCategory(category.name)}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium"
+                  >
+                    <Eye size={14} />
+                    <span>View</span>
+                  </button>
+                  <button
+                    onClick={() => handleEditCategory(category.id)}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-medium"
+                  >
+                    <Edit size={14} />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(category.id)}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium"
+                    disabled={category.productCount > 0}
+                  >
+                    <Trash2 size={14} />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* Mobile List View */
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="divide-y divide-gray-100">
+              {paginatedCategories.map((category) => (
+                <div key={category.id} className="p-4 hover:bg-gray-50/80">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-blue-50">
+                        {renderIcon(category.icon, "w-5 h-5 text-blue-600")}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{category.name}</p>
+                        <p className="text-xs text-gray-500">CAT-{category.id.toString().padStart(3, '0')}</p>
+                      </div>
+                    </div>
+                    <StatusBadge status={category.status} onClick={() => toggleStatus(category.id)} />
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">{category.description}</p>
+                  
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                    <div>
+                      <span className="text-xs text-gray-500">Products:</span>
+                      <span className="ml-1 font-semibold">{category.productCount}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => viewProductsInCategory(category.name)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                        title="View Products"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleEditCategory(category.id)}
+                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded"
+                        title="Edit"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(category.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                        title="Delete"
+                        disabled={category.productCount > 0}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Empty State */}
+      {filteredCategories.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 sm:p-12 text-center">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <FolderOpen className="text-gray-400" size={30} />
+          </div>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">No categories found</h3>
+          <p className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
+            {searchTerm ? 'Try different keywords' : 'Start organizing your products by adding categories'}
+          </p>
+          <button
+            onClick={handleAddCategory}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl hover:from-[#174047] hover:to-[#2c6774] transition-all duration-300 font-medium shadow-sm"
+          >
+            <Plus size={18} />
+            <span>Add First Category</span>
+          </button>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {filteredCategories.length > 0 && (
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-600 order-2 sm:order-1">
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCategories.length)} of {filteredCategories.length}
+          </p>
+          <div className="flex items-center gap-2 order-1 sm:order-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            
+            {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage <= 2) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 1) {
+                pageNum = totalPages - 2 + i;
+              } else {
+                pageNum = currentPage - 1 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-[#2c6774] text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Modal - Same as before */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md animate-fadeIn">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800">
-                {editingCategory ? 'Edit Category' : 'Add New Category'}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X size={20} className="text-gray-500" />
-              </button>
+          <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-4 sm:p-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg sm:text-xl font-bold">
+                  {editingCategory ? 'Edit Category' : 'Add Category'}
+                </h2>
+                <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
-                    placeholder="Enter category name"
-                    required
-                    autoFocus
-                  />
-                </div>
-
-                <div>
-                  {/* Add character counter in the modal form */}
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Description
-                    </label>
-                    <span className={`text-xs ${formData.description.length > 200 ? 'text-red-500' : 'text-gray-500'}`}>
-                      {formData.description.length}/200
-                    </span>
-                  </div>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
-                    placeholder="Enter category description"
-                    rows="3"
-                    maxLength="200" // HTML attribute for visual limit
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <div className="flex space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="status"
-                        value="Active"
-                        checked={formData.status === 'Active'}
-                        onChange={handleInputChange}
-                        className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
-                      />
-                      <span className="ml-2 text-gray-700">Active</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="status"
-                        value="Inactive"
-                        checked={formData.status === 'Inactive'}
-                        onChange={handleInputChange}
-                        className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
-                      />
-                      <span className="ml-2 text-gray-700">Inactive</span>
-                    </label>
-                  </div>
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Icon</label>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 p-3 bg-gray-50 rounded-lg max-h-48 overflow-y-auto">
+                  {iconOptions.map((icon) => {
+                    const IconComponent = icon.component;
+                    return (
+                      <button
+                        key={icon.name}
+                        type="button"
+                        onClick={() => setFormData({...formData, icon: icon.name})}
+                        className={`p-2 rounded-lg transition-all flex flex-col items-center ${
+                          formData.icon === icon.name 
+                            ? 'bg-[#2c6774] text-white scale-105 shadow-md' 
+                            : 'hover:bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        <IconComponent size={20} />
+                        <span className="text-[10px] mt-1">{icon.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
+              <div>
+                <label className="block text-sm font-medium mb-1">Category Name *</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-[#2c6774]/30"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className="w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-[#2c6774]/30"
+                  maxLength="200"
+                />
+                <p className="text-xs text-gray-500 mt-1 text-right">{formData.description.length}/200</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-3">Status</label>
+                <div className="flex gap-3">
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    formData.status === 'Active' ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Active"
+                      checked={formData.status === 'Active'}
+                      onChange={handleInputChange}
+                      className="sr-only"
+                    />
+                    <CheckCircle size={18} className={formData.status === 'Active' ? 'text-green-600' : 'text-gray-400'} />
+                    <span className="font-medium">Active</span>
+                  </label>
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    formData.status === 'Inactive' ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Inactive"
+                      checked={formData.status === 'Inactive'}
+                      onChange={handleInputChange}
+                      className="sr-only"
+                    />
+                    <XCircle size={18} className={formData.status === 'Inactive' ? 'text-red-600' : 'text-gray-400'} />
+                    <span className="font-medium">Inactive</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
+                  className="flex-1 px-4 py-2.5 border rounded-lg hover:bg-gray-50 font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#5c878f] text-white font-medium rounded-xl hover:opacity-90 transition-all"
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-lg hover:from-[#174047] hover:to-[#2c6774] font-medium"
                 >
-                  <Save size={18} />
-                  <span>{editingCategory ? 'Update' : 'Create'} Category</span>
+                  {editingCategory ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -1568,70 +809,56 @@ const CategoriesPage = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       {showDeleteModal && categoryToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md animate-fadeIn">
-            {/* Modal Header */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 rounded-lg bg-red-100">
-                  <AlertTriangle className="text-red-600" size={24} />
-                </div>
-                <h2 className="text-xl font-bold text-gray-800">Delete Category</h2>
+          <div className="bg-white rounded-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-red-100">
+                <AlertTriangle className="text-red-600" size={24} />
               </div>
-              <p className="text-gray-600">
-                Are you sure you want to delete "<span className="font-semibold">{categoryToDelete.name}</span>"? 
-                This action cannot be undone.
-              </p>
-              
-              {categoryToDelete.productCount > 0 && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-amber-800 text-sm">
-                    ⚠️ This category contains <span className="font-semibold">{categoryToDelete.productCount} products</span>. 
-                    Deleting it will remove all associated products.
-                  </p>
-                </div>
-              )}
+              <h2 className="text-xl font-bold">Delete Category</h2>
             </div>
 
-            {/* Modal Footer */}
-            <div className="flex justify-end space-x-3 p-6">
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to delete <span className="font-semibold">"{categoryToDelete.name}"</span>?
+            </p>
+
+            {categoryToDelete.productCount > 0 ? (
+              <div className="p-3 bg-red-50 rounded-lg mb-4">
+                <p className="text-red-700 text-sm">
+                  ⚠️ Cannot delete! This category has {categoryToDelete.productCount} products.
+                </p>
+                <button
+                  onClick={() => viewProductsInCategory(categoryToDelete.name)}
+                  className="mt-2 text-sm text-blue-600 hover:underline"
+                >
+                  View products →
+                </button>
+              </div>
+            ) : (
+              <div className="p-3 bg-amber-50 rounded-lg mb-4">
+                <p className="text-amber-700 text-sm">This action cannot be undone.</p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
               <button
-                type="button"
-                onClick={cancelDelete}
-                className="px-5 py-2.5 text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors"
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-2.5 border rounded-lg hover:bg-gray-50"
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#5c878f] text-white font-medium rounded-xl hover:opacity-90 transition-all"
-              >
-                <Trash2 size={18} />
-                <span>Delete Category</span>
-              </button>
+              {categoryToDelete.productCount === 0 && (
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {filteredCategories.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-            <div className="w-12 h-12 bg-gray-300 rounded-lg"></div>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">No categories found</h3>
-          <p className="text-gray-600 mb-6">Try adding a new category or adjusting your search</p>
-          <button
-            onClick={handleAddCategory}
-            className="flex items-center space-x-2 mx-auto px-6 py-3 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl font-medium hover:from-[#5c878f] hover:to-[#1e4e56] transition-all duration-300"
-          >
-            <Plus size={20} />
-            <span>Add Your First Category</span>
-          </button>
         </div>
       )}
     </div>
