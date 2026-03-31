@@ -6774,3 +6774,6 @@ const MedicineBooking = ({ cart, setCart }) => {
 };
 
 export default MedicineBooking;
+
+
+

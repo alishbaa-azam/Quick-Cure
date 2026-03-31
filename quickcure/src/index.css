@@ -13,3 +13,45 @@ body{
   --text-light: #c0d3dc;           
   --white: #ffffff;
 }
+
+/* Add these styles to your global CSS */
+.menu-item {
+  transition: all 0.3s ease !important;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateX(5px);
+}
+
+.lab-logo-hover {
+  transition: all 0.3s ease;
+}
+
+.lab-logo-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Smooth scrolling */
+.ant-layout-sider {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+.ant-layout-sider::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.5);
+}

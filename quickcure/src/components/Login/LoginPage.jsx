@@ -8,7 +8,7 @@ import {
   FaLock, 
   FaUser, 
   // FaExclamationTriangle,
-  // FaCheckCircle,
+  FaCheckCircle,
   FaEye,
   FaEyeSlash 
 } from "react-icons/fa";
@@ -225,37 +225,37 @@ export default function LoginPage({ onLogin }) {
     setOtp("");
     setOtpSent(false);
     setOtpVerified(false);
-    setTimer(30);
+    setTimer(90);
     setErrors({});
     setBackendError("");
     setTouchedFields({});
   };
 
-  const handleRedirectAfterLogin = () => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const redirectUrl = queryParams.get('redirect');
-    const doctorId = queryParams.get('doctorId');
+  // const handleRedirectAfterLogin = () => {
+  //   const queryParams = new URLSearchParams(window.location.search);
+  //   const redirectUrl = queryParams.get('redirect');
+  //   const doctorId = queryParams.get('doctorId');
 
-    if (doctorId) {
-      navigate(`/book-appointment/${doctorId}`);
-    } else if (redirectUrl) {
-      navigate(decodeURIComponent(redirectUrl));
-    } else {
-      // Redirect based on role
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user?.role === 'admin') {
-        navigate('/');
-      } else if (user?.role === 'doctor') {
-        navigate('/doctor/dashboard');
-      } else if (user?.role === 'lab') {
-        navigate('/lab/dashboard');
-      } else if (user?.role === 'pharmacy') {
-        navigate('/pharmacy/dashboard');
-      } else {
-        navigate('/');
-      }
-    }
-  };
+  //   if (doctorId) {
+  //     navigate(`/book-appointment/${doctorId}`);
+  //   } else if (redirectUrl) {
+  //     navigate(decodeURIComponent(redirectUrl));
+  //   } else {
+  //     // Redirect based on role
+  //     const user = JSON.parse(localStorage.getItem('user'));
+  //     if (user?.role === 'admin') {
+  //       navigate('/');
+  //     } else if (user?.role === 'doctor') {
+  //       navigate('/doctor/dashboard');
+  //     } else if (user?.role === 'lab') {
+  //       navigate('/lab/dashboard');
+  //     } else if (user?.role === 'pharmacy') {
+  //       navigate('/pharmacy/dashboard');
+  //     } else {
+  //       navigate('/');
+  //     }
+  //   }
+  // };
 
 // const handleRedirectAfterLogin = () => {
 //   try {
@@ -304,6 +304,40 @@ export default function LoginPage({ onLogin }) {
 // };
 
   // Handle Remember Me
+  const handleRedirectAfterLogin = () => {
+  const queryParams = new URLSearchParams(window.location.search);
+  const redirectUrl = queryParams.get("redirect");
+  const doctorId = queryParams.get("doctorId");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (doctorId) {
+    navigate(`/book-appointment/${doctorId}`);
+  } 
+  else if (redirectUrl) {
+    navigate(decodeURIComponent(redirectUrl));
+  } 
+  else {
+
+    if (user?.role === "admin") {
+      navigate("/admin/dashboard");
+    } 
+    else if (user?.role === "doctor") {
+      navigate(`/doctor/dashboard/${user?.id}`);
+    } 
+    else if (user?.role === "lab") {
+      navigate(`/lab/dashboard/${user?.id}`);
+    } 
+    else if (user?.role === "pharmacy") {
+      navigate(`/pharmacy/dashboard/${user?.id}`);
+    } 
+    else {
+      navigate("/");
+    }
+
+  }
+};
+  
   const handleRememberMe = (email, remember) => {
     if (remember) {
       localStorage.setItem("rememberedEmail", email);
@@ -345,7 +379,7 @@ export default function LoginPage({ onLogin }) {
       }
 
       setOtpSent(true);
-      setTimer(30);
+      setTimer(90);
     } catch (err) {
       setBackendError(err.message || "Failed to send OTP");
     } finally {
@@ -417,7 +451,7 @@ export default function LoginPage({ onLogin }) {
 
       setResetStep('otp');
       setOtpSent(true);
-      setTimer(30);
+      setTimer(90);
     } catch (err) {
       setBackendError(err.message || "Failed to send OTP");
     } finally {
