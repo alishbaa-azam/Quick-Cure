@@ -10,7 +10,7 @@ import Header from "./components/Header/header";
 import Footer from "./components/footer";
 import Home from "./components/Home/home";
 // import AboutContactPage from './components/AboutContactPage';
-import Contact from './components/ContactPage.jsx';
+// import Contact from './components/ContactPage.jsx';
 
 //------------Doctor Module---------------------------------------//
 
@@ -51,6 +51,13 @@ import SalesPage from './components/Dashboard/SalesPage.jsx';
 import OrdersPage from './components/Dashboard/OrdersPage.jsx';
 import ReportsPage from './components/Dashboard/ReportsPage.jsx';
 import SettingsPage from './components/Dashboard/SettingsPage.jsx';
+import AddMedicinePage from './components/Dashboard/AddMedicinePage';
+import EditMedicinePage from './components/Dashboard/EditMedicinePage';
+
+
+
+
+
 // import SupportPage from '../../../Unused files/F/SupportPage.jsx';
 // import CustomersPage from '../../../Unused files/F/CustomersPage.jsx';
 // import FinancePage from '../../../Unused files/F/FinancePage.jsx';
@@ -78,7 +85,7 @@ function Layout() {
         <Route path="/" element={<Home />} />
         {/* <Route path="/about" element={<AboutContactPage />} /> */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/contact" element={<Contact />} />
+        {/* <Route path="/contact" element={<Contact />} /> */}
 {/* //-------------------------Doctor Module---------------------------------------// */}
 
         <Route path="/doctors" element={<DoctorsPage />} />
@@ -108,20 +115,44 @@ function Layout() {
         {/* <Route path="/orders" element={<OrderHistory />} /> */}
 
         {/* NEW: Dashboard Routes with Layout */}
-        <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
+        {/* <Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
           <Route index element={<DashboardHome />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="products" element={<ProductsPage />} />
+          <Route path="products/add" element={<AddMedicinePage />} />
           <Route path="sales" element={<SalesPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="reports" element={<ReportsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings" element={<SettingsPage />} /> */}
           {/* <Route path="features" element={<FeaturesPage />} /> */}
           {/* <Route path="support" element={<SupportPage />} />  */}
           {/* <Route path="customers" element={<CustomersPage />} /> */}
           {/* <Route path="finance" element={<FinancePage />} /> */}
           {/* <Route path="profile" element={<ProfilePage />} /> */}
-        </Route>
+        {/* </Route> */}
+
+
+
+
+
+
+// In App.jsx, make sure your route path matches:
+<Route path="/PharmacyDashboard" element={<PharmacyDashboardLayout />}>
+  <Route index element={<DashboardHome />} />
+  <Route path="products" element={<ProductsPage />} />
+  <Route path="products/add" element={<AddMedicinePage />} />
+  <Route path="products/edit/:id" element={<EditMedicinePage />} />
+  <Route path="orders" element={<OrdersPage />} />
+  <Route path="sales" element={<SalesPage />} />
+  <Route path="categories" element={<CategoriesPage />} />
+  <Route path="reports" element={<ReportsPage />} />
+  <Route path="settings" element={<SettingsPage />} />
+</Route>
+
+
+
+
+
 
       </Routes>
 
@@ -147,3 +178,44 @@ export default App;
 
 
 // above woorking well
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React from 'react';
+// import PharmacyDashboardLayout from './components/PharmacyDashboard/PharmacyDashboardLayout';
+
+// function App() {
+//   return (
+//     // Dashboard ka sara structure aur navigation Layout file handle kregi
+//     <div className="antialiased text-slate-900">
+//       <PharmacyDashboardLayout />
+//     </div>
+//   );
+// }
+
+// export default App;

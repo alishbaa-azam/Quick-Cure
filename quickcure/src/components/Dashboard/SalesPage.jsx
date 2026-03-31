@@ -1,808 +1,621 @@
-// import React, { useState } from 'react';
-// import { 
-//   DollarSign, TrendingUp, TrendingDown, Download,
-//   Filter, Calendar, ShoppingCart, Package,
-//   Users, CreditCard, PieChart, BarChart3,
-//   ChevronDown, MoreVertical, Eye, Printer,
-//   FileText, RefreshCw, Search, Plus,
-//   CheckCircle, XCircle, Clock, ArrowUpRight,
-//   ArrowDownRight, Star, Target, Award
-// } from 'lucide-react';
 
-// const SalesPage = () => {
-//   const [timeRange, setTimeRange] = useState('week');
-//   const [selectedCategory, setSelectedCategory] = useState('all');
-  
-//   const salesData = [
-//     {
-//       id: 1,
-//       product: 'Paracetamol',
-//       category: 'Pain Relief',
-//       customer: 'John Smith',
-//       date: '2024-01-15',
-//       quantity: 2,
-//       price: 5.99,
-//       total: 11.98,
-//       payment: 'Credit Card',
-//       status: 'completed',
-//       invoice: 'INV-001'
-//     },
-//     {
-//       id: 2,
-//       product: 'Amoxicillin',
-//       category: 'Antibiotic',
-//       customer: 'Emma Wilson',
-//       date: '2024-01-15',
-//       quantity: 1,
-//       price: 12.50,
-//       total: 12.50,
-//       payment: 'Insurance',
-//       status: 'completed',
-//       invoice: 'INV-002'
-//     },
-//     {
-//       id: 3,
-//       product: 'Cetirizine',
-//       category: 'Allergy',
-//       customer: 'Robert Brown',
-//       date: '2024-01-14',
-//       quantity: 3,
-//       price: 6.25,
-//       total: 18.75,
-//       payment: 'Cash',
-//       status: 'completed',
-//       invoice: 'INV-003'
-//     },
-//     {
-//       id: 4,
-//       product: 'Omeprazole',
-//       category: 'Digestive',
-//       customer: 'Sarah Davis',
-//       date: '2024-01-14',
-//       quantity: 1,
-//       price: 15.99,
-//       total: 15.99,
-//       payment: 'Credit Card',
-//       status: 'pending',
-//       invoice: 'INV-004'
-//     },
-//     {
-//       id: 5,
-//       product: 'Aspirin',
-//       category: 'Pain Relief',
-//       customer: 'Michael Lee',
-//       date: '2024-01-13',
-//       quantity: 2,
-//       price: 8.75,
-//       total: 17.50,
-//       payment: 'Insurance',
-//       status: 'cancelled',
-//       invoice: 'INV-005'
-//     },
-//     {
-//       id: 6,
-//       product: 'Vitamin C',
-//       category: 'Supplements',
-//       customer: 'Jennifer Taylor',
-//       date: '2024-01-13',
-//       quantity: 1,
-//       price: 9.99,
-//       total: 9.99,
-//       payment: 'Credit Card',
-//       status: 'completed',
-//       invoice: 'INV-006'
-//     },
-//     {
-//       id: 7,
-//       product: 'Ibuprofen',
-//       category: 'Pain Relief',
-//       customer: 'David Wilson',
-//       date: '2024-01-12',
-//       quantity: 3,
-//       price: 7.50,
-//       total: 22.50,
-//       payment: 'Cash',
-//       status: 'completed',
-//       invoice: 'INV-007'
-//     },
-//     {
-//       id: 8,
-//       product: 'Loratadine',
-//       category: 'Allergy',
-//       customer: 'Lisa Anderson',
-//       date: '2024-01-12',
-//       quantity: 2,
-//       price: 8.25,
-//       total: 16.50,
-//       payment: 'Insurance',
-//       status: 'completed',
-//       invoice: 'INV-008'
-//     }
-//   ];
+// charts
+// SalesPage.js - WITH PROPER CHARTS
 
-//   const categories = [
-//     { id: 'all', name: 'All Categories', value: 2480.25 },
-//     { id: 'pain-relief', name: 'Pain Relief', value: 890.50 },
-//     { id: 'antibiotic', name: 'Antibiotics', value: 625.75 },
-//     { id: 'allergy', name: 'Allergy', value: 425.25 },
-//     { id: 'digestive', name: 'Digestive', value: 320.00 },
-//     { id: 'supplements', name: 'Supplements', value: 218.75 }
-//   ];
-
-//   const dailySales = [
-//     { day: 'Mon', sales: 245, target: 220 },
-//     { day: 'Tue', sales: 320, target: 280 },
-//     { day: 'Wed', sales: 198, target: 240 },
-//     { day: 'Thu', sales: 412, target: 350 },
-//     { day: 'Fri', sales: 385, target: 320 },
-//     { day: 'Sat', sales: 450, target: 400 },
-//     { day: 'Sun', sales: 290, target: 260 }
-//   ];
-
-//   const topProducts = [
-//     { name: 'Paracetamol', sales: 245, growth: 12.5 },
-//     { name: 'Amoxicillin', sales: 189, growth: 8.2 },
-//     { name: 'Vitamin C', sales: 167, growth: 15.3 },
-//     { name: 'Cetirizine', sales: 142, growth: 5.7 },
-//     { name: 'Ibuprofen', sales: 128, growth: -2.4 }
-//   ];
-
-//   const getStatusColor = (status) => {
-//     switch(status) {
-//       case 'completed': return 'bg-[#2c6774]/10 text-[#2c6774]';
-//       case 'pending': return 'bg-[#5c878f]/10 text-[#5c878f]';
-//       case 'cancelled': return 'bg-red-100 text-red-800';
-//       default: return 'bg-gray-100 text-gray-600';
-//     }
-//   };
-
-//   const getPaymentColor = (method) => {
-//     switch(method) {
-//       case 'Credit Card': return 'text-[#2c6774]';
-//       case 'Insurance': return 'text-[#5c878f]';
-//       case 'Cash': return 'text-gray-600';
-//       default: return 'text-gray-600';
-//     }
-//   };
-
-//   const calculateTotal = () => {
-//     return salesData.reduce((sum, sale) => sum + sale.total, 0).toFixed(2);
-//   };
-
-//   const calculateAverageSale = () => {
-//     const completedSales = salesData.filter(sale => sale.status === 'completed');
-//     const total = completedSales.reduce((sum, sale) => sum + sale.total, 0);
-//     return (total / completedSales.length).toFixed(2);
-//   };
-
-//   return (
-//     <div className="p-6">
-//       {/* Header */}
-//       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-//         <div>
-//           <h1 className="text-3xl font-bold text-gray-800 mb-2">Sales Dashboard</h1>
-//           <p className="text-gray-600">Track sales performance and revenue analytics</p>
-//         </div>
-//         <div className="flex gap-3 mt-4 md:mt-0">
-//           <button className="px-4 py-2.5 bg-[#c0d3dc]/20 text-[#174047] rounded-xl font-medium hover:bg-[#c0d3dc]/30 transition-all duration-200 flex items-center gap-2">
-//             <Download size={18} />
-//             Export Report
-//           </button>
-//           <button className="px-4 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl font-medium hover:opacity-90 transition-all duration-200 flex items-center gap-2">
-//             <Plus size={18} />
-//             New Sale
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Stats Cards */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-//         {/* Total Revenue */}
-//         <div className="bg-gradient-to-br from-[#2c6774]/10 to-[#5c878f]/10 rounded-2xl p-6 border border-[#2c6774]/20 shadow-lg">
-//           <div className="flex justify-between items-start mb-4">
-//             <div>
-//               <p className="text-[#2c6774] font-medium">Total Revenue</p>
-//               <p className="text-3xl font-bold text-gray-800 mt-2">${calculateTotal()}</p>
-//               <div className="flex items-center gap-1 mt-2">
-//                 <TrendingUp size={16} className="text-[#2c6774]" />
-//                 <span className="text-sm text-[#2c6774]">+12.5% from last week</span>
-//               </div>
-//             </div>
-//             <div className="p-3 rounded-full bg-[#2c6774]/10">
-//               <DollarSign className="text-[#2c6774]" size={24} />
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Average Sale */}
-//         <div className="bg-gradient-to-br from-[#5c878f]/10 to-[#9fbfc5]/20 rounded-2xl p-6 border border-[#5c878f]/20 shadow-lg">
-//           <div className="flex justify-between items-start mb-4">
-//             <div>
-//               <p className="text-[#5c878f] font-medium">Average Sale</p>
-//               <p className="text-3xl font-bold text-gray-800 mt-2">${calculateAverageSale()}</p>
-//               <div className="flex items-center gap-1 mt-2">
-//                 <TrendingUp size={16} className="text-[#5c878f]" />
-//                 <span className="text-sm text-[#5c878f]">+8.2% from last week</span>
-//               </div>
-//             </div>
-//             <div className="p-3 rounded-full bg-[#5c878f]/10">
-//               <ShoppingCart className="text-[#5c878f]" size={24} />
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Total Orders */}
-//         <div className="bg-gradient-to-br from-[#174047]/10 to-[#2c6774]/10 rounded-2xl p-6 border border-[#174047]/20 shadow-lg">
-//           <div className="flex justify-between items-start mb-4">
-//             <div>
-//               <p className="text-[#174047] font-medium">Total Orders</p>
-//               <p className="text-3xl font-bold text-gray-800 mt-2">{salesData.length}</p>
-//               <div className="flex items-center gap-1 mt-2">
-//                 <TrendingUp size={16} className="text-[#174047]" />
-//                 <span className="text-sm text-[#174047]">+15.3% from last week</span>
-//               </div>
-//             </div>
-//             <div className="p-3 rounded-full bg-[#174047]/10">
-//               <Package className="text-[#174047]" size={24} />
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Conversion Rate */}
-//         <div className="bg-gradient-to-br from-[#c0d3dc]/20 to-[#9fbfc5]/10 rounded-2xl p-6 border border-[#c0d3dc]/30 shadow-lg">
-//           <div className="flex justify-between items-start mb-4">
-//             <div>
-//               <p className="text-[#174047] font-medium">Conversion Rate</p>
-//               <p className="text-3xl font-bold text-gray-800 mt-2">68.5%</p>
-//               <div className="flex items-center gap-1 mt-2">
-//                 <TrendingDown size={16} className="text-red-500" />
-//                 <span className="text-sm text-red-500">-2.1% from last week</span>
-//               </div>
-//             </div>
-//             <div className="p-3 rounded-full bg-[#174047]/10">
-//               <Target className="text-[#174047]" size={24} />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Charts Section */}
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-//         {/* Sales Chart */}
-//         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-//           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-//             <h2 className="text-xl font-bold text-gray-800">Sales Performance</h2>
-//             <div className="flex gap-2 mt-4 md:mt-0">
-//               {['day', 'week', 'month', 'year'].map((range) => (
-//                 <button
-//                   key={range}
-//                   onClick={() => setTimeRange(range)}
-//                   className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
-//                     timeRange === range
-//                       ? 'bg-gradient-to-r from-[#2c6774] to-[#174047] text-white'
-//                       : 'bg-[#c0d3dc]/20 text-[#174047] hover:bg-[#c0d3dc]/30'
-//                   }`}
-//                 >
-//                   {range.charAt(0).toUpperCase() + range.slice(1)}
-//                 </button>
-//               ))}
-//             </div>
-//           </div>
-//           <div className="h-64">
-//             {/* Chart Visualization */}
-//             <div className="flex items-end h-48 gap-4 px-4">
-//               {dailySales.map((day, index) => (
-//                 <div key={day.day} className="flex-1 flex flex-col items-center">
-//                   <div className="w-full flex flex-col items-center">
-//                     <div 
-//                       className="w-10 bg-gradient-to-t from-[#2c6774] to-[#5c878f] rounded-t-lg mb-2"
-//                       style={{ height: `${(day.sales / 500) * 100}%` }}
-//                     ></div>
-//                     <div 
-//                       className="w-8 bg-gradient-to-t from-[#174047] to-[#2c6774] rounded-t-lg opacity-50"
-//                       style={{ height: `${(day.target / 500) * 100}%` }}
-//                     ></div>
-//                   </div>
-//                   <span className="text-sm text-gray-600 mt-2">{day.day}</span>
-//                   <span className="text-xs text-[#5c878f] font-medium">
-//                     ${day.sales}
-//                   </span>
-//                 </div>
-//               ))}
-//             </div>
-//             <div className="flex justify-center gap-4 mt-4">
-//               <div className="flex items-center gap-2">
-//                 <div className="w-3 h-3 bg-gradient-to-r from-[#2c6774] to-[#5c878f] rounded"></div>
-//                 <span className="text-sm text-gray-600">Actual Sales</span>
-//               </div>
-//               <div className="flex items-center gap-2">
-//                 <div className="w-3 h-3 bg-gradient-to-r from-[#174047] to-[#2c6774] rounded opacity-50"></div>
-//                 <span className="text-sm text-gray-600">Target</span>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Category Distribution */}
-//         <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-//           <h2 className="text-xl font-bold text-gray-800 mb-6">Sales by Category</h2>
-//           <div className="space-y-4">
-//             {categories.slice(1).map((category) => (
-//               <div key={category.id} className="flex items-center justify-between">
-//                 <div className="flex items-center gap-3">
-//                   <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#2c6774] to-[#5c878f]"></div>
-//                   <span className="font-medium text-gray-700">{category.name}</span>
-//                 </div>
-//                 <div className="text-right">
-//                   <div className="font-bold text-gray-800">${category.value}</div>
-//                   <div className="text-sm text-[#5c878f]">+8.2%</div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Recent Sales Table */}
-//       <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-//         <div className="p-6">
-//           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-//             <h2 className="text-xl font-bold text-gray-800">Recent Sales</h2>
-//             <div className="flex gap-2 mt-4 md:mt-0">
-//               <div className="relative">
-//                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-//                 <input
-//                   type="text"
-//                   placeholder="Search sales..."
-//                   className="pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30"
-//                 />
-//               </div>
-//               <button className="px-4 py-2.5 bg-[#c0d3dc]/20 text-[#174047] rounded-xl font-medium hover:bg-[#c0d3dc]/30 transition-all duration-200 flex items-center gap-2">
-//                 <Filter size={18} />
-//                 Filter
-//               </button>
-//             </div>
-//           </div>
-
-//           <div className="overflow-x-auto">
-//             <table className="w-full">
-//               <thead>
-//                 <tr className="border-b border-gray-200">
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Invoice</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Customer</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Product</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Category</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Date</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Payment</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Total</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Status</th>
-//                   <th className="text-left py-3 px-4 text-gray-600 font-medium">Actions</th>
-//                 </tr>
-//               </thead>
-//               <tbody>
-//                 {salesData.map((sale) => (
-//                   <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50/50">
-//                     <td className="py-4 px-4">
-//                       <span className="font-medium text-[#2c6774]">{sale.invoice}</span>
-//                     </td>
-//                     <td className="py-4 px-4 font-medium">{sale.customer}</td>
-//                     <td className="py-4 px-4">{sale.product}</td>
-//                     <td className="py-4 px-4">
-//                       <span className="px-3 py-1 rounded-full bg-[#c0d3dc]/30 text-gray-700 text-sm">
-//                         {sale.category}
-//                       </span>
-//                     </td>
-//                     <td className="py-4 px-4 text-gray-600">{sale.date}</td>
-//                     <td className="py-4 px-4">
-//                       <span className={`font-medium ${getPaymentColor(sale.payment)}`}>
-//                         {sale.payment}
-//                       </span>
-//                     </td>
-//                     <td className="py-4 px-4 font-bold text-gray-800">${sale.total.toFixed(2)}</td>
-//                     <td className="py-4 px-4">
-//                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(sale.status)}`}>
-//                         {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
-//                       </span>
-//                     </td>
-//                     <td className="py-4 px-4">
-//                       <div className="flex gap-2">
-//                         <button className="p-2 hover:bg-[#2c6774]/10 rounded-lg transition-colors">
-//                           <Eye size={18} className="text-[#2c6774]" />
-//                         </button>
-//                         <button className="p-2 hover:bg-[#5c878f]/10 rounded-lg transition-colors">
-//                           <Printer size={18} className="text-[#5c878f]" />
-//                         </button>
-//                         <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-//                           <MoreVertical size={18} className="text-gray-600" />
-//                         </button>
-//                       </div>
-//                     </td>
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-//         </div>
-
-//         {/* Table Footer */}
-//         <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-//           <div className="flex flex-col md:flex-row md:items-center justify-between">
-//             <div className="text-sm text-gray-600">
-//               Showing {salesData.length} of 128 total sales
-//             </div>
-//             <div className="flex gap-2 mt-4 md:mt-0">
-//               <button className="px-4 py-2 bg-[#c0d3dc]/20 text-[#174047] rounded-xl hover:bg-[#c0d3dc]/30 transition-colors">
-//                 Previous
-//               </button>
-//               <button className="px-4 py-2 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl hover:opacity-90 transition-colors">
-//                 Next
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SalesPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// -------- pretty colors
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  DollarSign, TrendingUp, TrendingDown, Download,
-  Filter, Calendar, ShoppingCart, Package,
-  Users, CreditCard, PieChart, BarChart3,
+  ShoppingCart, TrendingUp, DollarSign, Users, 
+  Package, Calendar, Filter, Download, Search,
   ChevronDown, MoreVertical, Eye, Printer,
-  FileText, RefreshCw, Search, Plus,
-  CheckCircle, XCircle, Clock, ArrowUpRight,
-  ArrowDownRight, Star, Target, Award
+  IndianRupee, BarChart, PieChart, LineChart,
+  Plus, RefreshCw, ArrowUpRight, ArrowDownRight,
+  X, Clock
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Sector
+} from 'recharts';
 
 const SalesPage = () => {
   const [timeRange, setTimeRange] = useState('week');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [chartType, setChartType] = useState('line');
+  const [loading, setLoading] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   
-  const salesData = [
-    {
-      id: 1,
-      product: 'Paracetamol',
-      category: 'Pain Relief',
-      customer: 'John Smith',
-      date: '2024-01-15',
-      quantity: 2,
-      price: 5.99,
-      total: 11.98,
-      payment: 'Credit Card',
-      status: 'completed',
-      invoice: 'INV-001'
-    },
-    {
-      id: 2,
-      product: 'Amoxicillin',
-      category: 'Antibiotic',
-      customer: 'Emma Wilson',
-      date: '2024-01-15',
-      quantity: 1,
-      price: 12.50,
-      total: 12.50,
-      payment: 'Insurance',
-      status: 'completed',
-      invoice: 'INV-002'
-    },
-    {
-      id: 3,
-      product: 'Cetirizine',
-      category: 'Allergy',
-      customer: 'Robert Brown',
-      date: '2024-01-14',
-      quantity: 3,
-      price: 6.25,
-      total: 18.75,
-      payment: 'Cash',
-      status: 'completed',
-      invoice: 'INV-003'
-    },
-    {
-      id: 4,
-      product: 'Omeprazole',
-      category: 'Digestive',
-      customer: 'Sarah Davis',
-      date: '2024-01-14',
-      quantity: 1,
-      price: 15.99,
-      total: 15.99,
-      payment: 'Credit Card',
-      status: 'pending',
-      invoice: 'INV-004'
-    },
-    {
-      id: 5,
-      product: 'Aspirin',
-      category: 'Pain Relief',
-      customer: 'Michael Lee',
-      date: '2024-01-13',
-      quantity: 2,
-      price: 8.75,
-      total: 17.50,
-      payment: 'Insurance',
-      status: 'cancelled',
-      invoice: 'INV-005'
-    },
-    {
-      id: 6,
-      product: 'Vitamin C',
-      category: 'Supplements',
-      customer: 'Jennifer Taylor',
-      date: '2024-01-13',
-      quantity: 1,
-      price: 9.99,
-      total: 9.99,
-      payment: 'Credit Card',
-      status: 'completed',
-      invoice: 'INV-006'
-    },
-    {
-      id: 7,
-      product: 'Ibuprofen',
-      category: 'Pain Relief',
-      customer: 'David Wilson',
-      date: '2024-01-12',
-      quantity: 3,
-      price: 7.50,
-      total: 22.50,
-      payment: 'Cash',
-      status: 'completed',
-      invoice: 'INV-007'
-    },
-    {
-      id: 8,
-      product: 'Loratadine',
-      category: 'Allergy',
-      customer: 'Lisa Anderson',
-      date: '2024-01-12',
-      quantity: 2,
-      price: 8.25,
-      total: 16.50,
-      payment: 'Insurance',
-      status: 'completed',
-      invoice: 'INV-008'
-    }
-  ];
+  // Mock sales data
+  const [salesData, setSalesData] = useState({
+    totalSales: 25480.50,
+    totalOrders: 156,
+    averageOrderValue: 163.34,
+    newCustomers: 24,
+    growth: 8.5,
+    
+    // Daily sales for line/bar chart
+    dailySales: [
+      { day: 'Mon', sales: 1250, orders: 8, revenue: 1250 },
+      { day: 'Tue', sales: 1890, orders: 12, revenue: 1890 },
+      { day: 'Wed', sales: 2150, orders: 14, revenue: 2150 },
+      { day: 'Thu', sales: 1780, orders: 11, revenue: 1780 },
+      { day: 'Fri', sales: 2540, orders: 16, revenue: 2540 },
+      { day: 'Sat', sales: 3120, orders: 20, revenue: 3120 },
+      { day: 'Sun', sales: 2850, orders: 18, revenue: 2850 }
+    ],
+    
+    // Weekly data
+    weeklySales: [
+      { week: 'Week 1', sales: 12500, orders: 82, revenue: 12500 },
+      { week: 'Week 2', sales: 14800, orders: 95, revenue: 14800 },
+      { week: 'Week 3', sales: 11200, orders: 73, revenue: 11200 },
+      { week: 'Week 4', sales: 18900, orders: 124, revenue: 18900 }
+    ],
+    
+    // Monthly trend
+    monthlyTrend: [
+      { month: 'Jan', sales: 18500, orders: 120, revenue: 18500 },
+      { month: 'Feb', sales: 21000, orders: 135, revenue: 21000 },
+      { month: 'Mar', sales: 25480, orders: 156, revenue: 25480 },
+      { month: 'Apr', sales: 19800, orders: 142, revenue: 19800 },
+      { month: 'May', sales: 23400, orders: 168, revenue: 23400 },
+      { month: 'Jun', sales: 28900, orders: 185, revenue: 28900 }
+    ],
+    
+    // Category distribution for pie chart
+    categoryDistribution: [
+      { name: 'Pain Relief', value: 4520, percentage: 28 },
+      { name: 'Antibiotics', value: 3820, percentage: 24 },
+      { name: 'Vitamins', value: 2890, percentage: 18 },
+      { name: 'Allergy', value: 2150, percentage: 13 },
+      { name: 'Cardiac', value: 1890, percentage: 12 },
+      { name: 'Others', value: 810, percentage: 5 }
+    ],
+    
+    topProducts: [
+      { name: 'Paracetamol', sales: 4520.25, quantity: 156, growth: 12 },
+      { name: 'Amoxicillin', sales: 3820.50, quantity: 89, growth: 8 },
+      { name: 'Vitamin C', sales: 2890.75, quantity: 124, growth: 15 },
+      { name: 'Cetirizine', sales: 2150.25, quantity: 167, growth: 5 },
+      { name: 'Metformin', sales: 1890.80, quantity: 67, growth: 10 }
+    ],
+    
+    recentTransactions: [
+      { id: 'ORD-001', customer: 'John Smith', amount: 125.50, date: '2024-03-28', status: 'Completed' },
+      { id: 'ORD-002', customer: 'Sarah Johnson', amount: 89.99, date: '2024-03-28', status: 'Completed' },
+      { id: 'ORD-003', customer: 'Mike Brown', amount: 215.25, date: '2024-03-27', status: 'Completed' },
+      { id: 'ORD-004', customer: 'Emily Davis', amount: 156.75, date: '2024-03-27', status: 'Processing' },
+      { id: 'ORD-005', customer: 'Robert Wilson', amount: 189.50, date: '2024-03-26', status: 'Completed' },
+      { id: 'ORD-006', customer: 'Lisa Miller', amount: 78.25, date: '2024-03-26', status: 'Completed' },
+      { id: 'ORD-007', customer: 'David Taylor', amount: 245.00, date: '2024-03-25', status: 'Completed' },
+      { id: 'ORD-008', customer: 'Jessica Lee', amount: 112.80, date: '2024-03-25', status: 'Completed' }
+    ]
+  });
 
-  const categories = [
-    { id: 'all', name: 'All Categories', value: 2480.25 },
-    { id: 'pain-relief', name: 'Pain Relief', value: 890.50 },
-    { id: 'antibiotic', name: 'Antibiotics', value: 625.75 },
-    { id: 'allergy', name: 'Allergy', value: 425.25 },
-    { id: 'digestive', name: 'Digestive', value: 320.00 },
-    { id: 'supplements', name: 'Supplements', value: 218.75 }
-  ];
-
-  const dailySales = [
-    { day: 'Mon', sales: 245, target: 220 },
-    { day: 'Tue', sales: 320, target: 280 },
-    { day: 'Wed', sales: 198, target: 240 },
-    { day: 'Thu', sales: 412, target: 350 },
-    { day: 'Fri', sales: 385, target: 320 },
-    { day: 'Sat', sales: 450, target: 400 },
-    { day: 'Sun', sales: 290, target: 260 }
-  ];
-
-  const topProducts = [
-    { name: 'Paracetamol', sales: 245, growth: 12.5 },
-    { name: 'Amoxicillin', sales: 189, growth: 8.2 },
-    { name: 'Vitamin C', sales: 167, growth: 15.3 },
-    { name: 'Cetirizine', sales: 142, growth: 5.7 },
-    { name: 'Ibuprofen', sales: 128, growth: -2.4 }
-  ];
-
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'completed': return 'bg-emerald-100 text-emerald-800';
-      case 'pending': return 'bg-amber-100 text-amber-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-600';
+  // Colors for charts
+  const COLORS = ['#2c6774', '#5c878f', '#9fbfc5', '#c0d3dc', '#174047', '#1e5f6b'];
+  
+  // Get current data based on timeRange
+  const getCurrentData = () => {
+    switch(timeRange) {
+      case 'week':
+        return salesData.dailySales;
+      case 'month':
+        return salesData.weeklySales;
+      case 'year':
+        return salesData.monthlyTrend;
+      default:
+        return salesData.dailySales;
     }
   };
 
-  const getPaymentColor = (method) => {
-    switch(method) {
-      case 'Credit Card': return 'text-emerald-600';
-      case 'Insurance': return 'text-blue-600';
-      case 'Cash': return 'text-gray-600';
-      default: return 'text-gray-600';
+  // Get data key based on timeRange
+  const getDataKey = () => {
+    switch(timeRange) {
+      case 'week':
+        return 'day';
+      case 'month':
+        return 'week';
+      case 'year':
+        return 'month';
+      default:
+        return 'day';
     }
   };
 
-  const calculateTotal = () => {
-    return salesData.reduce((sum, sale) => sum + sale.total, 0).toFixed(2);
+  const refreshData = () => {
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
 
-  const calculateAverageSale = () => {
-    const completedSales = salesData.filter(sale => sale.status === 'completed');
-    const total = completedSales.reduce((sum, sale) => sum + sale.total, 0);
-    return (total / completedSales.length).toFixed(2);
+  const formatCurrency = (amount) => {
+    return `Rs. ${amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+  };
+
+  // Custom tooltip for charts
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+          <p className="font-semibold text-gray-900">{label}</p>
+          {payload.map((entry, index) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {entry.name}: {entry.name === 'Sales' || entry.name === 'Revenue' 
+                ? formatCurrency(entry.value) 
+                : entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Active shape for pie chart
+  const renderActiveShape = (props) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  
+    return (
+      <g>
+        <text x={cx} y={cy} dy={-20} textAnchor="middle" fill="#333" className="text-sm font-medium">
+          {payload.name}
+        </text>
+        <text x={cx} y={cy} dy={10} textAnchor="middle" fill="#333" className="text-lg font-bold">
+          {formatCurrency(value)}
+        </text>
+        <text x={cx} y={cy} dy={30} textAnchor="middle" fill="#666" className="text-xs">
+          {`${(percent * 100).toFixed(1)}%`}
+        </text>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 10}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 12}
+          outerRadius={outerRadius + 15}
+          fill={fill}
+        />
+      </g>
+    );
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Sales Dashboard</h1>
-          <p className="text-gray-600">Track sales performance and revenue analytics</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Sales Analytics</h1>
+          <p className="text-gray-600">Monitor your pharmacy sales performance</p>
         </div>
-        <div className="flex gap-3 mt-4 md:mt-0">
-          <button className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200 flex items-center gap-2">
-            <Download size={18} />
-            Export Report
-          </button>
-          <button className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:opacity-90 transition-all duration-200 flex items-center gap-2">
-            <Plus size={18} />
-            New Sale
+        <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
+          <Link
+            to="/PharmacyDashboard/products"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+          >
+            <Package size={18} />
+            <span className="hidden sm:inline">Products</span>
+          </Link>
+          <Link
+            to="/PharmacyDashboard/orders"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+          >
+            <ShoppingCart size={18} />
+            <span className="hidden sm:inline">Orders</span>
+          </Link>
+          <button
+            onClick={refreshData}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Total Revenue */}
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-6 border border-emerald-100 shadow-lg">
-          <div className="flex justify-between items-start mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-600 font-medium">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">${calculateTotal()}</p>
+              <p className="text-sm text-gray-600">Total Sales</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+                {formatCurrency(salesData.totalSales)}
+              </p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp size={16} className="text-emerald-600" />
-                <span className="text-sm text-emerald-600">+12.5% from last week</span>
+                <ArrowUpRight className="text-green-500" size={16} />
+                <span className="text-sm text-green-600">{salesData.growth}%</span>
+                <span className="text-xs text-gray-500 ml-1">vs last month</span>
               </div>
             </div>
-            <div className="p-3 rounded-full bg-emerald-500/10">
-              <DollarSign className="text-emerald-600" size={24} />
+            <div className="p-3 rounded-xl bg-blue-50">
+              <DollarSign className="text-blue-600" size={22} />
             </div>
           </div>
         </div>
 
-        {/* Average Sale */}
-        <div className="bg-gradient-to-br from-teal-50 to-cyan-100/50 rounded-2xl p-6 border border-teal-100 shadow-lg">
-          <div className="flex justify-between items-start mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-teal-600 font-medium">Average Sale</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">${calculateAverageSale()}</p>
+              <p className="text-sm text-gray-600">Total Orders</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{salesData.totalOrders}</p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp size={16} className="text-teal-600" />
-                <span className="text-sm text-teal-600">+8.2% from last week</span>
+                <ArrowUpRight className="text-green-500" size={16} />
+                <span className="text-sm text-green-600">12.5%</span>
+                <span className="text-xs text-gray-500 ml-1">vs last month</span>
               </div>
             </div>
-            <div className="p-3 rounded-full bg-teal-500/10">
-              <ShoppingCart className="text-teal-600" size={24} />
+            <div className="p-3 rounded-xl bg-purple-50">
+              <ShoppingCart className="text-purple-600" size={22} />
             </div>
           </div>
         </div>
 
-        {/* Total Orders */}
-        <div className="bg-gradient-to-br from-purple-50 to-violet-100/50 rounded-2xl p-6 border border-purple-100 shadow-lg">
-          <div className="flex justify-between items-start mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-600 font-medium">Total Orders</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">{salesData.length}</p>
+              <p className="text-sm text-gray-600">Avg Order Value</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+                {formatCurrency(salesData.averageOrderValue)}
+              </p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp size={16} className="text-purple-600" />
-                <span className="text-sm text-purple-600">+15.3% from last week</span>
+                <ArrowUpRight className="text-green-500" size={16} />
+                <span className="text-sm text-green-600">4.2%</span>
+                <span className="text-xs text-gray-500 ml-1">vs last month</span>
               </div>
             </div>
-            <div className="p-3 rounded-full bg-purple-500/10">
-              <Package className="text-purple-600" size={24} />
+            <div className="p-3 rounded-xl bg-green-50">
+              <TrendingUp className="text-green-600" size={22} />
             </div>
           </div>
         </div>
 
-        {/* Conversion Rate */}
-        <div className="bg-gradient-to-br from-pink-50 to-rose-100/50 rounded-2xl p-6 border border-pink-100 shadow-lg">
-          <div className="flex justify-between items-start mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-rose-600 font-medium">Conversion Rate</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">68.5%</p>
+              <p className="text-sm text-gray-600">New Customers</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{salesData.newCustomers}</p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingDown size={16} className="text-red-500" />
-                <span className="text-sm text-red-500">-2.1% from last week</span>
+                <ArrowUpRight className="text-green-500" size={16} />
+                <span className="text-sm text-green-600">18%</span>
+                <span className="text-xs text-gray-500 ml-1">vs last month</span>
               </div>
             </div>
-            <div className="p-3 rounded-full bg-rose-500/10">
-              <Target className="text-rose-600" size={24} />
+            <div className="p-3 rounded-xl bg-amber-50">
+              <Users className="text-amber-600" size={22} />
             </div>
           </div>
         </div>
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Sales Chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">Sales Performance</h2>
-            <div className="flex gap-2 mt-4 md:mt-0">
-              {['day', 'week', 'month', 'year'].map((range) => (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Main Sales Chart - Takes 2/3 width on large screens */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Sales Trend</h2>
+              <p className="text-sm text-gray-600">Revenue over time</p>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              {/* Chart Type Toggle */}
+              <div className="flex bg-gray-100 p-1 rounded-lg">
                 <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
-                    timeRange === range
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  onClick={() => setChartType('line')}
+                  className={`p-2 rounded-md transition-colors ${chartType === 'line' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
+                  title="Line Chart"
                 >
-                  {range.charAt(0).toUpperCase() + range.slice(1)}
+                  <LineChart size={18} />
                 </button>
-              ))}
+                <button
+                  onClick={() => setChartType('bar')}
+                  className={`p-2 rounded-md transition-colors ${chartType === 'bar' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
+                  title="Bar Chart"
+                >
+                  <BarChart size={18} />
+                </button>
+                <button
+                  onClick={() => setChartType('area')}
+                  className={`p-2 rounded-md transition-colors ${chartType === 'area' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
+                  title="Area Chart"
+                >
+                  <TrendingUp size={18} />
+                </button>
+              </div>
+
+              {/* Time Range Selector */}
+              <div className="flex bg-gray-100 p-1 rounded-lg">
+                {['week', 'month', 'year'].map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setTimeRange(period)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      timeRange === period
+                        ? 'bg-[#2c6774] text-white'
+                        : 'text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="h-64">
-            {/* Chart Visualization */}
-            <div className="flex items-end h-48 gap-4 px-4">
-              {dailySales.map((day, index) => (
-                <div key={day.day} className="flex-1 flex flex-col items-center">
-                  <div className="w-full flex flex-col items-center">
-                    <div 
-                      className="w-10 bg-gradient-to-t from-emerald-400 to-teal-400 rounded-t-lg mb-2"
-                      style={{ height: `${(day.sales / 500) * 100}%` }}
-                    ></div>
-                    <div 
-                      className="w-8 bg-gradient-to-t from-purple-400 to-violet-400 rounded-t-lg opacity-50"
-                      style={{ height: `${(day.target / 500) * 100}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-sm text-gray-600 mt-2">{day.day}</span>
-                  <span className="text-xs text-teal-600 font-medium">
-                    ${day.sales}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center gap-4 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gradient-to-r from-emerald-400 to-teal-400 rounded"></div>
-                <span className="text-sm text-gray-600">Actual Sales</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-violet-400 rounded opacity-50"></div>
-                <span className="text-sm text-gray-600">Target</span>
-              </div>
-            </div>
+          
+          {/* Chart Container */}
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'line' ? (
+                <RechartsLineChart
+                  data={getCurrentData()}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey={getDataKey()} 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tickFormatter={(value) => `Rs.${value}`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    name="Revenue" 
+                    stroke="#2c6774" 
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#2c6774', strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="orders" 
+                    name="Orders" 
+                    stroke="#f59e0b" 
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#f59e0b' }}
+                  />
+                </RechartsLineChart>
+              ) : chartType === 'bar' ? (
+                <RechartsBarChart
+                  data={getCurrentData()}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey={getDataKey()} 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tickFormatter={(value) => `Rs.${value}`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Bar dataKey="revenue" name="Revenue" fill="#2c6774" radius={[4, 4, 0, 0]} barSize={30} />
+                  <Bar dataKey="orders" name="Orders" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={30} />
+                </RechartsBarChart>
+              ) : (
+                <AreaChart
+                  data={getCurrentData()}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+                >
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2c6774" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#2c6774" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey={getDataKey()} 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tickFormatter={(value) => `Rs.${value}`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    name="Revenue" 
+                    stroke="#2c6774" 
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
+              )}
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Category Distribution */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">Sales by Category</h2>
-          <div className="space-y-4">
-            {categories.slice(1).map((category) => (
-              <div key={category.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-emerald-400 to-teal-400"></div>
-                  <span className="font-medium text-gray-700">{category.name}</span>
+        {/* Category Distribution Pie Chart */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Sales by Category</h2>
+              <p className="text-sm text-gray-600">Revenue distribution</p>
+            </div>
+            <PieChart className="text-gray-400" size={20} />
+          </div>
+          
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsPieChart>
+                <Pie
+                  activeIndex={activeIndex}
+                  activeShape={renderActiveShape}
+                  data={salesData.categoryDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  dataKey="value"
+                  onMouseEnter={(_, index) => setActiveIndex(index)}
+                >
+                  {salesData.categoryDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </RechartsPieChart>
+            </ResponsiveContainer>
+          </div>
+          
+          {/* Legend */}
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {salesData.categoryDistribution.slice(0, 4).map((category, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }}></div>
+                <span className="text-xs text-gray-600">{category.name}</span>
+                <span className="text-xs font-medium ml-auto">{category.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Top Products & Recent Transactions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Products */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Top Products</h2>
+                <p className="text-sm text-gray-600">Best selling products by revenue</p>
+              </div>
+              <Link 
+                to="/PharmacyDashboard/products"
+                className="text-sm text-[#2c6774] hover:text-[#174047] font-medium flex items-center gap-1"
+              >
+                View All <ArrowUpRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {salesData.topProducts.map((product, index) => (
+              <div key={index} className="p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <Package className="text-blue-600" size={16} />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{product.name}</div>
+                      <div className="text-sm text-gray-500">{product.quantity} units sold</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium text-gray-900">{formatCurrency(product.sales)}</div>
+                    <div className="flex items-center gap-1 text-xs justify-end">
+                      {product.growth > 0 ? (
+                        <ArrowUpRight className="text-green-500" size={12} />
+                      ) : (
+                        <ArrowDownRight className="text-red-500" size={12} />
+                      )}
+                      <span className={product.growth > 0 ? 'text-green-600' : 'text-red-600'}>
+                        {product.growth}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-800">${category.value}</div>
-                  <div className="text-sm text-teal-600">+8.2%</div>
+                
+                {/* Progress bar */}
+                <div className="mt-2 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[#2c6774] rounded-full"
+                    style={{ width: `${(product.sales / salesData.topProducts[0].sales) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Recent Transactions</h2>
+                <p className="text-sm text-gray-600">Latest sales transactions</p>
+              </div>
+              <Link 
+                to="/PharmacyDashboard/orders"
+                className="text-sm text-[#2c6774] hover:text-[#174047] font-medium flex items-center gap-1"
+              >
+                View All <ArrowUpRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+            {salesData.recentTransactions.map((transaction) => (
+              <div key={transaction.id} className="p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-gray-900">{transaction.id}</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        transaction.status === 'Completed' 
+                          ? 'bg-green-100 text-green-800 border-green-200'
+                          : 'bg-blue-100 text-blue-800 border-blue-200'
+                      }`}>
+                        {transaction.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{transaction.customer}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Calendar size={12} className="text-gray-400" />
+                      <span className="text-xs text-gray-500">{transaction.date}</span>
+                    </div>
+                  </div>
+                  <div className="text-right ml-4">
+                    <p className="font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -810,104 +623,15 @@ const SalesPage = () => {
         </div>
       </div>
 
-      {/* Recent Sales Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-        <div className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">Recent Sales</h2>
-            <div className="flex gap-2 mt-4 md:mt-0">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search sales..."
-                  className="pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                />
-              </div>
-              <button className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200 flex items-center gap-2">
-                <Filter size={18} />
-                Filter
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Invoice</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Customer</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Product</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Category</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Date</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Payment</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Total</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 text-gray-600 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {salesData.map((sale) => (
-                  <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50/50">
-                    <td className="py-4 px-4">
-                      <span className="font-medium text-emerald-600">{sale.invoice}</span>
-                    </td>
-                    <td className="py-4 px-4 font-medium">{sale.customer}</td>
-                    <td className="py-4 px-4">{sale.product}</td>
-                    <td className="py-4 px-4">
-                      <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm">
-                        {sale.category}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-gray-600">{sale.date}</td>
-                    <td className="py-4 px-4">
-                      <span className={`font-medium ${getPaymentColor(sale.payment)}`}>
-                        {sale.payment}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 font-bold text-gray-800">${sale.total.toFixed(2)}</td>
-                    <td className="py-4 px-4">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(sale.status)}`}>
-                        {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex gap-2">
-                        <button className="p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                          <Eye size={18} className="text-emerald-600" />
-                        </button>
-                        <button className="p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                          <Printer size={18} className="text-blue-600" />
-                        </button>
-                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                          <MoreVertical size={18} className="text-gray-600" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-xl flex items-center gap-3">
+            <div className="w-6 h-6 border-3 border-[#2c6774] border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-gray-700 font-medium">Refreshing data...</span>
           </div>
         </div>
-
-        {/* Table Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-          <div className="flex flex-col md:flex-row md:items-center justify-between">
-            <div className="text-sm text-gray-600">
-              Showing {salesData.length} of 128 total sales
-            </div>
-            <div className="flex gap-2 mt-4 md:mt-0">
-              <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
-                Previous
-              </button>
-              <button className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:opacity-90 transition-colors">
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
