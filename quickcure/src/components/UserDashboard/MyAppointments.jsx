@@ -1,6 +1,1358 @@
+// import React, { useState, useEffect } from 'react';
+// import { FaCalendarAlt, FaClock, FaUserMd, FaPhone, FaMapMarkerAlt, FaTimes, FaSpinner, FaEdit, FaTrash } from 'react-icons/fa';
+// import { getUserAppointments, cancelAppointment } from '../../api/userApi';
+
+// const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
+//   const [appointments, setAppointments] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [cancellingId, setCancellingId] = useState(null);
+//   const [editingId, setEditingId] = useState(null);
+//   const [showCancelModal, setShowCancelModal] = useState(false);
+//   const [showEditModal, setShowEditModal] = useState(false);
+//   const [selectedAppointment, setSelectedAppointment] = useState(null);
+//   const [cancelReason, setCancelReason] = useState('');
+//   const [currentUser, setCurrentUser] = useState(null);
+  
+//   // Edit form state
+//   const [editForm, setEditForm] = useState({
+//     patientName: '',
+//     phoneNo: '',
+//     email: '',
+//     date: '',
+//     time: ''
+//   });
+
+//   useEffect(() => {
+//     // Get current user
+//     const userStr = localStorage.getItem('user');
+//     if (userStr) {
+//       try {
+//         const user = JSON.parse(userStr);
+//         setCurrentUser(user);
+//       } catch (error) {
+//         console.error('Error parsing user:', error);
+//       }
+//     }
+    
+//     fetchAppointments();
+//   }, [refreshTrigger]);
+
+//   const fetchAppointments = async () => {
+//     setLoading(true);
+//     setError(null);
+    
+//     try {
+//       // Try to get from API first
+//       const result = await getUserAppointments();
+      
+//       if (result.success && result.data && result.data.length > 0) {
+//         setAppointments(result.data);
+//         // Update stats in parent component
+//         if (onStatsUpdate) {
+//           onStatsUpdate(result.data.length);
+//         }
+//       } else {
+//         // If API fails or returns no data, try localStorage
+//         const localAppointments = getLocalAppointments();
+//         if (localAppointments && localAppointments.length > 0) {
+//           setAppointments(localAppointments);
+//           if (onStatsUpdate) {
+//             onStatsUpdate(localAppointments.length);
+//           }
+//         } else {
+//           setAppointments([]);
+//           if (onStatsUpdate) {
+//             onStatsUpdate(0);
+//           }
+//         }
+//       }
+//     } catch (err) {
+//       console.error('Error fetching appointments:', err);
+//       // Fallback to localStorage
+//       const localAppointments = getLocalAppointments();
+//       if (localAppointments && localAppointments.length > 0) {
+//         setAppointments(localAppointments);
+//         if (onStatsUpdate) {
+//           onStatsUpdate(localAppointments.length);
+//         }
+//       } else {
+//         setAppointments([]);
+//         if (onStatsUpdate) {
+//           onStatsUpdate(0);
+//         }
+//       }
+//     }
+    
+//     setLoading(false);
+//   };
+
+//   // Get appointments from localStorage
+//   const getLocalAppointments = () => {
+//     try {
+//       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+//       const userKey = user?.id || user?._id || 'guest';
+      
+//       // Try user-specific key first
+//       let appointments = JSON.parse(localStorage.getItem(`appointments_${userKey}`) || '[]');
+      
+//       // If no user-specific appointments, try by phone
+//       if ((!appointments || appointments.length === 0) && (user.phone || user.mobile)) {
+//         const phone = user.phone || user.mobile;
+//         appointments = JSON.parse(localStorage.getItem(`appointments_phone_${phone}`) || '[]');
+//       }
+      
+//       return appointments;
+//     } catch (error) {
+//       console.error('Error getting local appointments:', error);
+//       return [];
+//     }
+//   };
+
+//   const handleCancelClick = (appointment) => {
+//     setSelectedAppointment(appointment);
+//     setShowCancelModal(true);
+//   };
+
+//   const handleEditClick = (appointment) => {
+//     setSelectedAppointment(appointment);
+//     setEditForm({
+//       patientName: appointment.patientName || '',
+//       phoneNo: appointment.phoneNo || '',
+//       email: appointment.email || '',
+//       date: appointment.date || '',
+//       time: appointment.time || ''
+//     });
+//     setShowEditModal(true);
+//   };
+
+//   const handleEditChange = (e) => {
+//     const { name, value } = e.target;
+//     setEditForm(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
+//   };
+
+//   const handleEditSubmit = async () => {
+//     if (!selectedAppointment) return;
+    
+//     setEditingId(selectedAppointment.id);
+//     setShowEditModal(false);
+    
+//     try {
+//       // Update in localStorage
+//       const updated = updateAppointmentInLocal(selectedAppointment.id, editForm);
+      
+//       if (updated) {
+//         // Refresh appointments
+//         await fetchAppointments();
+//       } else {
+//         setError('Failed to update appointment');
+//       }
+//     } catch (err) {
+//       console.error('Error updating appointment:', err);
+//       setError('Failed to update appointment');
+//     }
+    
+//     setEditingId(null);
+//     setSelectedAppointment(null);
+//   };
+
+//   const handleCancelConfirm = async () => {
+//     if (!selectedAppointment) return;
+    
+//     const appointmentId = selectedAppointment._id || selectedAppointment.id;
+//     setCancellingId(appointmentId);
+//     setShowCancelModal(false);
+    
+//     try {
+//       // Try API cancel first
+//       const result = await cancelAppointment(appointmentId, cancelReason);
+      
+//       if (result.success) {
+//         // Remove from localStorage
+//         removeAppointmentFromLocal(appointmentId);
+//         console.log('Appointment cancelled from API');
+//       } else {
+//         // If API fails, still remove from localStorage
+//         removeAppointmentFromLocal(appointmentId);
+//         console.log('Appointment cancelled locally');
+//       }
+      
+//       // Immediately update UI by filtering out the cancelled appointment
+//       const updatedAppointments = appointments.filter(apt => (apt._id || apt.id) !== appointmentId);
+//       setAppointments(updatedAppointments);
+      
+//       // Update stats in parent component
+//       if (onStatsUpdate) {
+//         onStatsUpdate(updatedAppointments.length);
+//       }
+      
+//     } catch (err) {
+//       console.error('Error cancelling appointment:', err);
+//       // Still remove from localStorage even if API fails
+//       removeAppointmentFromLocal(appointmentId);
+      
+//       // Immediately update UI
+//       const updatedAppointments = appointments.filter(apt => (apt._id || apt.id) !== appointmentId);
+//       setAppointments(updatedAppointments);
+      
+//       // Update stats in parent component
+//       if (onStatsUpdate) {
+//         onStatsUpdate(updatedAppointments.length);
+//       }
+//     }
+    
+//     setCancellingId(null);
+//     setCancelReason('');
+//     setSelectedAppointment(null);
+//   };
+
+//   // Update appointment in localStorage
+//   const updateAppointmentInLocal = (appointmentId, updatedData) => {
+//     try {
+//       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+//       const userKey = user?.id || user?._id || 'guest';
+//       const storageKey = `appointments_${userKey}`;
+      
+//       const appointments = JSON.parse(localStorage.getItem(storageKey) || '[]');
+//       const updatedAppointments = appointments.map(apt => {
+//         if (apt.id === appointmentId) {
+//           return {
+//             ...apt,
+//             patientName: updatedData.patientName,
+//             phoneNo: updatedData.phoneNo,
+//             email: updatedData.email,
+//             date: updatedData.date,
+//             time: updatedData.time
+//           };
+//         }
+//         return apt;
+//       });
+      
+//       localStorage.setItem(storageKey, JSON.stringify(updatedAppointments));
+      
+//       // Also update phone-based storage
+//       if (user.phone || user.mobile) {
+//         const phone = user.phone || user.mobile;
+//         const phoneKey = `appointments_phone_${phone}`;
+//         localStorage.setItem(phoneKey, JSON.stringify(updatedAppointments));
+//       }
+      
+//       return true;
+//     } catch (error) {
+//       console.error('Error updating in localStorage:', error);
+//       return false;
+//     }
+//   };
+
+//   // Remove appointment from localStorage (CANCEL)
+//   const removeAppointmentFromLocal = (appointmentId) => {
+//     try {
+//       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+//       const userKey = user?.id || user?._id || 'guest';
+//       const storageKey = `appointments_${userKey}`;
+      
+//       const appointments = JSON.parse(localStorage.getItem(storageKey) || '[]');
+//       // Filter out the appointment with matching id
+//       const updatedAppointments = appointments.filter(apt => 
+//         (apt.id !== appointmentId) && (apt._id !== appointmentId)
+//       );
+      
+//       localStorage.setItem(storageKey, JSON.stringify(updatedAppointments));
+      
+//       // Also update phone-based storage
+//       if (user.phone || user.mobile) {
+//         const phone = user.phone || user.mobile;
+//         const phoneKey = `appointments_phone_${phone}`;
+//         localStorage.setItem(phoneKey, JSON.stringify(updatedAppointments));
+//       }
+      
+//       return true;
+//     } catch (error) {
+//       console.error('Error removing from localStorage:', error);
+//       return false;
+//     }
+//   };
+
+//   const formatDate = (dateString) => {
+//     if (!dateString) return 'N/A';
+//     const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+//     return new Date(dateString).toLocaleDateString('en-PK', options);
+//   };
+
+//   const getStatusBadge = (status) => {
+//     const statusConfig = {
+//       pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
+//       confirmed: { color: 'bg-green-100 text-green-800', label: 'Confirmed' },
+//       cancelled: { color: 'bg-red-100 text-red-800', label: 'Cancelled' },
+//       completed: { color: 'bg-blue-100 text-blue-800', label: 'Completed' },
+//       'no-show': { color: 'bg-gray-100 text-gray-800', label: 'No Show' }
+//     };
+
+//     const config = statusConfig[status] || statusConfig.pending;
+    
+//     return (
+//       <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
+//         {config.label}
+//       </span>
+//     );
+//   };
+
+//   const getDoctorImage = (appointment) => {
+//     // Try to get doctor image from various sources
+//     if (appointment.doctor?.image) {
+//       if (appointment.doctor.image.startsWith('http')) {
+//       return appointment.doctor.image;
+//     }
+//     return `http://localhost:5000${appointment.doctor.image}`;
+//   }
+     
+//     // Default placeholder
+//     return 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="bg-white rounded-xl shadow-sm p-8">
+//         <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--secondary-color)' }}>
+//           My Appointments
+//         </h2>
+//         <div className="flex justify-center items-center py-12">
+//           <FaSpinner className="animate-spin text-3xl" style={{ color: 'var(--primary-color)' }} />
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+//       {/* Header */}
+//       <div className="p-6 border-b border-gray-100">
+//         <h2 className="text-xl font-semibold" style={{ color: 'var(--secondary-color)' }}>
+//           My Appointments
+//         </h2>
+//         <p className="text-sm mt-1" style={{ color: 'var(--accent-color)' }}>
+//           View and manage your appointments
+//         </p>
+//       </div>
+
+//       {/* Error Message */}
+//       {error && (
+//         <div className="mx-6 mt-4 p-4 bg-red-50 rounded-lg">
+//           <p className="text-sm text-red-700">{error}</p>
+//           <button 
+//             onClick={() => setError(null)}
+//             className="mt-2 text-sm font-medium text-red-700 hover:text-red-800"
+//           >
+//             Dismiss
+//           </button>
+//         </div>
+//       )}
+
+//       {/* Appointments List */}
+//       <div className="p-6">
+//         {!appointments || appointments.length === 0 ? (
+//           <div className="text-center py-12">
+//             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+//               <FaCalendarAlt className="text-3xl" style={{ color: 'var(--accent-color)' }} />
+//             </div>
+//             <h3 className="text-lg font-medium text-gray-900 mb-2">No Appointments</h3>
+//             <p className="text-sm text-gray-500 mb-4">You haven't booked any appointments yet</p>
+//             <button 
+//               className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition"
+//               style={{ backgroundColor: 'var(--primary-color)' }}
+//               onClick={() => window.location.href = '/doctors'}
+//             >
+//               Book Appointment
+//             </button>
+//           </div>
+//         ) : (
+//           <div className="space-y-4">
+//             {appointments.map((appointment) => {
+//               const appointmentId = appointment._id || appointment.id;
+//               const isCancelling = cancellingId === appointmentId;
+              
+//               return (
+//                 <div 
+//                   key={appointmentId}
+//                   className={`border rounded-xl p-5 hover:shadow-md transition-all relative ${
+//                     isCancelling ? 'opacity-50 pointer-events-none' : ''
+//                   }`}
+//                   style={{ borderColor: 'var(--bg-light)' }}
+//                 >
+//                   {/* Status Badge */}
+//                   <div className="absolute top-4 right-4">
+//                     {getStatusBadge(appointment.status)}
+//                   </div>
+
+//                   {/* Doctor Info */}
+//                   <div className="flex items-start space-x-4 mb-4">
+//                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+//                       <img 
+//                         src={getDoctorImage(appointment)} 
+//                         alt={appointment.doctor?.name || 'Doctor'}
+//                         className="w-full h-full object-cover"
+//                         onError={(e) => {
+//                           e.target.onerror = null;
+//                           e.target.src = 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
+//                         }}
+//                       />
+//                     </div>
+//                     <div className="flex-1">
+//                       <h3 className="font-semibold text-lg" style={{ color: 'var(--secondary-color)' }}>
+//                         {appointment.doctor?.name || 'Doctor'}
+//                       </h3>
+//                       <p className="text-sm" style={{ color: 'var(--accent-color)' }}>
+//                         {appointment.doctor?.speciality || 'General Physician'}
+//                       </p>
+//                     </div>
+//                   </div>
+
+//                   {/* Appointment Details Grid */}
+//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+//                     <div className="flex items-center space-x-3">
+//                       <FaCalendarAlt className="text-sm" style={{ color: 'var(--accent-color)' }} />
+//                       <div>
+//                         <p className="text-xs text-gray-500">Date</p>
+//                         <p className="text-sm font-medium">{formatDate(appointment.date)}</p>
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center space-x-3">
+//                       <FaClock className="text-sm" style={{ color: 'var(--accent-color)' }} />
+//                       <div>
+//                         <p className="text-xs text-gray-500">Time</p>
+//                         <p className="text-sm font-medium">{appointment.time}</p>
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center space-x-3">
+//                       <FaPhone className="text-sm" style={{ color: 'var(--accent-color)' }} />
+//                       <div>
+//                         <p className="text-xs text-gray-500">Contact</p>
+//                         <p className="text-sm font-medium">{appointment.phoneNo}</p>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   {/* Action Buttons - Show for all appointments that are not completed */}
+//                   {appointment.status !== 'completed' && (
+//                     <div className="flex justify-end space-x-3 pt-3 border-t" style={{ borderColor: 'var(--bg-light)' }}>
+//                       <button 
+//                         className="px-4 py-2 text-sm rounded-lg border transition flex items-center gap-2"
+//                         style={{ 
+//                           borderColor: 'var(--primary-color)', 
+//                           color: 'var(--primary-color)',
+//                           backgroundColor: 'transparent'
+//                         }}
+//                         onClick={() => handleEditClick(appointment)}
+//                         disabled={isCancelling || editingId === appointmentId}
+//                       >
+//                         {editingId === appointmentId ? (
+//                           <FaSpinner className="animate-spin" />
+//                         ) : (
+//                           <>
+//                             <FaEdit /> Edit
+//                           </>
+//                         )}
+//                       </button>
+//                       <button 
+//                         className="px-4 py-2 text-sm rounded-lg text-white transition hover:opacity-90 flex items-center gap-2"
+//                         style={{ backgroundColor: '#174047' }}
+//                         onClick={() => handleCancelClick(appointment)}
+//                         disabled={isCancelling}
+//                       >
+//                         {isCancelling ? (
+//                           <FaSpinner className="animate-spin" />
+//                         ) : (
+//                           <>
+//                             <FaTrash /> Cancel
+//                           </>
+//                         )}
+//                       </button>
+//                     </div>
+//                   )}
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Cancel Confirmation Modal - WITH BLUR EFFECT */}
+//       {showCancelModal && selectedAppointment && (
+//         <>
+//           {/* Blur overlay */}
+//           <div className="fixed inset-0 z-40 backdrop-blur-sm bg-white/30"></div>
+          
+//           {/* Modal */}
+//           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+//             <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h3 className="text-lg font-semibold" style={{ color: 'var(--secondary-color)' }}>
+//                   Cancel Appointment
+//                 </h3>
+//                 <button 
+//                   onClick={() => setShowCancelModal(false)}
+//                   className="p-1 hover:bg-gray-100 rounded-full"
+//                 >
+//                   <FaTimes />
+//                 </button>
+//               </div>
+              
+//               <p className="text-sm text-gray-600 mb-4">
+//                 Are you sure you want to cancel your appointment with{' '}
+//                 <span className="font-medium">{selectedAppointment.doctor?.name}</span> on{' '}
+//                 {formatDate(selectedAppointment.date)} at {selectedAppointment.time}?
+//               </p>
+
+//               <div className="mb-4">
+//                 <label className="block text-sm font-medium text-gray-700 mb-2">
+//                   Reason for cancellation (optional)
+//                 </label>
+//                 <textarea
+//                   value={cancelReason}
+//                   onChange={(e) => setCancelReason(e.target.value)}
+//                   rows="3"
+//                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                   style={{ borderColor: 'var(--bg-light)' }}
+//                   placeholder="Please tell us why you're cancelling this appointment..."
+//                 />
+//               </div>
+
+//               <div className="flex space-x-3">
+//                 <button
+//                   onClick={() => setShowCancelModal(false)}
+//                   className="flex-1 px-4 py-2 border rounded-lg text-sm font-medium transition"
+//                   style={{ borderColor: 'var(--bg-light)', color: 'var(--accent-color)' }}
+//                 >
+//                   Keep Appointment
+//                 </button>
+//                 <button 
+//                   onClick={handleCancelConfirm} 
+//                   className="flex-1 px-4 py-2 text-white rounded-lg text-sm font-medium transition hover:opacity-90" 
+//                   style={{ backgroundColor: 'var(--secondary-color)' }}
+//                 >
+//                   Yes, Cancel Appointment
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </>
+//       )}
+
+//       {/* Edit Appointment Modal - WITH BLUR EFFECT */}
+//       {showEditModal && selectedAppointment && (
+//         <>
+//           {/* Blur overlay */}
+//           <div className="fixed inset-0 z-40 backdrop-blur-sm bg-white/30"></div>
+          
+//           {/* Modal */}
+//           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+//             <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h3 className="text-lg font-semibold" style={{ color: 'var(--secondary-color)' }}>
+//                   Edit Appointment
+//                 </h3>
+//                 <button 
+//                   onClick={() => setShowEditModal(false)}
+//                   className="p-1 hover:bg-gray-100 rounded-full"
+//                 >
+//                   <FaTimes />
+//                 </button>
+//               </div>
+              
+//               <div className="space-y-4">
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Patient Name
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="patientName"
+//                     value={editForm.patientName}
+//                     onChange={handleEditChange}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Phone Number
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="phoneNo"
+//                     value={editForm.phoneNo}
+//                     onChange={handleEditChange}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Email
+//                   </label>
+//                   <input
+//                     type="email"
+//                     name="email"
+//                     value={editForm.email}
+//                     onChange={handleEditChange}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Date
+//                   </label>
+//                   <input
+//                     type="date"
+//                     name="date"
+//                     value={editForm.date}
+//                     onChange={handleEditChange}
+//                     min={new Date().toISOString().split('T')[0]}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Time
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="time"
+//                     value={editForm.time}
+//                     onChange={handleEditChange}
+//                     placeholder="e.g., 09:00 AM - 09:15 AM"
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+//               </div>
+
+//               <div className="flex space-x-3 mt-6">
+//                 <button
+//                   onClick={() => setShowEditModal(false)}
+//                   className="flex-1 px-4 py-2 border rounded-lg text-sm font-medium transition"
+//                   style={{ borderColor: 'var(--bg-light)', color: 'var(--accent-color)' }}
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   onClick={handleEditSubmit}
+//                   className="flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium transition"
+//                   style={{ backgroundColor: 'var(--primary-color)' }}
+//                 >
+//                   Save Changes
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default MyAppointments;
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import { 
+//   FaCalendarAlt, 
+//   FaClock, 
+//   FaUserMd, 
+//   FaPhone, 
+//   FaMapMarkerAlt, 
+//   FaTimes, 
+//   FaSpinner, 
+//   FaEdit, 
+//   FaTrash 
+// } from 'react-icons/fa';
+// import { getUserAppointments, cancelAppointment } from '../../api/userApi';
+
+// const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
+//   const [appointments, setAppointments] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [cancellingId, setCancellingId] = useState(null);
+//   const [editingId, setEditingId] = useState(null);
+//   const [showCancelModal, setShowCancelModal] = useState(false);
+//   const [showEditModal, setShowEditModal] = useState(false);
+//   const [selectedAppointment, setSelectedAppointment] = useState(null);
+//   const [cancelReason, setCancelReason] = useState('');
+//   const [currentUser, setCurrentUser] = useState(null);
+  
+//   // Edit form state
+//   const [editForm, setEditForm] = useState({
+//     patientName: '',
+//     phoneNo: '',
+//     email: '',
+//     date: '',
+//     time: ''
+//   });
+
+//   useEffect(() => {
+//     // Get current user
+//     const userStr = localStorage.getItem('user');
+//     if (userStr) {
+//       try {
+//         const user = JSON.parse(userStr);
+//         setCurrentUser(user);
+//       } catch (error) {
+//         console.error('Error parsing user:', error);
+//       }
+//     }
+    
+//     fetchAppointments();
+//   }, [refreshTrigger]);
+
+//   const fetchAppointments = async () => {
+//     setLoading(true);
+//     setError(null);
+    
+//     try {
+//       // Try to get from API first
+//       const result = await getUserAppointments();
+      
+//       if (result.success && result.data && result.data.length > 0) {
+//         setAppointments(result.data);
+//         // Update stats in parent component
+//         if (onStatsUpdate) {
+//           onStatsUpdate(result.data.length);
+//         }
+//       } else {
+//         // If API fails or returns no data, try localStorage
+//         const localAppointments = getLocalAppointments();
+//         if (localAppointments && localAppointments.length > 0) {
+//           setAppointments(localAppointments);
+//           if (onStatsUpdate) {
+//             onStatsUpdate(localAppointments.length);
+//           }
+//         } else {
+//           setAppointments([]);
+//           if (onStatsUpdate) {
+//             onStatsUpdate(0);
+//           }
+//         }
+//       }
+//     } catch (err) {
+//       console.error('Error fetching appointments:', err);
+//       // Fallback to localStorage
+//       const localAppointments = getLocalAppointments();
+//       if (localAppointments && localAppointments.length > 0) {
+//         setAppointments(localAppointments);
+//         if (onStatsUpdate) {
+//           onStatsUpdate(localAppointments.length);
+//         }
+//       } else {
+//         setAppointments([]);
+//         if (onStatsUpdate) {
+//           onStatsUpdate(0);
+//         }
+//       }
+//     }
+    
+//     setLoading(false);
+//   };
+
+//   // Get appointments from localStorage
+//   const getLocalAppointments = () => {
+//     try {
+//       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+//       const userKey = user?.id || user?._id || 'guest';
+      
+//       // Try user-specific key first
+//       let appointments = JSON.parse(localStorage.getItem(`appointments_${userKey}`) || '[]');
+      
+//       // If no user-specific appointments, try by phone
+//       if ((!appointments || appointments.length === 0) && (user.phone || user.mobile)) {
+//         const phone = user.phone || user.mobile;
+//         appointments = JSON.parse(localStorage.getItem(`appointments_phone_${phone}`) || '[]');
+//       }
+      
+//       return appointments;
+//     } catch (error) {
+//       console.error('Error getting local appointments:', error);
+//       return [];
+//     }
+//   };
+
+//   const handleCancelClick = (appointment) => {
+//     setSelectedAppointment(appointment);
+//     setShowCancelModal(true);
+//   };
+
+//   const handleEditClick = (appointment) => {
+//     setSelectedAppointment(appointment);
+//     setEditForm({
+//       patientName: appointment.patientName || '',
+//       phoneNo: appointment.phoneNo || '',
+//       email: appointment.email || '',
+//       date: appointment.date || '',
+//       time: appointment.time || ''
+//     });
+//     setShowEditModal(true);
+//   };
+
+//   const handleEditChange = (e) => {
+//     const { name, value } = e.target;
+//     setEditForm(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
+//   };
+
+//   const handleEditSubmit = async () => {
+//     if (!selectedAppointment) return;
+    
+//     setEditingId(selectedAppointment.id);
+//     setShowEditModal(false);
+    
+//     try {
+//       // Update in localStorage
+//       const updated = updateAppointmentInLocal(selectedAppointment.id, editForm);
+      
+//       if (updated) {
+//         // Refresh appointments
+//         await fetchAppointments();
+//       } else {
+//         setError('Failed to update appointment');
+//       }
+//     } catch (err) {
+//       console.error('Error updating appointment:', err);
+//       setError('Failed to update appointment');
+//     }
+    
+//     setEditingId(null);
+//     setSelectedAppointment(null);
+//   };
+
+//   const handleCancelConfirm = async () => {
+//     if (!selectedAppointment) return;
+    
+//     const appointmentId = selectedAppointment._id || selectedAppointment.id;
+//     setCancellingId(appointmentId);
+//     setShowCancelModal(false);
+    
+//     try {
+//       // Try API cancel first
+//       const result = await cancelAppointment(appointmentId, cancelReason);
+      
+//       if (result.success) {
+//         // Remove from localStorage
+//         removeAppointmentFromLocal(appointmentId);
+//         console.log('Appointment cancelled from API');
+//       } else {
+//         // If API fails, still remove from localStorage
+//         removeAppointmentFromLocal(appointmentId);
+//         console.log('Appointment cancelled locally');
+//       }
+      
+//       // Immediately update UI by filtering out the cancelled appointment
+//       const updatedAppointments = appointments.filter(apt => (apt._id || apt.id) !== appointmentId);
+//       setAppointments(updatedAppointments);
+      
+//       // Update stats in parent component
+//       if (onStatsUpdate) {
+//         onStatsUpdate(updatedAppointments.length);
+//       }
+      
+//     } catch (err) {
+//       console.error('Error cancelling appointment:', err);
+//       // Still remove from localStorage even if API fails
+//       removeAppointmentFromLocal(appointmentId);
+      
+//       // Immediately update UI
+//       const updatedAppointments = appointments.filter(apt => (apt._id || apt.id) !== appointmentId);
+//       setAppointments(updatedAppointments);
+      
+//       // Update stats in parent component
+//       if (onStatsUpdate) {
+//         onStatsUpdate(updatedAppointments.length);
+//       }
+//     }
+    
+//     setCancellingId(null);
+//     setCancelReason('');
+//     setSelectedAppointment(null);
+//   };
+
+//   // Update appointment in localStorage
+//   const updateAppointmentInLocal = (appointmentId, updatedData) => {
+//     try {
+//       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+//       const userKey = user?.id || user?._id || 'guest';
+//       const storageKey = `appointments_${userKey}`;
+      
+//       const appointments = JSON.parse(localStorage.getItem(storageKey) || '[]');
+//       const updatedAppointments = appointments.map(apt => {
+//         if (apt.id === appointmentId) {
+//           return {
+//             ...apt,
+//             patientName: updatedData.patientName,
+//             phoneNo: updatedData.phoneNo,
+//             email: updatedData.email,
+//             date: updatedData.date,
+//             time: updatedData.time
+//           };
+//         }
+//         return apt;
+//       });
+      
+//       localStorage.setItem(storageKey, JSON.stringify(updatedAppointments));
+      
+//       // Also update phone-based storage
+//       if (user.phone || user.mobile) {
+//         const phone = user.phone || user.mobile;
+//         const phoneKey = `appointments_phone_${phone}`;
+//         localStorage.setItem(phoneKey, JSON.stringify(updatedAppointments));
+//       }
+      
+//       return true;
+//     } catch (error) {
+//       console.error('Error updating in localStorage:', error);
+//       return false;
+//     }
+//   };
+
+//   // Remove appointment from localStorage (CANCEL)
+//   const removeAppointmentFromLocal = (appointmentId) => {
+//     try {
+//       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+//       const userKey = user?.id || user?._id || 'guest';
+//       const storageKey = `appointments_${userKey}`;
+      
+//       const appointments = JSON.parse(localStorage.getItem(storageKey) || '[]');
+//       // Filter out the appointment with matching id
+//       const updatedAppointments = appointments.filter(apt => 
+//         (apt.id !== appointmentId) && (apt._id !== appointmentId)
+//       );
+      
+//       localStorage.setItem(storageKey, JSON.stringify(updatedAppointments));
+      
+//       // Also update phone-based storage
+//       if (user.phone || user.mobile) {
+//         const phone = user.phone || user.mobile;
+//         const phoneKey = `appointments_phone_${phone}`;
+//         localStorage.setItem(phoneKey, JSON.stringify(updatedAppointments));
+//       }
+      
+//       return true;
+//     } catch (error) {
+//       console.error('Error removing from localStorage:', error);
+//       return false;
+//     }
+//   };
+
+//   const formatDate = (dateString) => {
+//     if (!dateString) return 'N/A';
+//     const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+//     return new Date(dateString).toLocaleDateString('en-PK', options);
+//   };
+
+//   const getStatusBadge = (status) => {
+//     const statusConfig = {
+//       pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
+//       confirmed: { color: 'bg-green-100 text-green-800', label: 'Confirmed' },
+//       cancelled: { color: 'bg-red-100 text-red-800', label: 'Cancelled' },
+//       completed: { color: 'bg-blue-100 text-blue-800', label: 'Completed' },
+//       'no-show': { color: 'bg-gray-100 text-gray-800', label: 'No Show' }
+//     };
+
+//     const config = statusConfig[status] || statusConfig.pending;
+    
+//     return (
+//       <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
+//         {config.label}
+//       </span>
+//     );
+//   };
+
+//   const getDoctorImage = (appointment) => {
+//     // Try to get doctor image from various sources
+//     if (appointment.doctor?.image) {
+//       if (appointment.doctor.image.startsWith('http')) {
+//         return appointment.doctor.image;
+//       }
+//       return `http://localhost:5000${appointment.doctor.image}`;
+//     }
+     
+//     // Default placeholder
+//     return 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="bg-white rounded-xl shadow-sm p-8">
+//         <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--secondary-color)' }}>
+//           My Appointments
+//         </h2>
+//         <div className="flex justify-center items-center py-12">
+//           <FaSpinner className="animate-spin text-3xl" style={{ color: 'var(--primary-color)' }} />
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+//       {/* Header */}
+//       <div className="p-6 border-b border-gray-100">
+//         <h2 className="text-xl font-semibold" style={{ color: 'var(--secondary-color)' }}>
+//           My Appointments
+//         </h2>
+//         <p className="text-sm mt-1" style={{ color: 'var(--accent-color)' }}>
+//           View and manage your appointments
+//         </p>
+//       </div>
+
+//       {/* Error Message */}
+//       {error && (
+//         <div className="mx-6 mt-4 p-4 bg-red-50 rounded-lg">
+//           <p className="text-sm text-red-700">{error}</p>
+//           <button 
+//             onClick={() => setError(null)}
+//             className="mt-2 text-sm font-medium text-red-700 hover:text-red-800"
+//           >
+//             Dismiss
+//           </button>
+//         </div>
+//       )}
+
+//       {/* Appointments List */}
+//       <div className="p-6">
+//         {!appointments || appointments.length === 0 ? (
+//           <div className="text-center py-12">
+//             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+//               <FaCalendarAlt className="text-3xl" style={{ color: 'var(--accent-color)' }} />
+//             </div>
+//             <h3 className="text-lg font-medium text-gray-900 mb-2">No Appointments</h3>
+//             <p className="text-sm text-gray-500 mb-4">You haven't booked any appointments yet</p>
+//             <button 
+//               className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition"
+//               style={{ backgroundColor: 'var(--primary-color)' }}
+//               onClick={() => window.location.href = '/doctors'}
+//             >
+//               Book Appointment
+//             </button>
+//           </div>
+//         ) : (
+//           <div className="space-y-4">
+//             {appointments.map((appointment) => {
+//               const appointmentId = appointment._id || appointment.id;
+//               const isCancelling = cancellingId === appointmentId;
+              
+//               return (
+//                 <div 
+//                   key={appointmentId}
+//                   className={`border rounded-xl p-5 hover:shadow-md transition-all relative ${
+//                     isCancelling ? 'opacity-50 pointer-events-none' : ''
+//                   }`}
+//                   style={{ borderColor: 'var(--bg-light)' }}
+//                 >
+//                   {/* Status Badge */}
+//                   <div className="absolute top-4 right-4">
+//                     {getStatusBadge(appointment.status)}
+//                   </div>
+
+//                   {/* Doctor Info */}
+//                   <div className="flex items-start space-x-4 mb-4">
+//                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+//                       <img 
+//                         src={getDoctorImage(appointment)} 
+//                         alt={appointment.doctor?.name || 'Doctor'}
+//                         className="w-full h-full object-cover"
+//                         onError={(e) => {
+//                           e.target.onerror = null;
+//                           e.target.src = 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
+//                         }}
+//                       />
+//                     </div>
+//                     <div className="flex-1">
+//                       <h3 className="font-semibold text-lg" style={{ color: 'var(--secondary-color)' }}>
+//                         {appointment.doctor?.name || 'Doctor'}
+//                       </h3>
+//                       <p className="text-sm" style={{ color: 'var(--accent-color)' }}>
+//                         {appointment.doctor?.speciality || 'General Physician'}
+//                       </p>
+//                     </div>
+//                   </div>
+
+//                   {/* Appointment Details Grid */}
+//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+//                     <div className="flex items-center space-x-3">
+//                       <FaCalendarAlt className="text-sm" style={{ color: 'var(--accent-color)' }} />
+//                       <div>
+//                         <p className="text-xs text-gray-500">Date</p>
+//                         <p className="text-sm font-medium">{formatDate(appointment.date)}</p>
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center space-x-3">
+//                       <FaClock className="text-sm" style={{ color: 'var(--accent-color)' }} />
+//                       <div>
+//                         <p className="text-xs text-gray-500">Time</p>
+//                         <p className="text-sm font-medium">{appointment.time}</p>
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center space-x-3">
+//                       <FaPhone className="text-sm" style={{ color: 'var(--accent-color)' }} />
+//                       <div>
+//                         <p className="text-xs text-gray-500">Contact</p>
+//                         <p className="text-sm font-medium">{appointment.phoneNo}</p>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   {/* Action Buttons - Show for all appointments that are not completed */}
+//                   {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
+//                     <div className="flex justify-end space-x-3 pt-3 border-t" style={{ borderColor: 'var(--bg-light)' }}>
+//                       <button 
+//                         className="px-4 py-2 text-sm rounded-lg border transition flex items-center gap-2"
+//                         style={{ 
+//                           borderColor: 'var(--primary-color)', 
+//                           color: 'var(--primary-color)',
+//                           backgroundColor: 'transparent'
+//                         }}
+//                         onClick={() => handleEditClick(appointment)}
+//                         disabled={isCancelling || editingId === appointmentId}
+//                       >
+//                         {editingId === appointmentId ? (
+//                           <FaSpinner className="animate-spin" />
+//                         ) : (
+//                           <>
+//                             <FaEdit /> Edit
+//                           </>
+//                         )}
+//                       </button>
+//                       <button 
+//                         className="px-4 py-2 text-sm rounded-lg text-white transition hover:opacity-90 flex items-center gap-2"
+//                         style={{ backgroundColor: '#174047' }}
+//                         onClick={() => handleCancelClick(appointment)}
+//                         disabled={isCancelling}
+//                       >
+//                         {isCancelling ? (
+//                           <FaSpinner className="animate-spin" />
+//                         ) : (
+//                           <>
+//                             <FaTrash /> Cancel
+//                           </>
+//                         )}
+//                       </button>
+//                     </div>
+//                   )}
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Cancel Confirmation Modal - WITH BLUR EFFECT */}
+//       {showCancelModal && selectedAppointment && (
+//         <>
+//           {/* Blur overlay */}
+//           <div className="fixed inset-0 z-40 backdrop-blur-sm bg-white/30"></div>
+          
+//           {/* Modal */}
+//           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+//             <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h3 className="text-lg font-semibold" style={{ color: 'var(--secondary-color)' }}>
+//                   Cancel Appointment
+//                 </h3>
+//                 <button 
+//                   onClick={() => setShowCancelModal(false)}
+//                   className="p-1 hover:bg-gray-100 rounded-full"
+//                 >
+//                   <FaTimes />
+//                 </button>
+//               </div>
+              
+//               <p className="text-sm text-gray-600 mb-4">
+//                 Are you sure you want to cancel your appointment with{' '}
+//                 <span className="font-medium">{selectedAppointment.doctor?.name}</span> on{' '}
+//                 {formatDate(selectedAppointment.date)} at {selectedAppointment.time}?
+//               </p>
+
+//               <div className="mb-4">
+//                 <label className="block text-sm font-medium text-gray-700 mb-2">
+//                   Reason for cancellation (optional)
+//                 </label>
+//                 <textarea
+//                   value={cancelReason}
+//                   onChange={(e) => setCancelReason(e.target.value)}
+//                   rows="3"
+//                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                   style={{ borderColor: 'var(--bg-light)' }}
+//                   placeholder="Please tell us why you're cancelling this appointment..."
+//                 />
+//               </div>
+
+//               <div className="flex space-x-3">
+//                 <button
+//                   onClick={() => setShowCancelModal(false)}
+//                   className="flex-1 px-4 py-2 border rounded-lg text-sm font-medium transition"
+//                   style={{ borderColor: 'var(--bg-light)', color: 'var(--accent-color)' }}
+//                 >
+//                   Keep Appointment
+//                 </button>
+//                 <button 
+//                   onClick={handleCancelConfirm} 
+//                   className="flex-1 px-4 py-2 text-white rounded-lg text-sm font-medium transition hover:opacity-90" 
+//                   style={{ backgroundColor: 'var(--secondary-color)' }}
+//                 >
+//                   Yes, Cancel Appointment
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </>
+//       )}
+
+//       {/* Edit Appointment Modal - WITH BLUR EFFECT */}
+//       {showEditModal && selectedAppointment && (
+//         <>
+//           {/* Blur overlay */}
+//           <div className="fixed inset-0 z-40 backdrop-blur-sm bg-white/30"></div>
+          
+//           {/* Modal */}
+//           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+//             <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h3 className="text-lg font-semibold" style={{ color: 'var(--secondary-color)' }}>
+//                   Edit Appointment
+//                 </h3>
+//                 <button 
+//                   onClick={() => setShowEditModal(false)}
+//                   className="p-1 hover:bg-gray-100 rounded-full"
+//                 >
+//                   <FaTimes />
+//                 </button>
+//               </div>
+              
+//               <div className="space-y-4">
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Patient Name
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="patientName"
+//                     value={editForm.patientName}
+//                     onChange={handleEditChange}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Phone Number
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="phoneNo"
+//                     value={editForm.phoneNo}
+//                     onChange={handleEditChange}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Email
+//                   </label>
+//                   <input
+//                     type="email"
+//                     name="email"
+//                     value={editForm.email}
+//                     onChange={handleEditChange}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Date
+//                   </label>
+//                   <input
+//                     type="date"
+//                     name="date"
+//                     value={editForm.date}
+//                     onChange={handleEditChange}
+//                     min={new Date().toISOString().split('T')[0]}
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                     Time
+//                   </label>
+//                   <input
+//                     type="text"
+//                     name="time"
+//                     value={editForm.time}
+//                     onChange={handleEditChange}
+//                     placeholder="e.g., 09:00 AM - 09:15 AM"
+//                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+//                     style={{ borderColor: 'var(--bg-light)' }}
+//                   />
+//                 </div>
+//               </div>
+
+//               <div className="flex space-x-3 mt-6">
+//                 <button
+//                   onClick={() => setShowEditModal(false)}
+//                   className="flex-1 px-4 py-2 border rounded-lg text-sm font-medium transition"
+//                   style={{ borderColor: 'var(--bg-light)', color: 'var(--accent-color)' }}
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   onClick={handleEditSubmit}
+//                   className="flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium transition"
+//                   style={{ backgroundColor: 'var(--primary-color)' }}
+//                 >
+//                   Save Changes
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default MyAppointments;
+
+
 import React, { useState, useEffect } from 'react';
-import { FaCalendarAlt, FaClock, FaUserMd, FaPhone, FaMapMarkerAlt, FaTimes, FaSpinner, FaEdit, FaTrash } from 'react-icons/fa';
+import { 
+  FaCalendarAlt, 
+  FaClock, 
+  FaUserMd, 
+  FaPhone, 
+  FaMapMarkerAlt, 
+  FaTimes, 
+  FaSpinner, 
+  FaEdit, 
+  FaTrash 
+} from 'react-icons/fa';
 import { getUserAppointments, cancelAppointment } from '../../api/userApi';
+import axios from 'axios';
 
 const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
   const [appointments, setAppointments] = useState([]);
@@ -22,9 +1374,12 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     date: '',
     time: ''
   });
+  const [doctor, setDoctor] = useState(null);
+  const [slots, setSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loadingDoctor, setLoadingDoctor] = useState(false);
 
   useEffect(() => {
-    // Get current user
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
@@ -43,17 +1398,14 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     setError(null);
     
     try {
-      // Try to get from API first
       const result = await getUserAppointments();
       
       if (result.success && result.data && result.data.length > 0) {
         setAppointments(result.data);
-        // Update stats in parent component
         if (onStatsUpdate) {
           onStatsUpdate(result.data.length);
         }
       } else {
-        // If API fails or returns no data, try localStorage
         const localAppointments = getLocalAppointments();
         if (localAppointments && localAppointments.length > 0) {
           setAppointments(localAppointments);
@@ -69,7 +1421,6 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
       }
     } catch (err) {
       console.error('Error fetching appointments:', err);
-      // Fallback to localStorage
       const localAppointments = getLocalAppointments();
       if (localAppointments && localAppointments.length > 0) {
         setAppointments(localAppointments);
@@ -87,16 +1438,13 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     setLoading(false);
   };
 
-  // Get appointments from localStorage
   const getLocalAppointments = () => {
     try {
       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
       const userKey = user?.id || user?._id || 'guest';
       
-      // Try user-specific key first
       let appointments = JSON.parse(localStorage.getItem(`appointments_${userKey}`) || '[]');
       
-      // If no user-specific appointments, try by phone
       if ((!appointments || appointments.length === 0) && (user.phone || user.mobile)) {
         const phone = user.phone || user.mobile;
         appointments = JSON.parse(localStorage.getItem(`appointments_phone_${phone}`) || '[]');
@@ -109,12 +1457,55 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     }
   };
 
+  const fetchDoctorDetails = async (doctorId) => {
+    if (!doctorId) return null;
+    
+    setLoadingDoctor(true);
+    try {
+      const response = await axios.get(`http://localhost:5000/api/doctors/${doctorId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching doctor:', error);
+      return null;
+    } finally {
+      setLoadingDoctor(false);
+    }
+  };
+
+  const fetchAvailableSlots = async (doctorId, selectedDate) => {
+    if (!selectedDate || !doctorId) return;
+    
+    setLoadingSlots(true);
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/appointments/slots",
+        { params: { doctorId, date: selectedDate } },
+      );
+
+      if (res.data.success) {
+        setSlots(
+          res.data.availableSlots.map(
+            (s) => `${s.startTime12} - ${s.endTime12}`,
+          ),
+        );
+      } else {
+        setSlots([]);
+      }
+    } catch {
+      setSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
   const handleCancelClick = (appointment) => {
     setSelectedAppointment(appointment);
     setShowCancelModal(true);
   };
 
-  const handleEditClick = (appointment) => {
+  const handleEditClick = async (appointment) => {
+    console.log("Edit clicked for appointment:", appointment);
+    
     setSelectedAppointment(appointment);
     setEditForm({
       patientName: appointment.patientName || '',
@@ -123,6 +1514,38 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
       date: appointment.date || '',
       time: appointment.time || ''
     });
+    
+    // Get doctor ID from appointment
+    const doctorId = appointment.doctor?.id || appointment.doctorId || appointment.doctor?._id;
+    console.log("Doctor ID:", doctorId);
+    
+    if (doctorId) {
+      // Fetch doctor details
+      const doctorData = await fetchDoctorDetails(doctorId);
+      if (doctorData) {
+        setDoctor(doctorData);
+        console.log("Doctor data fetched:", doctorData);
+      } else {
+        // If API fails, create a default doctor object from appointment data
+        setDoctor({
+          name: appointment.doctor?.name || 'Doctor',
+          speciality: appointment.doctor?.speciality || 'General Physician'
+        });
+      }
+      
+      // Fetch available slots for the current date
+      if (appointment.date) {
+        await fetchAvailableSlots(doctorId, appointment.date);
+      }
+    } else {
+      // If no doctor ID, create a default doctor object
+      setDoctor({
+        name: appointment.doctor?.name || 'Doctor',
+        speciality: appointment.doctor?.speciality || 'General Physician'
+      });
+    }
+    
+    // Open modal regardless of doctor data
     setShowEditModal(true);
   };
 
@@ -134,11 +1557,52 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     }));
   };
 
+  const handleDateChange = async (e) => {
+    const selectedDate = e.target.value;
+    setEditForm(prev => ({ ...prev, date: selectedDate, time: '' }));
+    
+    if (!selectedDate) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (new Date(selectedDate) < today) {
+      setError("Cannot select past dates");
+      return;
+    }
+
+    // Fetch slots for the new date
+    const doctorId = selectedAppointment?.doctor?.id || selectedAppointment?.doctorId;
+    if (doctorId) {
+      await fetchAvailableSlots(doctorId, selectedDate);
+    }
+  };
+
   const handleEditSubmit = async () => {
     if (!selectedAppointment) return;
     
+    // Validation
+    if (!editForm.patientName.trim()) {
+      setError("Enter patient name");
+      return;
+    }
+    
+    if (!/^03\d{9}$/.test(editForm.phoneNo)) {
+      setError("Enter valid Pakistani phone number (03XXXXXXXXX)");
+      return;
+    }
+    
+    if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
+      setError("Enter valid email address");
+      return;
+    }
+    
+    if (!editForm.date || !editForm.time) {
+      setError("Please select both date and time");
+      return;
+    }
+    
     setEditingId(selectedAppointment.id);
-    setShowEditModal(false);
     
     try {
       // Update in localStorage
@@ -147,6 +1611,11 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
       if (updated) {
         // Refresh appointments
         await fetchAppointments();
+        setShowEditModal(false);
+        setSelectedAppointment(null);
+        setDoctor(null);
+        setSlots([]);
+        setError(null);
       } else {
         setError('Failed to update appointment');
       }
@@ -156,7 +1625,6 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     }
     
     setEditingId(null);
-    setSelectedAppointment(null);
   };
 
   const handleCancelConfirm = async () => {
@@ -167,38 +1635,28 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     setShowCancelModal(false);
     
     try {
-      // Try API cancel first
       const result = await cancelAppointment(appointmentId, cancelReason);
       
       if (result.success) {
-        // Remove from localStorage
         removeAppointmentFromLocal(appointmentId);
-        console.log('Appointment cancelled from API');
       } else {
-        // If API fails, still remove from localStorage
         removeAppointmentFromLocal(appointmentId);
-        console.log('Appointment cancelled locally');
       }
       
-      // Immediately update UI by filtering out the cancelled appointment
       const updatedAppointments = appointments.filter(apt => (apt._id || apt.id) !== appointmentId);
       setAppointments(updatedAppointments);
       
-      // Update stats in parent component
       if (onStatsUpdate) {
         onStatsUpdate(updatedAppointments.length);
       }
       
     } catch (err) {
       console.error('Error cancelling appointment:', err);
-      // Still remove from localStorage even if API fails
       removeAppointmentFromLocal(appointmentId);
       
-      // Immediately update UI
       const updatedAppointments = appointments.filter(apt => (apt._id || apt.id) !== appointmentId);
       setAppointments(updatedAppointments);
       
-      // Update stats in parent component
       if (onStatsUpdate) {
         onStatsUpdate(updatedAppointments.length);
       }
@@ -209,7 +1667,6 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     setSelectedAppointment(null);
   };
 
-  // Update appointment in localStorage
   const updateAppointmentInLocal = (appointmentId, updatedData) => {
     try {
       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
@@ -233,7 +1690,6 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
       
       localStorage.setItem(storageKey, JSON.stringify(updatedAppointments));
       
-      // Also update phone-based storage
       if (user.phone || user.mobile) {
         const phone = user.phone || user.mobile;
         const phoneKey = `appointments_phone_${phone}`;
@@ -247,7 +1703,6 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
     }
   };
 
-  // Remove appointment from localStorage (CANCEL)
   const removeAppointmentFromLocal = (appointmentId) => {
     try {
       const user = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
@@ -255,14 +1710,12 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
       const storageKey = `appointments_${userKey}`;
       
       const appointments = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      // Filter out the appointment with matching id
       const updatedAppointments = appointments.filter(apt => 
         (apt.id !== appointmentId) && (apt._id !== appointmentId)
       );
       
       localStorage.setItem(storageKey, JSON.stringify(updatedAppointments));
       
-      // Also update phone-based storage
       if (user.phone || user.mobile) {
         const phone = user.phone || user.mobile;
         const phoneKey = `appointments_phone_${phone}`;
@@ -301,11 +1754,13 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
   };
 
   const getDoctorImage = (appointment) => {
-    // Try to get doctor image from various sources
     if (appointment.doctor?.image) {
-      return appointment.doctor.image;
+      if (appointment.doctor.image.startsWith('http')) {
+        return appointment.doctor.image;
+      }
+      return `http://localhost:5000${appointment.doctor.image}`;
     }
-    // Default placeholder
+     
     return 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
   };
 
@@ -389,7 +1844,7 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
                       <img 
                         src={getDoctorImage(appointment)} 
                         alt={appointment.doctor?.name || 'Doctor'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                         onError={(e) => {
                           e.target.onerror = null;
                           e.target.src = 'https://cdn-icons-png.flaticon.com/512/3774/3774299.png';
@@ -431,8 +1886,8 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
                     </div>
                   </div>
 
-                  {/* Action Buttons - Show for all appointments that are not completed */}
-                  {appointment.status !== 'completed' && (
+                  {/* Action Buttons */}
+                  {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
                     <div className="flex justify-end space-x-3 pt-3 border-t" style={{ borderColor: 'var(--bg-light)' }}>
                       <button 
                         className="px-4 py-2 text-sm rounded-lg border transition flex items-center gap-2"
@@ -475,13 +1930,11 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
         )}
       </div>
 
-      {/* Cancel Confirmation Modal - WITH BLUR EFFECT */}
+      {/* Cancel Confirmation Modal */}
       {showCancelModal && selectedAppointment && (
         <>
-          {/* Blur overlay */}
           <div className="fixed inset-0 z-40 backdrop-blur-sm bg-white/30"></div>
           
-          {/* Modal */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
               <div className="flex justify-between items-center mb-4">
@@ -537,116 +1990,182 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
         </>
       )}
 
-      {/* Edit Appointment Modal - WITH BLUR EFFECT */}
+      {/* Edit Appointment Modal - Removed doctor condition */}
       {showEditModal && selectedAppointment && (
         <>
-          {/* Blur overlay */}
           <div className="fixed inset-0 z-40 backdrop-blur-sm bg-white/30"></div>
           
-          {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--secondary-color)' }}>
-                  Edit Appointment
-                </h3>
-                <button 
-                  onClick={() => setShowEditModal(false)}
-                  className="p-1 hover:bg-gray-100 rounded-full"
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-xl rounded-2xl shadow-xl overflow-hidden bg-white">
+              <div
+                className="p-6 text-white flex justify-between items-center"
+                style={{ backgroundColor: "var(--primary-color)" }}
+              >
+                <div>
+                  <h2 className="text-2xl font-bold">Edit Appointment</h2>
+                  <p className="text-sm opacity-90">Update your appointment details</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedAppointment(null);
+                    setDoctor(null);
+                    setSlots([]);
+                  }}
+                  className="text-white hover:opacity-80 text-2xl"
                 >
-                  <FaTimes />
+                  ×
                 </button>
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Patient Name
-                  </label>
-                  <input
-                    type="text"
-                    name="patientName"
-                    value={editForm.patientName}
-                    onChange={handleEditChange}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--bg-light)' }}
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="text"
-                    name="phoneNo"
-                    value={editForm.phoneNo}
-                    onChange={handleEditChange}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--bg-light)' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={editForm.email}
-                    onChange={handleEditChange}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--bg-light)' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={editForm.date}
-                    onChange={handleEditChange}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--bg-light)' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time
-                  </label>
-                  <input
-                    type="text"
-                    name="time"
-                    value={editForm.time}
-                    onChange={handleEditChange}
-                    placeholder="e.g., 09:00 AM - 09:15 AM"
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                    style={{ borderColor: 'var(--bg-light)' }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-3 mt-6">
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 border rounded-lg text-sm font-medium transition"
-                  style={{ borderColor: 'var(--bg-light)', color: 'var(--accent-color)' }}
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                {/* Doctor Info - Show loading or default */}
+                <div
+                  className="p-4 rounded-lg"
+                  style={{ backgroundColor: "var(--bg-light)" }}
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleEditSubmit}
-                  className="flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium transition"
-                  style={{ backgroundColor: 'var(--primary-color)' }}
-                >
-                  Save Changes
-                </button>
+                  {loadingDoctor ? (
+                    <div className="flex justify-center">
+                      <FaSpinner className="animate-spin" style={{ color: 'var(--primary-color)' }} />
+                    </div>
+                  ) : (
+                    <>
+                      <p className="font-semibold">{doctor?.name || selectedAppointment.doctor?.name || 'Doctor'}</p>
+                      <p className="text-sm">{doctor?.speciality || selectedAppointment.doctor?.speciality || 'General Physician'}</p>
+                    </>
+                  )}
+                </div>
+
+                {/* Patient Name */}
+                <input
+                  className="w-full p-3 rounded border focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Patient Name"
+                  name="patientName"
+                  value={editForm.patientName}
+                  onChange={handleEditChange}
+                  style={{ borderColor: "var(--bg-light)" }}
+                />
+
+                {/* Phone Number */}
+                <input
+                  className="w-full p-3 rounded border focus:outline-none focus:ring-2"
+                  placeholder="03XXXXXXXXX"
+                  name="phoneNo"
+                  value={editForm.phoneNo}
+                  maxLength={11}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    if (value.length <= 11) {
+                      setEditForm(prev => ({ ...prev, phoneNo: value }));
+                    }
+                  }}
+                  style={{ borderColor: "var(--bg-light)" }}
+                />
+
+                {/* Email */}
+                <input
+                  className="w-full p-3 rounded border focus:outline-none focus:ring-2"
+                  type="email"
+                  placeholder="Email (optional)"
+                  name="email"
+                  value={editForm.email}
+                  onChange={handleEditChange}
+                  style={{ borderColor: "var(--bg-light)" }}
+                />
+
+                {/* Date */}
+                <input
+                  type="date"
+                  className="w-full p-3 rounded border focus:outline-none focus:ring-2"
+                  value={editForm.date}
+                  onChange={handleDateChange}
+                  min={new Date().toISOString().split("T")[0]}
+                  style={{ borderColor: "var(--bg-light)" }}
+                />
+
+                {/* Time Slots */}
+                {loadingSlots ? (
+                  <div className="flex justify-center py-4">
+                    <FaSpinner className="animate-spin text-2xl" style={{ color: 'var(--primary-color)' }} />
+                  </div>
+                ) : slots.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {slots.map((slot, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setEditForm(prev => ({ ...prev, time: slot }))}
+                        className="px-4 py-2 rounded-full border transition"
+                        style={{
+                          backgroundColor: editForm.time === slot
+                            ? "var(--primary-color)"
+                            : "var(--white)",
+                          color: editForm.time === slot
+                            ? "var(--white)"
+                            : "var(--secondary-color)",
+                          borderColor: "var(--bg-light)"
+                        }}
+                      >
+                        {slot}
+                      </button>
+                    ))}
+                  </div>
+                ) : editForm.date ? (
+                  <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+                    No slots available for this date
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+                    Select a date to see available slots
+                  </div>
+                )}
+
+                {/* Manual time input (if slots not available) */}
+                {!loadingSlots && slots.length === 0 && editForm.date && (
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Or enter time manually:
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full p-3 rounded border"
+                      placeholder="e.g., 09:00 AM - 09:15 AM"
+                      value={editForm.time}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, time: e.target.value }))}
+                      style={{ borderColor: "var(--bg-light)" }}
+                    />
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setSelectedAppointment(null);
+                      setDoctor(null);
+                      setSlots([]);
+                    }}
+                    className="flex-1 py-3 rounded border transition"
+                    style={{
+                      borderColor: "var(--primary-color)",
+                      color: "var(--primary-color)",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleEditSubmit}
+                    disabled={editingId === selectedAppointment.id}
+                    className="flex-1 py-3 rounded text-white transition hover:opacity-90"
+                    style={{ backgroundColor: "var(--primary-color)" }}
+                  >
+                    {editingId === selectedAppointment.id ? (
+                      <FaSpinner className="animate-spin mx-auto" />
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -657,3 +2176,5 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
 };
 
 export default MyAppointments;
+
+

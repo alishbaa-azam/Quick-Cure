@@ -7185,7 +7185,7 @@ const DoctorRegistration = () => {
       )}
 
       {/* Add CSS for react-select */}
-      <style jsx>{`
+      <style>{`
         .react-select-container {
           width: 100%;
         }

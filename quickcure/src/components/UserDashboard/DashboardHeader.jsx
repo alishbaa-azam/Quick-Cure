@@ -29,12 +29,12 @@ const DashboardHeader = ({ user, onLogout }) => {
         <div className="flex justify-between items-center h-25">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
-            <div 
+            {/* <div 
               className="w-10 h-10 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: 'var(--primary-color)' }}
             >
               <span className="text-white font-bold text-xl">QC</span>
-            </div>
+            </div> */}
             <div>
               <h1 className="text-xl font-semibold" style={{ color: 'var(--secondary-color)' }}>
                 User Dashboard
