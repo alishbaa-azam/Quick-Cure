@@ -11,6 +11,7 @@ import Footer from "./components/footer";
 import Home from "./components/Home/home";
 // import AboutContactPage from './components/AboutContactPage';
 // import Contact from './components/ContactPage.jsx';
+import AboutUs from "./components/AboutUs";
 
 //------------Doctor Module---------------------------------------//
 
@@ -97,6 +98,7 @@ function Layout() {
       <Routes>
         <Route path="/" element={<Home />} />
         {/* <Route path="/about" element={<AboutContactPage />} /> */}
+        <Route path="/about" element={<AboutUs />} />
         <Route path="/login" element={<LoginPage />} />
         {/* <Route path="/contact" element={<Contact />} /> */}
 {/* //-------------------------Doctor Module---------------------------------------// */}

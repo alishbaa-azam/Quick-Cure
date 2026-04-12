@@ -1,2632 +1,1056 @@
-// import React, { useState, useEffect, useRef } from "react";
-// import {
-//   FaStore,
-//   FaUser,
-//   FaCertificate,
-//   FaMapMarkerAlt,
-//   FaLock,
-//   FaTruck,
-//   FaClock,
-//   FaPhone,
-//   FaEnvelope,
-//   FaEye,
-//   FaEdit
-// } from "react-icons/fa";
-
-// const PharmacyRegistration = () => {
-//   const [step, setStep] = useState(1);
-//   const [formData, setFormData] = useState({
-//     // Step 1: Pharmacy Details
-//     pharmacyName: "",
-//     pharmacyType: "",
-//     licenseNumber: "",
-//     licenseExpiry: "",
-//     yearEstablished: "",
-
-//     // Step 2: Contact Information
-//     ownerName: "",
-//     email: "",
-//     phone: "",
-
-//     // Step 3: Location & Operation
-//     address: "",
-//     city: "",
-//     state: "",
-//     zipCode: "",
-//     deliveryRadius: "",
-//     operationHours: "",
-//     workingDays: [],
-
-//     // Step 4: Services & Documents
-//     services: [],
-//     deliveryAvailable: false,
-//     acceptsInsurance: false,
-//     hasEmergencyDelivery: false,
-//     licenseFile: null,
-//     taxCertificate: null,
-//     ownerIdProof: null,
-
-//     // Step 5: Security
-//     password: "",
-//     confirmPassword: "",
-//   });
-
-//   const [errors, setErrors] = useState({});
-//   const [passwordStrength, setPasswordStrength] = useState("");
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [submitSuccess, setSubmitSuccess] = useState(false);
-//   const [apiError, setApiError] = useState("");
-  
-//   // Ref for the main container to scroll to top
-//   const containerRef = useRef(null);
-
-//   const steps = [
-//     { icon: <FaStore />, label: "Pharmacy Details" },
-//     { icon: <FaUser />, label: "Contact Info" },
-//     { icon: <FaMapMarkerAlt />, label: "Location" },
-//     { icon: <FaCertificate />, label: "Documents" },
-//     { icon: <FaLock />, label: "Security" },
-//     { icon: <FaEye />, label: "Review" },
-//   ];
-
-//   // Scroll to top whenever step changes
-//   useEffect(() => {
-//     // Scroll window to top
-//     window.scrollTo({
-//       top: 0,
-//       behavior: "smooth"
-//     });
-    
-//     // Also scroll the container to top if it exists
-//     if (containerRef.current) {
-//       containerRef.current.scrollTop = 0;
-//     }
-//   }, [step]);
-
-//   const pharmacyTypes = [
-//     "Retail Pharmacy",
-//     "Hospital Pharmacy", 
-//     "Chain Pharmacy",
-//     "Independent Pharmacy",
-//     "Compounding Pharmacy",
-//     "Online Pharmacy"
-//   ];
-
-//   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  
-//   const serviceOptions = [
-//     "Medicine Delivery",
-//     "Prescription Refill",
-//     "OTC Products",
-//     "Medical Equipment",
-//     "Vaccination Services",
-//     "Health Check-ups",
-//     "24/7 Emergency",
-//     "Online Consultation",
-//     "Chronic Disease Management"
-//   ];
-
-//   const handleChange = (e) => {
-//     const { name, value, files, type, checked } = e.target;
-
-//     if (type === "checkbox") {
-//       if (name === "services") {
-//         setFormData((prev) => {
-//           const newServices = checked
-//             ? [...prev.services, value]
-//             : prev.services.filter((service) => service !== value);
-//           return { ...prev, services: newServices };
-//         });
-//       } else if (name === "workingDays") {
-//         setFormData((prev) => {
-//           const newDays = checked
-//             ? [...prev.workingDays, value]
-//             : prev.workingDays.filter((day) => day !== value);
-//           return { ...prev, workingDays: newDays };
-//         });
-//       } else {
-//         setFormData({
-//           ...formData,
-//           [name]: checked,
-//         });
-//       }
-//     } else if (type === "file") {
-//       setFormData({
-//         ...formData,
-//         [name]: files ? files[0] : null,
-//       });
-//     } else {
-//       // Special handling for phone number input
-//       if (name === "phone") {
-//         // Remove non-digit characters
-//         const digitsOnly = value.replace(/\D/g, '');
-        
-//         // Limit to 11 digits
-//         const limitedDigits = digitsOnly.slice(0, 11);
-        
-//         // Add country code if starting with 0 (for Pakistan)
-//         let formattedPhone = limitedDigits;
-//         if (limitedDigits.length > 0 && limitedDigits[0] === '0') {
-//           formattedPhone = `+92${limitedDigits.slice(1)}`;
-//         }
-        
-//         setFormData({
-//           ...formData,
-//           [name]: limitedDigits, // Store only digits
-//         });
-//       } else {
-//         setFormData({
-//           ...formData,
-//           [name]: value,
-//         });
-//       }
-//     }
-
-//     if (name === "password") evaluatePasswordStrength(value);
-//     // Clear API error when user starts typing
-//     if (apiError) setApiError("");
-//   };
-
-//   const evaluatePasswordStrength = (password) => {
-//     if (password.length < 8) setPasswordStrength("Weak");
-//     else if (password.match(/^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/))
-//       setPasswordStrength("Strong");
-//     else setPasswordStrength("Medium");
-//   };
-
-//   const validateStep = () => {
-//     let newErrors = {};
-
-//     if (step === 1) {
-//       if (!formData.pharmacyName.trim()) newErrors.pharmacyName = "Pharmacy name is required";
-//       if (!formData.pharmacyType) newErrors.pharmacyType = "Pharmacy type is required";
-//       if (!formData.licenseNumber.trim()) newErrors.licenseNumber = "License number is required";
-//       if (!formData.licenseExpiry) newErrors.licenseExpiry = "License expiry date is required";
-//       if (!formData.yearEstablished) newErrors.yearEstablished = "Year established is required";
-
-//     } else if (step === 2) {
-//       if (!formData.ownerName.trim()) newErrors.ownerName = "Owner name is required";
-//       if (!formData.email.trim()) newErrors.email = "Email is required";
-//       else if (!/\S+@\S+\.\S+/.test(formData.email))
-//         newErrors.email = "Enter a valid email";
-      
-//       // Updated phone validation for exactly 11 digits
-//       if (!formData.phone.trim()) {
-//         newErrors.phone = "Phone number is required";
-//       } else {
-//         const phoneDigits = formData.phone.replace(/\D/g, '');
-//         if (phoneDigits.length !== 11) {
-//           newErrors.phone = "Phone number must be exactly 11 digits";
-//         } else if (!/^03[0-9]{9}$/.test(phoneDigits)) {
-//           newErrors.phone = "Phone number must start with 03 and be 11 digits total";
-//         }
-//       }
-
-//     } else if (step === 3) {
-//       if (!formData.address.trim()) newErrors.address = "Address is required";
-//       if (!formData.city.trim()) newErrors.city = "City is required";
-//       if (!formData.state.trim()) newErrors.state = "State is required";
-//       if (!formData.zipCode.trim()) newErrors.zipCode = "ZIP code is required";
-//       if (!formData.deliveryRadius) newErrors.deliveryRadius = "Delivery radius is required";
-//       if (!formData.operationHours.trim()) newErrors.operationHours = "Operation hours are required";
-//       if (formData.workingDays.length === 0)
-//         newErrors.workingDays = "Select at least one working day";
-
-//     } else if (step === 4) {
-//       if (formData.services.length === 0)
-//         newErrors.services = "Select at least one service";
-//       if (!formData.licenseFile) newErrors.licenseFile = "License file is required";
-//       if (!formData.taxCertificate) newErrors.taxCertificate = "Tax certificate is required";
-//       if (!formData.ownerIdProof) newErrors.ownerIdProof = "Owner ID proof is required";
-
-//     } else if (step === 5) {
-//       if (!formData.password.trim()) newErrors.password = "Password is required";
-//       else if (formData.password.length < 8)
-//         newErrors.password = "Password must be at least 8 characters";
-//       if (formData.confirmPassword !== formData.password)
-//         newErrors.confirmPassword = "Passwords do not match";
-//     }
-
-//     setErrors(newErrors);
-//     return Object.keys(newErrors).length === 0;
-//   };
-
-//   const handleNext = () => {
-//     if (validateStep()) {
-//       setStep((prev) => Math.min(prev + 1, steps.length));
-//     }
-//   };
-
-//   const handlePrevious = () => {
-//     setStep((prev) => Math.max(prev - 1, 1));
-//   };
-
-//   const handleEditStep = (stepNumber) => {
-//     setStep(stepNumber);
-//   };
-
-//   const formatPhoneForDisplay = (phoneDigits) => {
-//     if (!phoneDigits) return "";
-    
-//     // Format as 03XX-XXXXXXX
-//     if (phoneDigits.length === 11) {
-//       return `${phoneDigits.slice(0, 4)}-${phoneDigits.slice(4)}`;
-//     }
-//     return phoneDigits;
-//   };
-
-//   const handleSubmit = async () => {
-//     // Validate final step
-//     if (!validateStep()) {
-//       return;
-//     }
-
-//     setIsSubmitting(true);
-//     setApiError("");
-
-//     try {
-//       // Create FormData object for file uploads
-//       const submitFormData = new FormData();
-      
-//       // Append all form data
-//       Object.keys(formData).forEach(key => {
-//         const value = formData[key];
-        
-//         if (typeof value === 'boolean') {
-//           submitFormData.append(key, value.toString());
-//         } else if (Array.isArray(value)) {
-//           submitFormData.append(key, JSON.stringify(value));
-//         } else if (value instanceof File) {
-//           submitFormData.append(key, value);
-//         } else if (value !== null && value !== undefined) {
-//           submitFormData.append(key, value.toString());
-//         }
-//       });
-      
-//       // Debug: Log what's being sent
-//     console.log('Submitting form data:', formData);
-//     console.log('Files:', {
-//       licenseFile: formData.licenseFile?.name,
-//       taxCertificate: formData.taxCertificate?.name,
-//       ownerIdProof: formData.ownerIdProof?.name
-//     });
-
-//       // Make API call - UPDATED ENDPOINT
-//       const response = await fetch('http://localhost:5000/api/pharmacy-registration/register', {
-//         method: 'POST',
-//         body: submitFormData,
-//       });
-//       //Log response status
-//       console.log('Response status:', response.status);
-
-//       const data = await response.json();
-//       console.log('Response data:', data);
-
-//       if (data.success) {
-//         setSubmitSuccess(true);
-        
-//         // Reset form after successful submission
-//         setFormData({
-//           pharmacyName: "",
-//           pharmacyType: "",
-//           licenseNumber: "",
-//           licenseExpiry: "",
-//           yearEstablished: "",
-//           ownerName: "",
-//           email: "",
-//           phone: "",
-//           address: "",
-//           city: "",
-//           state: "",
-//           zipCode: "",
-//           deliveryRadius: "",
-//           operationHours: "",
-//           workingDays: [],
-//           services: [],
-//           deliveryAvailable: false,
-//           acceptsInsurance: false,
-//           hasEmergencyDelivery: false,
-//           licenseFile: null,
-//           taxCertificate: null,
-//           ownerIdProof: null,
-//           password: "",
-//           confirmPassword: "",
-//         });
-//         setStep(1);
-//       } else {
-//         // Handle validation errors from backend
-//         if (data.errors && Array.isArray(data.errors)) {
-//           const backendErrors = {};
-//           data.errors.forEach(error => {
-//             backendErrors[error.param || error.path] = error.msg;
-//           });
-//           setErrors(backendErrors);
-//           // Go to first step with error
-//           if (backendErrors.pharmacyName || backendErrors.pharmacyType || 
-//               backendErrors.licenseNumber || backendErrors.licenseExpiry || 
-//               backendErrors.yearEstablished) {
-//             setStep(1);
-//           } else if (backendErrors.ownerName || backendErrors.email || backendErrors.phone) {
-//             setStep(2);
-//           } else if (backendErrors.address || backendErrors.city || backendErrors.state || 
-//                    backendErrors.zipCode || backendErrors.deliveryRadius || 
-//                    backendErrors.operationHours || backendErrors.workingDays) {
-//             setStep(3);
-//           } else if (backendErrors.services || backendErrors.licenseFile || 
-//                    backendErrors.taxCertificate || backendErrors.ownerIdProof) {
-//             setStep(4);
-//           } else if (backendErrors.password || backendErrors.confirmPassword) {
-//             setStep(5);
-//           }
-//         } else {
-//           setApiError(data.message || 'Registration failed');
-//         }
-//       }
-//     } catch (error) {
-//       console.error('Registration error:', error);
-//       setApiError('Registration failed. Please check your internet connection and try again.');
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
-
-//   const renderStepContent = () => {
-//     switch (step) {
-//       case 1:
-//         return (
-//           <form autoComplete="off">
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">
-//                   <FaStore className="inline-block mr-2" />
-//                   Pharmacy Name *
-//                 </label>
-//                 <input
-//                   type="text"
-//                   name="pharmacyName"
-//                   placeholder="Enter pharmacy name"
-//                   value={formData.pharmacyName}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.pharmacyName && <span className="text-red-500 text-sm mt-1">{errors.pharmacyName}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Pharmacy Type *</label>
-//                 <select
-//                   name="pharmacyType"
-//                   value={formData.pharmacyType}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 >
-//                   <option value="">Select Type</option>
-//                   {pharmacyTypes.map((type, index) => (
-//                     <option key={index} value={type}>{type}</option>
-//                   ))}
-//                 </select>
-//                 {errors.pharmacyType && <span className="text-red-500 text-sm mt-1">{errors.pharmacyType}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">License Number *</label>
-//                 <input
-//                   type="text"
-//                   name="licenseNumber"
-//                   placeholder="Enter license number"
-//                   value={formData.licenseNumber}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.licenseNumber && <span className="text-red-500 text-sm mt-1">{errors.licenseNumber}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">License Expiry Date *</label>
-//                 <input
-//                   type="date"
-//                   name="licenseExpiry"
-//                   value={formData.licenseExpiry}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   min={new Date().toISOString().split('T')[0]}
-//                 />
-//                 {errors.licenseExpiry && <span className="text-red-500 text-sm mt-1">{errors.licenseExpiry}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Year Established *</label>
-//                 <input
-//                   type="number"
-//                   name="yearEstablished"
-//                   placeholder="e.g., 2010"
-//                   value={formData.yearEstablished}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   min="1900"
-//                   max={new Date().getFullYear()}
-//                 />
-//                 {errors.yearEstablished && <span className="text-red-500 text-sm mt-1">{errors.yearEstablished}</span>}
-//               </div>
-//             </div>
-
-//             <div className="flex justify-end mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
-//                 onClick={handleNext}
-//               >
-//                 Save & Continue →
-//               </button>
-//             </div>
-//           </form>
-//         );
-
-//       case 2:
-//         return (
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">
-//                 <FaUser className="inline-block mr-2" />
-//                 Owner Name *
-//               </label>
-//               <input
-//                 type="text"
-//                 name="ownerName"
-//                 placeholder="Enter owner's full name"
-//                 value={formData.ownerName}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.ownerName && <span className="text-red-500 text-sm mt-1">{errors.ownerName}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">
-//                 <FaEnvelope className="inline-block mr-2" />
-//                 Email Address *
-//               </label>
-//               <input
-//                 type="email"
-//                 name="email"
-//                 placeholder="Enter email address"
-//                 value={formData.email}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">
-//                 <FaPhone className="inline-block mr-2" />
-//                 Phone Number *
-//               </label>
-//               <input
-//                 type="tel"
-//                 name="phone"
-//                 placeholder="e.g., 03001234567"
-//                 value={formatPhoneForDisplay(formData.phone)}
-//                 onChange={handleChange}
-//                 maxLength={12} // 03XX-XXXXXXX format
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               <div className="flex justify-between items-center mt-1">
-//                 {errors.phone && <span className="text-red-500 text-sm">{errors.phone}</span>}
-//               </div>
-//             </div>
-
-//             <div className="flex justify-between mt-8 col-span-1 md:col-span-2">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handleNext}
-//               >
-//                 Save & Continue →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 3:
-//         return (
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//             <div className="flex flex-col md:col-span-2">
-//               <label className="font-medium text-[#174047] mb-1">
-//                 <FaMapMarkerAlt className="inline-block mr-2" />
-//                 Full Address *
-//               </label>
-//               <textarea
-//                 name="address"
-//                 placeholder="Street address, area, landmark"
-//                 value={formData.address}
-//                 onChange={handleChange}
-//                 rows="2"
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.address && <span className="text-red-500 text-sm mt-1">{errors.address}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">City *</label>
-//               <input
-//                 type="text"
-//                 name="city"
-//                 placeholder="Enter city"
-//                 value={formData.city}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.city && <span className="text-red-500 text-sm mt-1">{errors.city}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">State *</label>
-//               <input
-//                 type="text"
-//                 name="state"
-//                 placeholder="Enter state/province"
-//                 value={formData.state}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.state && <span className="text-red-500 text-sm mt-1">{errors.state}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">ZIP Code *</label>
-//               <input
-//                 type="text"
-//                 name="zipCode"
-//                 placeholder="Enter ZIP code"
-//                 value={formData.zipCode}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.zipCode && <span className="text-red-500 text-sm mt-1">{errors.zipCode}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">
-//                 <FaTruck className="inline-block mr-2" />
-//                 Delivery Radius (km) *
-//               </label>
-//               <select
-//                 name="deliveryRadius"
-//                 value={formData.deliveryRadius}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               >
-//                 <option value="">Select radius</option>
-//                 <option value="3">3 km</option>
-//                 <option value="5">5 km</option>
-//                 <option value="10">10 km</option>
-//                 <option value="15">15 km</option>
-//                 <option value="20">20 km</option>
-//               </select>
-//               {errors.deliveryRadius && <span className="text-red-500 text-sm mt-1">{errors.deliveryRadius}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">
-//                 <FaClock className="inline-block mr-2" />
-//                 Operation Hours *
-//               </label>
-//               <input
-//                 type="text"
-//                 name="operationHours"
-//                 placeholder="e.g., 9:00 AM - 11:00 PM"
-//                 value={formData.operationHours}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.operationHours && <span className="text-red-500 text-sm mt-1">{errors.operationHours}</span>}
-//             </div>
-
-//             <div className="flex flex-col md:col-span-2">
-//               <label className="font-medium text-[#174047] mb-1">Working Days *</label>
-//               <div className="flex flex-wrap gap-4 mt-2">
-//                 {daysOfWeek.map((day) => (
-//                   <label key={day} className="flex items-center gap-2 text-[#174047] font-medium cursor-pointer">
-//                     <input
-//                       type="checkbox"
-//                       name="workingDays"
-//                       value={day}
-//                       checked={formData.workingDays.includes(day)}
-//                       onChange={handleChange}
-//                       className="w-4 h-4 text-[#2c6774] focus:ring-[#2c6774] rounded"
-//                     />
-//                     {day}
-//                   </label>
-//                 ))}
-//               </div>
-//               {errors.workingDays && <span className="text-red-500 text-sm mt-1">{errors.workingDays}</span>}
-//             </div>
-
-//             <div className="flex justify-between mt-8 col-span-1 md:col-span-2">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handleNext}
-//               >
-//                 Save & Continue →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 4:
-//         return (
-//           <div className="space-y-6">
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//               <div className="flex flex-col md:col-span-2">
-//                 <label className="font-medium text-[#174047] mb-1">Services Offered *</label>
-//                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-//                   {serviceOptions.map((service) => (
-//                     <label key={service} className="flex items-center gap-2 text-[#174047] font-medium cursor-pointer p-2 border border-[#c0d3dc] rounded-lg hover:bg-[#f0f7fa]">
-//                       <input
-//                         type="checkbox"
-//                         name="services"
-//                         value={service}
-//                         checked={formData.services.includes(service)}
-//                         onChange={handleChange}
-//                         className="w-4 h-4 text-[#2c6774] focus:ring-[#2c6774] rounded"
-//                       />
-//                       {service}
-//                     </label>
-//                   ))}
-//                 </div>
-//                 {errors.services && <span className="text-red-500 text-sm mt-1">{errors.services}</span>}
-//               </div>
-
-//               <div className="flex flex-col md:col-span-2 space-y-4">
-//                 <label className="font-medium text-[#174047]">Additional Options</label>
-//                 <div className="space-y-3">
-//                   <label className="flex items-center gap-2 text-[#174047] font-medium cursor-pointer">
-//                     <input
-//                       type="checkbox"
-//                       name="deliveryAvailable"
-//                       checked={formData.deliveryAvailable}
-//                       onChange={handleChange}
-//                       className="w-4 h-4 text-[#2c6774] focus:ring-[#2c6774] rounded"
-//                     />
-//                     Free Home Delivery Available
-//                   </label>
-                  
-//                   <label className="flex items-center gap-2 text-[#174047] font-medium cursor-pointer">
-//                     <input
-//                       type="checkbox"
-//                       name="acceptsInsurance"
-//                       checked={formData.acceptsInsurance}
-//                       onChange={handleChange}
-//                       className="w-4 h-4 text-[#2c6774] focus:ring-[#2c6774] rounded"
-//                     />
-//                     Accepts Insurance Claims
-//                   </label>
-                  
-//                   <label className="flex items-center gap-2 text-[#174047] font-medium cursor-pointer">
-//                     <input
-//                       type="checkbox"
-//                       name="hasEmergencyDelivery"
-//                       checked={formData.hasEmergencyDelivery}
-//                       onChange={handleChange}
-//                       className="w-4 h-4 text-[#2c6774] focus:ring-[#2c6774] rounded"
-//                     />
-//                     24/7 Emergency Delivery Service
-//                   </label>
-//                 </div>
-//               </div>
-//             </div>
-
-//             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Pharmacy License *</label>
-//                 <input
-//                   type="file"
-//                   name="licenseFile"
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   accept=".pdf,.jpg,.jpeg,.png"
-//                 />
-//                 <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 5MB)</p>
-//                 {errors.licenseFile && <span className="text-red-500 text-sm mt-1">{errors.licenseFile}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Tax Certificate *</label>
-//                 <input
-//                   type="file"
-//                   name="taxCertificate"
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   accept=".pdf,.jpg,.jpeg,.png"
-//                 />
-//                 <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 5MB)</p>
-//                 {errors.taxCertificate && <span className="text-red-500 text-sm mt-1">{errors.taxCertificate}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Owner ID Proof *</label>
-//                 <input
-//                   type="file"
-//                   name="ownerIdProof"
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   accept=".pdf,.jpg,.jpeg,.png"
-//                 />
-//                 <p className="text-xs text-gray-500 mt-1">CNIC, Passport, etc. (max 5MB)</p>
-//                 {errors.ownerIdProof && <span className="text-red-500 text-sm mt-1">{errors.ownerIdProof}</span>}
-//               </div>
-//             </div>
-
-//             <div className="flex justify-between mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handleNext}
-//               >
-//                 Save & Continue →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 5:
-//         return (
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">Password *</label>
-//               <input
-//                 type="password"
-//                 name="password"
-//                 placeholder="Enter strong password"
-//                 value={formData.password}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {passwordStrength && (
-//                 <span className={`text-sm mt-1 ${
-//                   passwordStrength === "Weak" ? "text-red-500" :
-//                   passwordStrength === "Medium" ? "text-yellow-500" :
-//                   "text-green-500"
-//                 }`}>
-//                   Strength: {passwordStrength}
-//                 </span>
-//               )}
-//               {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
-//             </div>
-
-//             <div className="flex flex-col">
-//               <label className="font-medium text-[#174047] mb-1">Confirm Password *</label>
-//               <input
-//                 type="password"
-//                 name="confirmPassword"
-//                 placeholder="Re-enter your password"
-//                 value={formData.confirmPassword}
-//                 onChange={handleChange}
-//                 className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//               />
-//               {errors.confirmPassword && (
-//                 <span className="text-red-500 text-sm mt-1">{errors.confirmPassword}</span>
-//               )}
-//             </div>
-
-//             <div className="flex justify-between mt-8 col-span-1 md:col-span-2">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handleNext}
-//               >
-//                 Review & Submit →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 6:
-//         return (
-//           <div className="space-y-6">
-//             <div className="bg-[#f8f9fa] rounded-lg p-4 mb-6">
-//               <h3 className="text-lg font-semibold text-[#174047] mb-2">
-//                 <FaEye className="inline-block mr-2" />
-//                 Review Your Information
-//               </h3>
-//               <p className="text-sm text-gray-600">
-//                 Please review all the information carefully before submitting. If you need to make any changes, click the edit button for that section.
-//               </p>
-//             </div>
-
-//             {/* API Error Message */}
-//             {apiError && (
-//               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-//                 <div className="flex items-center text-red-800">
-//                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-//                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-//                   </svg>
-//                   <span className="font-medium">Error</span>
-//                 </div>
-//                 <p className="mt-1 text-sm text-red-700">{apiError}</p>
-//               </div>
-//             )}
-
-//             {/* Review Sections */}
-//             <div className="space-y-6">
-//               {/* Pharmacy Details Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Pharmacy Details</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(1)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-//                   <div><span className="text-gray-600">Pharmacy Name:</span> <span className="font-medium">{formData.pharmacyName || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Pharmacy Type:</span> <span className="font-medium">{formData.pharmacyType || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">License Number:</span> <span className="font-medium">{formData.licenseNumber || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">License Expiry:</span> <span className="font-medium">{formData.licenseExpiry || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Year Established:</span> <span className="font-medium">{formData.yearEstablished || "Not provided"}</span></div>
-//                 </div>
-//               </div>
-
-//               {/* Contact Information Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Contact Information</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(2)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-//                   <div><span className="text-gray-600">Owner Name:</span> <span className="font-medium">{formData.ownerName || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Email:</span> <span className="font-medium">{formData.email || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Phone:</span> <span className="font-medium">{formData.phone ? `+92${formData.phone.slice(1)}` : "Not provided"}</span></div>
-//                 </div>
-//               </div>
-
-//               {/* Location & Operation Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Location & Operation</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(3)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="space-y-2 text-sm">
-//                   <div><span className="text-gray-600">Address:</span> <span className="font-medium">{formData.address || "Not provided"}</span></div>
-//                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-//                     <div><span className="text-gray-600">City:</span> <span className="font-medium">{formData.city || "Not provided"}</span></div>
-//                     <div><span className="text-gray-600">State:</span> <span className="font-medium">{formData.state || "Not provided"}</span></div>
-//                     <div><span className="text-gray-600">ZIP Code:</span> <span className="font-medium">{formData.zipCode || "Not provided"}</span></div>
-//                   </div>
-//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-//                     <div><span className="text-gray-600">Delivery Radius:</span> <span className="font-medium">{formData.deliveryRadius ? `${formData.deliveryRadius} km` : "Not provided"}</span></div>
-//                     <div><span className="text-gray-500">Operation Hours:</span> <span className="font-medium">{formData.operationHours || "Not provided"}</span></div>
-//                   </div>
-//                   <div><span className="text-gray-600">Working Days:</span> <span className="font-medium">{formData.workingDays.length > 0 ? formData.workingDays.join(", ") : "Not provided"}</span></div>
-//                 </div>
-//               </div>
-
-//               {/* Services & Documents Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Services & Documents</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(4)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="space-y-3 text-sm">
-//                   <div><span className="text-gray-600">Services Offered:</span> <span className="font-medium">{formData.services.length > 0 ? formData.services.join(", ") : "Not provided"}</span></div>
-//                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-//                     <div><span className="text-gray-600">Free Delivery:</span> <span className="font-medium">{formData.deliveryAvailable ? "Yes" : "No"}</span></div>
-//                     <div><span className="text-gray-600">Accepts Insurance:</span> <span className="font-medium">{formData.acceptsInsurance ? "Yes" : "No"}</span></div>
-//                     <div><span className="text-gray-600">Emergency Delivery:</span> <span className="font-medium">{formData.hasEmergencyDelivery ? "Yes" : "No"}</span></div>
-//                   </div>
-//                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-//                     <div className={`px-3 py-1 rounded text-xs font-medium ${formData.licenseFile ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-//                       License: {formData.licenseFile ? formData.licenseFile.name : "✗ Required"}
-//                     </div>
-//                     <div className={`px-3 py-1 rounded text-xs font-medium ${formData.taxCertificate ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-//                       Tax Cert: {formData.taxCertificate ? formData.taxCertificate.name : "✗ Required"}
-//                     </div>
-//                     <div className={`px-3 py-1 rounded text-xs font-medium ${formData.ownerIdProof ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-//                       ID Proof: {formData.ownerIdProof ? formData.ownerIdProof.name : "✗ Required"}
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* Security Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Security</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(5)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="space-y-2 text-sm">
-//                   <div><span className="text-gray-600">Password:</span> <span className="font-medium">••••••••</span></div>
-//                   <div><span className="text-gray-600">Password Strength:</span> <span className={`font-medium ${
-//                     passwordStrength === "Weak" ? "text-red-600" :
-//                     passwordStrength === "Medium" ? "text-yellow-600" :
-//                     "text-green-600"
-//                   }`}>{passwordStrength || "Not set"}</span></div>
-//                 </div>
-//               </div>
-//             </div>
-
-//             <div className="flex justify-between mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button
-//                 type="button"
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-//                 onClick={handleSubmit}
-//                 disabled={isSubmitting}
-//               >
-//                 {isSubmitting ? (
-//                   <>
-//                     <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-//                     Submitting...
-//                   </>
-//                 ) : (
-//                   'Submit Registration'
-//                 )}
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       default:
-//         return null;
-//     }
-//   };
-
-//   if (submitSuccess) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center bg-[#9fbfc5] p-4">
-//         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
-//           <div className="mb-6">
-//             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-//               <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-//               </svg>
-//             </div>
-//             <h2 className="text-2xl font-bold text-[#174047] mb-2">Registration Submitted Successfully!</h2>
-            
-//             <div className="bg-[#f8f9fa] rounded-lg p-4 mb-6">
-//               <p className="text-sm text-gray-600">
-//                 Our admin team will review your application and get back to you within 24 hours.
-//               </p>
-//             </div>
-
-//             <div className="space-y-3">
-//               <button
-//                 onClick={() => {
-//                   setSubmitSuccess(false);
-//                   setStep(1);
-//                 }}
-//                 className="w-full bg-[#2c6774] hover:bg-[#1e4e56] text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300"
-//               >
-//                 Register Another Pharmacy
-//               </button>
-//               {/* <button
-//                 onClick={() => {
-//                   setSubmitSuccess(false);
-//                   // Here you can redirect to login page or home page
-//                   window.location.href = '/login';
-//                 }}
-//                 className="w-full bg-transparent hover:bg-[#f8f9fa] text-[#2c6774] py-3 px-4 rounded-lg font-semibold border border-[#2c6774] transition-all duration-300"
-//               >
-//                 Go to Login
-//               </button> */}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div ref={containerRef} className="min-h-screen flex items-center justify-center bg-[#9fbfc5] p-4 md:p-8">
-//       <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 md:p-8">
-//         <div className="text-center mb-8">
-//           <h1 className="text-2xl md:text-3xl font-bold text-[#2c6774] mb-2">Pharmacy Registration</h1>
-//           <p className="text-[#174047]">Join our network to provide free home delivery of medicines</p>
-//         </div>
-
-//         {/* Progress Stepper */}
-//         <div className="flex justify-between items-start relative mb-8">
-//           {steps.map((s, index) => (
-//             <div key={index} className="flex flex-col items-center relative z-10 flex-1">
-//               <div
-//                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-//                   step >= index + 1 
-//                     ? "bg-[#2c6774] text-white scale-110" 
-//                     : "bg-[#c0d3dc] text-[#174047]"
-//                 }`}
-//               >
-//                 {s.icon}
-//               </div>
-//               <p className="text-sm font-medium text-[#174047] mt-2 text-center">{s.label}</p>
-              
-//               {/* Connector line */}
-//               {index < steps.length - 1 && (
-//                 <div
-//                   className={`absolute top-6 left-5/8 w-5/6 h-1 transition-colors duration-300 ${
-//                     step > index + 1 ? "bg-[#2c6774]" : "bg-[#c0d3dc]"
-//                   }`}
-//                   style={{ top: '33%', transform: 'translateY(-50%)' }}
-//                 ></div>
-//               )}
-//             </div>
-//           ))}
-//         </div>
-
-//         <div className="bg-white rounded-xl shadow-lg p-6">
-//           <h2 className="text-xl font-semibold text-[#2c6774] text-center mb-6">
-//             {steps[step - 1].label}
-//           </h2>
-          
-//           {/* Show API error at top if exists */}
-//           {apiError && step !== 6 && (
-//             <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-//               <div className="flex items-center text-red-800">
-//                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-//                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-//                 </svg>
-//                 <span className="font-medium">Error</span>
-//               </div>
-//               <p className="mt-1 text-sm text-red-700">{apiError}</p>
-//             </div>
-//           )}
-          
-//           {renderStepContent()}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PharmacyRegistration;
-
-
-
-
-
-// import React, { useState, useEffect, useRef } from "react";
-// import {
-//   FaStore,
-//   FaUser,
-//   FaCertificate,
-//   FaMapMarkerAlt,
-//   FaEye,
-//   FaEdit,
-//   FaPhone,
-//   FaEnvelope
-// } from "react-icons/fa";
-
-// const PharmacyRegistration = () => {
-//   const [step, setStep] = useState(1);
-//   const [formData, setFormData] = useState({
-//     // Step 1: Pharmacy Details
-//     pharmacyName: "",
-//     pharmacyType: "",
-//     licenseNumber: "",
-//     licenseExpiry: "",
-//     yearEstablished: "",
-
-//     // Step 2: Contact Information
-//     ownerName: "",
-//     email: "",
-//     phone: "",
-
-//     // Step 3: Location & Operation
-//     address: "",
-//     city: "",
-//     state: "",
-
-//     // Step 4: Documents
-//     licenseFile: null,
-//     taxCertificate: null,
-//     ownerIdProof: null,
-
-//     // Step 5: Review (no data needed)
-//   });
-
-//   const [errors, setErrors] = useState({});
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [submitSuccess, setSubmitSuccess] = useState(false);
-//   const [apiError, setApiError] = useState("");
-  
-//   // Ref for the main container to scroll to top
-//   const containerRef = useRef(null);
-
-//   const steps = [
-//     { icon: <FaStore />, label: "Pharmacy Details" },
-//     { icon: <FaUser />, label: "Contact Info" },
-//     { icon: <FaMapMarkerAlt />, label: "Location" },
-//     { icon: <FaCertificate />, label: "Documents" },
-//     { icon: <FaEye />, label: "Review" },
-//   ];
-
-//   // Scroll to top whenever step changes
-//   useEffect(() => {
-//     window.scrollTo({
-//       top: 0,
-//       behavior: "smooth"
-//     });
-    
-//     if (containerRef.current) {
-//       containerRef.current.scrollTop = 0;
-//     }
-//   }, [step]);
-
-//   const pharmacyTypes = [
-//     "Retail Pharmacy",
-//     "Hospital Pharmacy", 
-//     "Chain Pharmacy",
-//     "Independent Pharmacy",
-//     "Compounding Pharmacy",
-//     "Online Pharmacy"
-//   ];
-
-//   const handleChange = (e) => {
-//     const { name, value, files, type } = e.target;
-
-//     if (type === "file") {
-//       setFormData({
-//         ...formData,
-//         [name]: files ? files[0] : null,
-//       });
-//     } else {
-//       // Special handling for phone number input
-//       if (name === "phone") {
-//         // Remove non-digit characters
-//         const digitsOnly = value.replace(/\D/g, '');
-        
-//         // Limit to 11 digits
-//         const limitedDigits = digitsOnly.slice(0, 11);
-        
-//         setFormData({
-//           ...formData,
-//           [name]: limitedDigits, // Store only digits
-//         });
-//       } else {
-//         setFormData({
-//           ...formData,
-//           [name]: value,
-//         });
-//       }
-//     }
-
-//     // Clear API error when user starts typing
-//     if (apiError) setApiError("");
-//   };
-
-//   const validateStep = () => {
-//     let newErrors = {};
-
-//     if (step === 1) {
-//       if (!formData.pharmacyName.trim()) newErrors.pharmacyName = "Pharmacy name is required";
-//       if (!formData.pharmacyType) newErrors.pharmacyType = "Pharmacy type is required";
-//       if (!formData.licenseNumber.trim()) newErrors.licenseNumber = "License number is required";
-//       if (!formData.licenseExpiry) newErrors.licenseExpiry = "License expiry date is required";
-//       if (!formData.yearEstablished) newErrors.yearEstablished = "Year established is required";
-
-//     } else if (step === 2) {
-//       if (!formData.ownerName.trim()) newErrors.ownerName = "Owner name is required";
-//       if (!formData.email.trim()) newErrors.email = "Email is required";
-//       else if (!/\S+@\S+\.\S+/.test(formData.email))
-//         newErrors.email = "Enter a valid email";
-      
-//       if (!formData.phone.trim()) {
-//         newErrors.phone = "Phone number is required";
-//       } else {
-//         const phoneDigits = formData.phone.replace(/\D/g, '');
-//         if (phoneDigits.length !== 11) {
-//           newErrors.phone = "Phone number must be exactly 11 digits";
-//         } else if (!/^03[0-9]{9}$/.test(phoneDigits)) {
-//           newErrors.phone = "Phone number must start with 03 and be 11 digits total";
-//         }
-//       }
-
-//     } else if (step === 3) {
-//       if (!formData.address.trim()) newErrors.address = "Address is required";
-//       if (!formData.city.trim()) newErrors.city = "City is required";
-//       if (!formData.state.trim()) newErrors.state = "State is required";
-
-//     } else if (step === 4) {
-//       if (!formData.licenseFile) newErrors.licenseFile = "License file is required";
-//       if (!formData.taxCertificate) newErrors.taxCertificate = "Tax certificate is required";
-//       if (!formData.ownerIdProof) newErrors.ownerIdProof = "Owner ID proof is required";
-//     }
-
-//     setErrors(newErrors);
-//     return Object.keys(newErrors).length === 0;
-//   };
-
-//   const handleNext = () => {
-//     if (validateStep()) {
-//       setStep((prev) => Math.min(prev + 1, steps.length));
-//     }
-//   };
-
-//   const handlePrevious = () => {
-//     setStep((prev) => Math.max(prev - 1, 1));
-//   };
-
-//   const handleEditStep = (stepNumber) => {
-//     setStep(stepNumber);
-//   };
-
-//   const formatPhoneForDisplay = (phoneDigits) => {
-//     if (!phoneDigits) return "";
-    
-//     // Format as 03XX-XXXXXXX
-//     if (phoneDigits.length === 11) {
-//       return `${phoneDigits.slice(0, 4)}-${phoneDigits.slice(4)}`;
-//     }
-//     return phoneDigits;
-//   };
-
-//   const handleSubmit = async () => {
-//     // Validate final step
-//     if (!validateStep()) {
-//       return;
-//     }
-
-//     setIsSubmitting(true);
-//     setApiError("");
-
-//     try {
-//       // Simulate API call with localStorage
-//       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-//       // Store in localStorage (simulating successful registration)
-//       const registrationData = {
-//         pharmacyName: formData.pharmacyName,
-//         pharmacyType: formData.pharmacyType,
-//         licenseNumber: formData.licenseNumber,
-//         licenseExpiry: formData.licenseExpiry,
-//         yearEstablished: formData.yearEstablished,
-//         ownerName: formData.ownerName,
-//         email: formData.email,
-//         phone: formData.phone,
-//         address: formData.address,
-//         city: formData.city,
-//         state: formData.state,
-//         licenseFile: formData.licenseFile ? {
-//           name: formData.licenseFile.name,
-//           size: formData.licenseFile.size,
-//           type: formData.licenseFile.type
-//         } : null,
-//         taxCertificate: formData.taxCertificate ? {
-//           name: formData.taxCertificate.name,
-//           size: formData.taxCertificate.size,
-//           type: formData.taxCertificate.type
-//         } : null,
-//         ownerIdProof: formData.ownerIdProof ? {
-//           name: formData.ownerIdProof.name,
-//           size: formData.ownerIdProof.size,
-//           type: formData.ownerIdProof.type
-//         } : null,
-//         registeredAt: new Date().toISOString()
-//       };
-      
-//       localStorage.setItem('pharmacyRegistration', JSON.stringify(registrationData));
-      
-//       // Simulate successful response
-//       setSubmitSuccess(true);
-      
-//       // Reset form after successful submission
-//       setFormData({
-//         pharmacyName: "",
-//         pharmacyType: "",
-//         licenseNumber: "",
-//         licenseExpiry: "",
-//         yearEstablished: "",
-//         ownerName: "",
-//         email: "",
-//         phone: "",
-//         address: "",
-//         city: "",
-//         state: "",
-//         licenseFile: null,
-//         taxCertificate: null,
-//         ownerIdProof: null,
-//       });
-//       setStep(1);
-//     } catch (error) {
-//       console.error('Registration error:', error);
-//       setApiError('Registration failed. Please check your internet connection and try again.');
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
-
-//   const renderStepContent = () => {
-//     switch (step) {
-//       case 1:
-//         return (
-//           <div>
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">
-//                   <FaStore className="inline-block mr-2" />
-//                   Pharmacy Name *
-//                 </label>
-//                 <input
-//                   type="text"
-//                   name="pharmacyName"
-//                   placeholder="Enter pharmacy name"
-//                   value={formData.pharmacyName}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.pharmacyName && <span className="text-red-500 text-sm mt-1">{errors.pharmacyName}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Pharmacy Type *</label>
-//                 <select
-//                   name="pharmacyType"
-//                   value={formData.pharmacyType}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 >
-//                   <option value="">Select Type</option>
-//                   {pharmacyTypes.map((type, index) => (
-//                     <option key={index} value={type}>{type}</option>
-//                   ))}
-//                 </select>
-//                 {errors.pharmacyType && <span className="text-red-500 text-sm mt-1">{errors.pharmacyType}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">License Number *</label>
-//                 <input
-//                   type="text"
-//                   name="licenseNumber"
-//                   placeholder="e.g.,Su DA 1234 56789"
-//                   value={formData.licenseNumber}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.licenseNumber && <span className="text-red-500 text-sm mt-1">{errors.licenseNumber}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">License Expiry Date *</label>
-//                 <input
-//                   type="date"
-//                   name="licenseExpiry"
-//                   value={formData.licenseExpiry}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   min={new Date().toISOString().split('T')[0]}
-//                 />
-//                 {errors.licenseExpiry && <span className="text-red-500 text-sm mt-1">{errors.licenseExpiry}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Year Established *</label>
-//                 <input
-//                   type="number"
-//                   name="yearEstablished"
-//                   placeholder="e.g., 2010"
-//                   value={formData.yearEstablished}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   min="1900"
-//                   max={new Date().getFullYear()}
-//                 />
-//                 {errors.yearEstablished && <span className="text-red-500 text-sm mt-1">{errors.yearEstablished}</span>}
-//               </div>
-//             </div>
-
-//             <div className="flex justify-end mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
-//                 onClick={handleNext}
-//               >
-//                 Save & Continue →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 2:
-//         return (
-//           <div>
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">
-//                   <FaUser className="inline-block mr-2" />
-//                   Owner Name *
-//                 </label>
-//                 <input
-//                   type="text"
-//                   name="ownerName"
-//                   placeholder="Enter owner's full name"
-//                   value={formData.ownerName}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.ownerName && <span className="text-red-500 text-sm mt-1">{errors.ownerName}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">
-//                   <FaEnvelope className="inline-block mr-2" />
-//                   Email Address *
-//                 </label>
-//                 <input
-//                   type="email"
-//                   name="email"
-//                   placeholder="Enter email address"
-//                   value={formData.email}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">
-//                   <FaPhone className="inline-block mr-2" />
-//                   Phone Number *
-//                 </label>
-//                 <input
-//                   type="tel"
-//                   name="phone"
-//                   placeholder="e.g., 03001234567"
-//                   value={formatPhoneForDisplay(formData.phone)}
-//                   onChange={handleChange}
-//                   maxLength={12}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.phone && <span className="text-red-500 text-sm mt-1">{errors.phone}</span>}
-//               </div>
-//             </div>
-
-//             <div className="flex justify-between mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handleNext}
-//               >
-//                 Save & Continue →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 3:
-//         return (
-//           <div>
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-//               <div className="flex flex-col md:col-span-2">
-//                 <label className="font-medium text-[#174047] mb-1">
-//                   <FaMapMarkerAlt className="inline-block mr-2" />
-//                   Full Address *
-//                 </label>
-//                 <textarea
-//                   name="address"
-//                   placeholder="Street address, area, landmark"
-//                   value={formData.address}
-//                   onChange={handleChange}
-//                   rows="2"
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.address && <span className="text-red-500 text-sm mt-1">{errors.address}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">City *</label>
-//                 <input
-//                   type="text"
-//                   name="city"
-//                   placeholder="Enter city"
-//                   value={formData.city}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.city && <span className="text-red-500 text-sm mt-1">{errors.city}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">State *</label>
-//                 <input
-//                   type="text"
-//                   name="state"
-//                   placeholder="Enter state/province"
-//                   value={formData.state}
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                 />
-//                 {errors.state && <span className="text-red-500 text-sm mt-1">{errors.state}</span>}
-//               </div>
-//             </div>
-
-//             <div className="flex justify-between mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handleNext}
-//               >
-//                 Save & Continue →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 4:
-//         return (
-//           <div className="space-y-6">
-//             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Pharmacy License *</label>
-//                 <input
-//                   type="file"
-//                   name="licenseFile"
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   accept=".pdf,.jpg,.jpeg,.png"
-//                 />
-//                 <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 5MB)</p>
-//                 {errors.licenseFile && <span className="text-red-500 text-sm mt-1">{errors.licenseFile}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Tax Certificate *</label>
-//                 <input
-//                   type="file"
-//                   name="taxCertificate"
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   accept=".pdf,.jpg,.jpeg,.png"
-//                 />
-//                 <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 5MB)</p>
-//                 {errors.taxCertificate && <span className="text-red-500 text-sm mt-1">{errors.taxCertificate}</span>}
-//               </div>
-
-//               <div className="flex flex-col">
-//                 <label className="font-medium text-[#174047] mb-1">Owner ID Proof *</label>
-//                 <input
-//                   type="file"
-//                   name="ownerIdProof"
-//                   onChange={handleChange}
-//                   className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-//                   accept=".pdf,.jpg,.jpeg,.png"
-//                 />
-//                 <p className="text-xs text-gray-500 mt-1">CNIC, Passport, etc. (max 5MB)</p>
-//                 {errors.ownerIdProof && <span className="text-red-500 text-sm mt-1">{errors.ownerIdProof}</span>}
-//               </div>
-//             </div>
-
-//             <div className="flex justify-between mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button 
-//                 type="button" 
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handleNext}
-//               >
-//                 Review →
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       case 5:
-//         return (
-//           <div className="space-y-6">
-//             <div className="bg-[#f8f9fa] rounded-lg p-4 mb-6">
-//               <h3 className="text-lg font-semibold text-[#174047] mb-2">
-//                 <FaEye className="inline-block mr-2" />
-//                 Review Your Information
-//               </h3>
-//               <p className="text-sm text-gray-600">
-//                 Please review all the information carefully before submitting. If you need to make any changes, click the edit button for that section.
-//               </p>
-//             </div>
-
-//             {/* API Error Message */}
-//             {apiError && (
-//               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-//                 <div className="flex items-center text-red-800">
-//                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-//                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-//                   </svg>
-//                   <span className="font-medium">Error</span>
-//                 </div>
-//                 <p className="mt-1 text-sm text-red-700">{apiError}</p>
-//               </div>
-//             )}
-
-//             {/* Review Sections */}
-//             <div className="space-y-6">
-//               {/* Pharmacy Details Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Pharmacy Details</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(1)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-//                   <div><span className="text-gray-600">Pharmacy Name:</span> <span className="font-medium">{formData.pharmacyName || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Pharmacy Type:</span> <span className="font-medium">{formData.pharmacyType || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">License Number:</span> <span className="font-medium">{formData.licenseNumber || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">License Expiry:</span> <span className="font-medium">{formData.licenseExpiry || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Year Established:</span> <span className="font-medium">{formData.yearEstablished || "Not provided"}</span></div>
-//                 </div>
-//               </div>
-
-//               {/* Contact Information Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Contact Information</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(2)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-//                   <div><span className="text-gray-600">Owner Name:</span> <span className="font-medium">{formData.ownerName || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Email:</span> <span className="font-medium">{formData.email || "Not provided"}</span></div>
-//                   <div><span className="text-gray-600">Phone:</span> <span className="font-medium">{formData.phone ? `03${formData.phone.slice(1)}` : "Not provided"}</span></div>
-//                 </div>
-//               </div>
-
-//               {/* Location Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Location</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(3)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="space-y-2 text-sm">
-//                   <div><span className="text-gray-600">Address:</span> <span className="font-medium">{formData.address || "Not provided"}</span></div>
-//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-//                     <div><span className="text-gray-600">City:</span> <span className="font-medium">{formData.city || "Not provided"}</span></div>
-//                     <div><span className="text-gray-600">State:</span> <span className="font-medium">{formData.state || "Not provided"}</span></div>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* Documents Review */}
-//               <div className="border border-[#c0d3dc] rounded-lg p-4">
-//                 <div className="flex justify-between items-center mb-3">
-//                   <h4 className="font-semibold text-[#174047]">Documents</h4>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleEditStep(4)}
-//                     className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-//                   >
-//                     <FaEdit className="mr-1 h-3 w-3" /> Edit
-//                   </button>
-//                 </div>
-//                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-//                   <div className={`px-3 py-1 rounded text-xs font-medium ${formData.licenseFile ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-//                     License: {formData.licenseFile ? "✓ Uploaded" : "✗ Required"}
-//                   </div>
-//                   <div className={`px-3 py-1 rounded text-xs font-medium ${formData.taxCertificate ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-//                     Tax Cert: {formData.taxCertificate ? "✓ Uploaded" : "✗ Required"}
-//                   </div>
-//                   <div className={`px-3 py-1 rounded text-xs font-medium ${formData.ownerIdProof ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-//                     ID Proof: {formData.ownerIdProof ? "✓ Uploaded" : "✗ Required"}
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-
-//             <div className="flex justify-between mt-8">
-//               <button 
-//                 type="button" 
-//                 className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-//                 onClick={handlePrevious}
-//               >
-//                 ← Previous
-//               </button>
-//               <button
-//                 type="button"
-//                 className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-//                 onClick={handleSubmit}
-//                 disabled={isSubmitting}
-//               >
-//                 {isSubmitting ? (
-//                   <>
-//                     <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-//                     Submitting...
-//                   </>
-//                 ) : (
-//                   'Submit Registration'
-//                 )}
-//               </button>
-//             </div>
-//           </div>
-//         );
-
-//       default:
-//         return null;
-//     }
-//   };
-
-//   if (submitSuccess) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center bg-[#9fbfc5] p-4">
-//         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
-//           <div className="mb-6">
-//             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-//               <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-//               </svg>
-//             </div>
-//             <h2 className="text-2xl font-bold text-[#174047] mb-2">Registration Submitted Successfully!</h2>
-            
-//             <div className="bg-[#f8f9fa] rounded-lg p-4 mb-6">
-//               <p className="text-sm text-gray-600">
-//                 Our admin team will review your application and get back to you within 24 hours.
-//               </p>
-//             </div>
-
-//             <div className="space-y-3">
-//               <button
-//                 onClick={() => {
-//                   setSubmitSuccess(false);
-//                   setStep(1);
-//                 }}
-//                 className="w-full bg-[#2c6774] hover:bg-[#1e4e56] text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300"
-//               >
-//                 Register Another Pharmacy
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div ref={containerRef} className="min-h-screen flex items-center justify-center bg-[#9fbfc5] p-4 md:p-8">
-//       <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 md:p-8">
-//         <div className="text-center mb-8">
-//           <h1 className="text-2xl md:text-3xl font-bold text-[#2c6774] mb-2">Pharmacy Registration</h1>
-//           <p className="text-[#174047]">Join our network to provide free home delivery of medicines</p>
-//         </div>
-
-//         {/* Progress Stepper */}
-//         <div className="flex justify-between items-start relative mb-8">
-//           {steps.map((s, index) => (
-//             <div key={index} className="flex flex-col items-center relative z-10 flex-1">
-//               <div
-//                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-//                   step >= index + 1 
-//                     ? "bg-[#2c6774] text-white scale-110" 
-//                     : "bg-[#c0d3dc] text-[#174047]"
-//                 }`}
-//               >
-//                 {s.icon}
-//               </div>
-//               <p className="text-sm font-medium text-[#174047] mt-2 text-center">{s.label}</p>
-              
-//               {/* Connector line */}
-//               {index < steps.length - 1 && (
-//                 <div
-//                   className={`absolute top-6 left-5/8 w-5/6 h-1 transition-colors duration-300 ${
-//                     step > index + 1 ? "bg-[#2c6774]" : "bg-[#c0d3dc]"
-//                   }`}
-//                   style={{ top: '33%', transform: 'translateY(-50%)' }}
-//                 ></div>
-//               )}
-//             </div>
-//           ))}
-//         </div>
-
-//         <div className="bg-white rounded-xl shadow-lg p-6">
-//           <h2 className="text-xl font-semibold text-[#2c6774] text-center mb-6">
-//             {steps[step - 1].label}
-//           </h2>
-          
-//           {/* Show API error at top if exists */}
-//           {apiError && step !== 5 && (
-//             <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-//               <div className="flex items-center text-red-800">
-//                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-//                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-//                 </svg>
-//                 <span className="font-medium">Error</span>
-//               </div>
-//               <p className="mt-1 text-sm text-red-700">{apiError}</p>
-//             </div>
-//           )}
-          
-//           {renderStepContent()}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PharmacyRegistration;
-
-
-
-
-
-import React, { useState, useEffect, useRef } from "react";
-import {
-  FaStore,
-  FaUser,
-  FaCertificate,
-  FaMapMarkerAlt,
-  FaEye,
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { 
+  FaStore, 
+  FaUser, 
+  FaMapMarkerAlt, 
+  FaFileUpload, 
+  FaCheck,
+  FaBuilding,
+  FaFileAlt,
+  FaCity,
+  FaMapPin,
+  FaCalendarAlt,
   FaEdit,
+  FaEnvelope,
+  FaUserTie,
   FaPhone,
-  FaEnvelope
-} from "react-icons/fa";
-import axios from "axios";
+  FaIdCard,
+  FaSpinner,
+  FaCertificate
+} from 'react-icons/fa';
 
-const PharmacyRegistration = () => {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Step 1: Pharmacy Details
-    pharmacyName: "",
-    pharmacyType: "",
-    licenseNumber: "",
-    licenseExpiry: "",
-    yearEstablished: "",
+// API Base URL
+const API_BASE_URL = 'http://localhost:5000/api/pharmacy';
 
-    // Step 2: Contact Information
-    ownerName: "",
-    email: "",
-    phone: "",
+// Pakistan provinces and cities data
+const PAKISTAN_DATA = {
+  provinces: [
+    { id: 'punjab', name: 'Punjab' },
+    { id: 'sindh', name: 'Sindh' },
+    { id: 'kpk', name: 'Khyber Pakhtunkhwa' },
+    { id: 'balochistan', name: 'Balochistan' },
+    { id: 'islamabad', name: 'Islamabad Capital Territory' },
+    { id: 'gilgit', name: 'Gilgit-Baltistan' },
+    { id: 'ajk', name: 'Azad Jammu & Kashmir' }
+  ],
+  cities: {
+    punjab: ['Lahore', 'Faisalabad', 'Rawalpindi', 'Multan', 'Gujranwala', 'Sialkot', 'Bahawalpur', 'Sargodha', 'Jhang', 'Sheikhupura'],
+    sindh: ['Karachi', 'Hyderabad', 'Sukkur', 'Larkana', 'Nawabshah', 'Mirpur Khas', 'Jacobabad', 'Shikarpur', 'Dadu', 'Tando Allahyar'],
+    kpk: ['Peshawar', 'Mardan', 'Abbottabad', 'Swat', 'Kohat', 'Bannu', 'Dera Ismail Khan', 'Charsadda', 'Nowshera', 'Mingora'],
+    balochistan: ['Quetta', 'Turbat', 'Khuzdar', 'Gwadar', 'Sibi', 'Zhob', 'Loralai', 'Dera Bugti', 'Chaman', 'Hub'],
+    islamabad: ['Islamabad'],
+    gilgit: ['Gilgit', 'Skardu', 'Hunza', 'Ghizer', 'Nagar', 'Ghanche', 'Astore', 'Diamer'],
+    ajk: ['Muzaffarabad', 'Mirpur', 'Rawalakot', 'Kotli', 'Bhimber', 'Bagh', 'Hattian', 'Haveli']
+  }
+};
 
-    // Step 3: Location & Operation
-    address: "",
-    city: "",
-    state: "",
+// Step 1 Component - Pharmacy Details
+const Step1PharmacyDetails = ({ register, errors, pharmacyTypes, isChecking, setError, clearErrors, formValues }) => {
+  const [licenseNumber, setLicenseNumber] = useState(formValues?.licenseNumber || '');
+  const [licenseError, setLicenseError] = useState('');
+  const [typingTimeout, setTypingTimeout] = useState(null);
 
-    // Step 4: Documents
-    licenseFile: null,
-    taxCertificate: null,
-    ownerIdProof: null,
-
-    // Step 5: Review (no data needed)
-  });
-
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [apiError, setApiError] = useState("");
-  
-  // Ref for the main container to scroll to top
-  const containerRef = useRef(null);
-
-  const steps = [
-    { icon: <FaStore />, label: "Pharmacy Details" },
-    { icon: <FaUser />, label: "Contact Info" },
-    { icon: <FaMapMarkerAlt />, label: "Location" },
-    { icon: <FaCertificate />, label: "Documents" },
-    { icon: <FaEye />, label: "Review" },
-  ];
-
-  // Scroll to top whenever step changes
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+    if (formValues?.licenseNumber) {
+      setLicenseNumber(formValues.licenseNumber);
+    }
+  }, [formValues?.licenseNumber]);
+
+  const getFieldErrorStyle = (fieldName) => {
+    return errors[fieldName] ? 'border-red-500' : 'border-[#c0d3dc]';
+  };
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
+
+  const checkLicenseNumberExists = async (value) => {
+    if (!value || value.length < 5) return;
     
-    if (containerRef.current) {
-      containerRef.current.scrollTop = 0;
-    }
-  }, [step]);
-
-  const pharmacyTypes = [
-    "Retail Pharmacy",
-    "Hospital Pharmacy", 
-    "Chain Pharmacy",
-    "Independent Pharmacy",
-    "Compounding Pharmacy",
-    "Online Pharmacy"
-  ];
-
-  const handleChange = (e) => {
-    const { name, value, files, type } = e.target;
-
-    if (type === "file") {
-      setFormData({
-        ...formData,
-        [name]: files ? files[0] : null,
-      });
-    } else {
-      // Special handling for phone number input
-      if (name === "phone") {
-        // Remove non-digit characters
-        const digitsOnly = value.replace(/\D/g, '');
-        
-        // Limit to 11 digits
-        const limitedDigits = digitsOnly.slice(0, 11);
-        
-        setFormData({
-          ...formData,
-          [name]: limitedDigits, // Store only digits
-        });
-      } else {
-        setFormData({
-          ...formData,
-          [name]: value,
-        });
-      }
-    }
-
-    // Clear API error when user starts typing
-    if (apiError) setApiError("");
-  };
-
-  const validateStep = () => {
-    let newErrors = {};
-
-    if (step === 1) {
-      if (!formData.pharmacyName.trim()) newErrors.pharmacyName = "Pharmacy name is required";
-      if (!formData.pharmacyType) newErrors.pharmacyType = "Pharmacy type is required";
-      if (!formData.licenseNumber.trim()) newErrors.licenseNumber = "License number is required";
-      if (!formData.licenseExpiry) newErrors.licenseExpiry = "License expiry date is required";
-      if (!formData.yearEstablished) newErrors.yearEstablished = "Year established is required";
-
-    } else if (step === 2) {
-      if (!formData.ownerName.trim()) newErrors.ownerName = "Owner name is required";
-      if (!formData.email.trim()) newErrors.email = "Email is required";
-      else if (!/\S+@\S+\.\S+/.test(formData.email))
-        newErrors.email = "Enter a valid email";
-      
-      if (!formData.phone.trim()) {
-        newErrors.phone = "Phone number is required";
-      } else {
-        const phoneDigits = formData.phone.replace(/\D/g, '');
-        if (phoneDigits.length !== 11) {
-          newErrors.phone = "Phone number must be exactly 11 digits";
-        } else if (!/^03[0-9]{9}$/.test(phoneDigits)) {
-          newErrors.phone = "Phone number must start with 03 and be 11 digits total";
-        }
-      }
-
-    } else if (step === 3) {
-      if (!formData.address.trim()) newErrors.address = "Address is required";
-      if (!formData.city.trim()) newErrors.city = "City is required";
-      if (!formData.state.trim()) newErrors.state = "State is required";
-
-    } else if (step === 4) {
-      if (!formData.licenseFile) newErrors.licenseFile = "License file is required";
-      if (!formData.taxCertificate) newErrors.taxCertificate = "Tax certificate is required";
-      if (!formData.ownerIdProof) newErrors.ownerIdProof = "Owner ID proof is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep()) {
-      setStep((prev) => Math.min(prev + 1, steps.length));
-    }
-  };
-
-  const handlePrevious = () => {
-    setStep((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleEditStep = (stepNumber) => {
-    setStep(stepNumber);
-  };
-
-  const formatPhoneForDisplay = (phoneDigits) => {
-    if (!phoneDigits) return "";
-    
-    // Format as 03XX-XXXXXXX
-    if (phoneDigits.length === 11) {
-      return `${phoneDigits.slice(0, 4)}-${phoneDigits.slice(4)}`;
-    }
-    return phoneDigits;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateStep()) return;
-
-    setIsSubmitting(true);
-    setApiError("");
-
     try {
-      const data = new FormData();
-
-      // Append all text fields
-      Object.keys(formData).forEach((key) => {
-        if (
-          key !== "licenseFile" &&
-          key !== "taxCertificate" &&
-          key !== "ownerIdProof"
-        ) {
-          data.append(key, formData[key]);
-        }
-      });
-
-      // Append files
-      data.append("licenseFile", formData.licenseFile);
-      data.append("taxCertificate", formData.taxCertificate);
-      data.append("ownerIdProof", formData.ownerIdProof);
-
-      const response = await axios.post(
-        "http://localhost:5000/api/pharmacy/register",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        setSubmitSuccess(true);
-        // Reset form after successful submission
-        setFormData({
-          pharmacyName: "",
-          pharmacyType: "",
-          licenseNumber: "",
-          licenseExpiry: "",
-          yearEstablished: "",
-          ownerName: "",
-          email: "",
-          phone: "",
-          address: "",
-          city: "",
-          state: "",
-          licenseFile: null,
-          taxCertificate: null,
-          ownerIdProof: null,
+      const response = await fetch(`${API_BASE_URL}/check-license?licenseNumber=${encodeURIComponent(value)}`);
+      const data = await response.json();
+      
+      if (data.exists) {
+        setLicenseError('This license number already exists');
+        setError('licenseNumber', {
+          type: 'manual',
+          message: 'License number already exists'
         });
-        setStep(1);
+      } else {
+        setLicenseError('');
+        clearErrors('licenseNumber');
       }
     } catch (error) {
-      setApiError(
-        error.response?.data?.message || "Registration failed. Try again."
-      );
+      console.error('Error checking license number:', error);
+    }
+  };
+
+  const handleLicenseChange = (e) => {
+    const value = e.target.value;
+    setLicenseNumber(value);
+    
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    
+    setLicenseError('');
+    clearErrors('licenseNumber');
+    
+    if (value && value.length >= 5) {
+      const timeout = setTimeout(() => {
+        checkLicenseNumberExists(value);
+      }, 500);
+      setTypingTimeout(timeout);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            Pharmacy Name <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              {...register('pharmacyName', {
+                required: 'Pharmacy name is required',
+                minLength: { value: 3, message: 'Pharmacy name must be at least 3 characters' },
+                maxLength: { value: 100, message: 'Pharmacy name cannot exceed 100 characters' },
+                pattern: { 
+                  value: /^[a-zA-Z0-9\s\-&.]+$/, 
+                  message: 'Only letters, numbers, spaces, hyphens, ampersands, and periods allowed' 
+                }
+              })}
+              type="text"
+              defaultValue={formValues?.pharmacyName || ''}
+              className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('pharmacyName')}`}
+              placeholder="Enter pharmacy name"
+            />
+            <div className="absolute left-3 top-3 text-gray-400">
+              <FaStore />
+            </div>
+          </div>
+          {errors.pharmacyName && (
+            <span className="text-red-500 text-sm mt-1">{errors.pharmacyName.message}</span>
+          )}
+        </div>
+
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            License Number <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              {...register('licenseNumber', {
+                required: 'License number is required',
+                pattern: {
+                  value: /^\d{5}-[A-Z]\/\d{2}$/,
+                  message: 'Format: 23269-A/20 (5 digits, hyphen, letter, slash, 2 digits)'
+                },
+                maxLength: { value: 20, message: 'License number too long' },
+                onChange: handleLicenseChange
+              })}
+              type="text"
+              defaultValue={formValues?.licenseNumber || ''}
+              className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('licenseNumber')}`}
+              placeholder="23269-A/20"
+            />
+            <div className="absolute left-3 top-3 text-gray-400">
+              <FaCertificate />
+            </div>
+            {isChecking && (
+              <div className="absolute right-3 top-3">
+                <FaSpinner className="animate-spin text-[#2c6774]" />
+              </div>
+            )}
+          </div>
+          {errors.licenseNumber && (
+            <span className="text-red-500 text-sm mt-1">{errors.licenseNumber.message}</span>
+          )}
+          {licenseError && !errors.licenseNumber && (
+            <span className="text-red-500 text-sm mt-1">{licenseError}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            Pharmacy Type <span className="text-red-500">*</span>
+          </label>
+          <select
+            {...register('pharmacyType', { 
+              required: 'Please select pharmacy type'
+            })}
+            defaultValue={formValues?.pharmacyType || ''}
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('pharmacyType')}`}
+          >
+            <option value="">Select pharmacy type</option>
+            {pharmacyTypes.map(type => (
+              <option key={type.id} value={type.id}>{type.name}</option>
+            ))}
+          </select>
+          {errors.pharmacyType && (
+            <span className="text-red-500 text-sm mt-1">{errors.pharmacyType.message}</span>
+          )}
+        </div>
+
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            License Expiry Date <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              {...register('licenseExpiry', { 
+                required: 'License expiry date is required',
+                validate: value => {
+                  const expiryDate = new Date(value);
+                  const today = new Date();
+                  return expiryDate > today || 'License expiry date must be in the future';
+                }
+              })}
+              type="date"
+              defaultValue={formValues?.licenseExpiry || ''}
+              className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('licenseExpiry')}`}
+            />
+            <div className="absolute left-3 top-3 text-gray-400">
+              <FaCalendarAlt />
+            </div>
+          </div>
+          {errors.licenseExpiry && (
+            <span className="text-red-500 text-sm mt-1">{errors.licenseExpiry.message}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        <label className="font-medium text-[#174047] mb-1">
+          Year Established <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <select
+            {...register('yearEstablished', { 
+              required: 'Year is required',
+              validate: value => {
+                const year = parseInt(value);
+                return (year >= 1900 && year <= currentYear) || `Year must be between 1900 and ${currentYear}`;
+              }
+            })}
+            defaultValue={formValues?.yearEstablished || ''}
+            className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] appearance-none ${getFieldErrorStyle('yearEstablished')}`}
+          >
+            <option value="">Select year</option>
+            {years.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+          <div className="absolute left-3 top-3 text-gray-400">
+            <FaCalendarAlt />
+          </div>
+        </div>
+        {errors.yearEstablished && (
+          <span className="text-red-500 text-sm mt-1">{errors.yearEstablished.message}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Step 2 Component - Contact Information
+const Step2ContactInformation = ({ register, errors, isCheckingEmail, setError, clearErrors, formValues }) => {
+  const [emailError, setEmailError] = useState('');
+  const [typingTimeout, setTypingTimeout] = useState(null);
+
+  const getFieldErrorStyle = (fieldName) => {
+    return errors[fieldName] ? 'border-red-500' : 'border-[#c0d3dc]';
+  };
+
+  const checkEmailExists = async (value) => {
+    if (!value || !value.includes('@')) return;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/check-email?email=${encodeURIComponent(value)}`);
+      const data = await response.json();
+      
+      if (data.exists) {
+        setEmailError('Email already registered');
+        setError('email', {
+          type: 'manual',
+          message: 'Email already registered'
+        });
+      } else {
+        setEmailError('');
+        clearErrors('email');
+      }
+    } catch (error) {
+      console.error('Error checking email:', error);
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    
+    setEmailError('');
+    clearErrors('email');
+    
+    if (value && value.includes('@')) {
+      const timeout = setTimeout(() => {
+        checkEmailExists(value);
+      }, 500);
+      setTypingTimeout(timeout);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            Owner Name <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              {...register('ownerName', {
+                required: 'Owner name is required',
+                minLength: { value: 2, message: 'Name must be at least 2 characters' },
+                maxLength: { value: 50, message: 'Name cannot exceed 50 characters' },
+                pattern: { 
+                  value: /^[a-zA-Z\s]+$/, 
+                  message: 'Only letters and spaces allowed' 
+                }
+              })}
+              type="text"
+              defaultValue={formValues?.ownerName || ''}
+              className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('ownerName')}`}
+              placeholder="Full name"
+            />
+            <div className="absolute left-3 top-3 text-gray-400">
+              <FaUserTie />
+            </div>
+          </div>
+          {errors.ownerName && (
+            <span className="text-red-500 text-sm mt-1">{errors.ownerName.message}</span>
+          )}
+        </div>
+
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            Owner CNIC <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              {...register('ownerCnic', {
+                required: 'CNIC is required',
+                pattern: {
+                  value: /^[0-9]{5}-[0-9]{7}-[0-9]$/,
+                  message: 'Format: 12345-1234567-1 (5-7-1 digits)'
+                },
+                maxLength: { value: 15, message: 'CNIC too long' }
+              })}
+              type="text"
+              defaultValue={formValues?.ownerCnic || ''}
+              className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('ownerCnic')}`}
+              placeholder="12345-1234567-1"
+            />
+            <div className="absolute left-3 top-3 text-gray-400">
+              <FaIdCard />
+            </div>
+          </div>
+          {errors.ownerCnic && (
+            <span className="text-red-500 text-sm mt-1">{errors.ownerCnic.message}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        <label className="font-medium text-[#174047] mb-1">
+          Email Address <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <input
+            {...register('email', {
+              required: 'Email is required',
+              pattern: {
+                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                message: 'Please enter a valid email address'
+              },
+              maxLength: { value: 100, message: 'Email too long' },
+              onChange: handleEmailChange
+            })}
+            type="email"
+            defaultValue={formValues?.email || ''}
+            className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('email')}`}
+            placeholder="pharmacy@example.com"
+          />
+          <div className="absolute left-3 top-3 text-gray-400">
+            <FaEnvelope />
+          </div>
+          {isCheckingEmail && (
+            <div className="absolute right-3 top-3">
+              <FaSpinner className="animate-spin text-[#2c6774]" />
+            </div>
+          )}
+        </div>
+        {errors.email && (
+          <span className="text-red-500 text-sm mt-1">{errors.email.message}</span>
+        )}
+        {emailError && !errors.email && (
+          <span className="text-red-500 text-sm mt-1">{emailError}</span>
+        )}
+      </div>
+
+      <div className="flex flex-col">
+        <label className="font-medium text-[#174047] mb-1">
+          Phone Number <span className="text-red-500">*</span>
+        </label>
+        <div className="flex">
+          <span className="inline-flex items-center px-4 py-2 rounded-l-lg border border-r-0 border-[#c0d3dc] bg-[#c0d3dc] text-[#174047] font-medium">
+            +92
+          </span>
+          <input
+            {...register('phone', {
+              required: 'Phone number is required',
+              pattern: {
+                value: /^3[0-9]{9}$/,
+                message: 'Enter a valid Pakistani phone number (3XXXXXXXXX)'
+              },
+              minLength: { value: 10, message: 'Phone number must be 10 digits' },
+              maxLength: { value: 10, message: 'Phone number must be 10 digits' }
+            })}
+            type="tel"
+            defaultValue={formValues?.phone || ''}
+            className={`flex-1 px-3 py-2 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] no-spinner ${getFieldErrorStyle('phone')}`}
+            placeholder="3XXXXXXXXX"
+            maxLength="10"
+          />
+        </div>
+        {errors.phone && (
+          <span className="text-red-500 text-sm mt-1">{errors.phone.message}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Step 3 Component - Location
+const Step3Location = ({ register, errors, formValues, setValue }) => {
+  const [cities, setCities] = useState([]);
+
+  useEffect(() => {
+    if (formValues.province) {
+      setCities(PAKISTAN_DATA.cities[formValues.province] || []);
+    }
+  }, [formValues.province]);
+
+  useEffect(() => {
+    if (formValues.province && formValues.city) {
+      setValue('city', formValues.city);
+    }
+  }, [formValues.province, formValues.city, setValue]);
+
+  const getFieldErrorStyle = (fieldName) => {
+    return errors[fieldName] ? 'border-red-500' : 'border-[#c0d3dc]';
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col">
+        <label className="font-medium text-[#174047] mb-1">
+          Province <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <select
+            {...register('province', { 
+              required: 'Province is required'
+            })}
+            defaultValue={formValues?.province || ''}
+            className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] appearance-none ${getFieldErrorStyle('province')}`}
+          >
+            <option value="">Select Province</option>
+            {PAKISTAN_DATA.provinces.map(province => (
+              <option key={province.id} value={province.id}>
+                {province.name}
+              </option>
+            ))}
+          </select>
+          <div className="absolute left-3 top-3 text-gray-400">
+            <FaMapMarkerAlt />
+          </div>
+        </div>
+        {errors.province && (
+          <span className="text-red-500 text-sm mt-1">{errors.province.message}</span>
+        )}
+      </div>
+
+      <div className="flex flex-col">
+        <label className="font-medium text-[#174047] mb-1">
+          City <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <select
+            {...register('city', { 
+              required: 'City is required',
+              disabled: !formValues.province,
+              validate: value => {
+                if (!formValues.province) return true;
+                return value !== '' || 'Please select a city';
+              }
+            })}
+            defaultValue={formValues?.city || ''}
+            className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] appearance-none ${getFieldErrorStyle('city')} ${!formValues.province ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <option value="">
+              {formValues.province ? 'Select City' : 'First select province'}
+            </option>
+            {cities.map(city => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+          <div className="absolute left-3 top-3 text-gray-400">
+            <FaCity />
+          </div>
+        </div>
+        {errors.city && (
+          <span className="text-red-500 text-sm mt-1">{errors.city.message}</span>
+        )}
+      </div>
+
+      <div className="flex flex-col">
+        <label className="font-medium text-[#174047] mb-1">
+          Complete Address <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <textarea
+            {...register('address', {
+              required: 'Address is required',
+              minLength: { value: 10, message: 'Address must be at least 10 characters' },
+              maxLength: { value: 200, message: 'Address cannot exceed 200 characters' },
+              pattern: { 
+                value: /^[a-zA-Z0-9\s,./#-]+$/, 
+                message: 'Please enter a valid address' 
+              }
+            })}
+            rows="3"
+            defaultValue={formValues?.address || ''}
+            className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('address')}`}
+            placeholder="Shop/House number, Street, Area, Landmark"
+          />
+          <div className="absolute left-3 top-3 text-gray-400">
+            <FaMapPin />
+          </div>
+        </div>
+        {errors.address && (
+          <span className="text-red-500 text-sm mt-1">{errors.address.message}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Step 4 Component - Documents
+const Step4Documents = ({ register, errors, setValue: setFormValue, clearErrors, formValues }) => {
+  const [fileNames, setFileNames] = useState({
+    licenseFile: formValues?.licenseFile?.name || '',
+    taxCertificate: formValues?.taxCertificate?.name || '',
+    ownerIdProof: formValues?.ownerIdProof?.name || ''
+  });
+
+  const getFieldErrorStyle = (fieldName) => {
+    return errors[fieldName] ? 'border-red-500' : 'border-[#c0d3dc]';
+  };
+
+  const handleFileChange = (e, fieldName) => {
+    const file = e.target.files[0];
+    
+    if (clearErrors) {
+      clearErrors(fieldName);
+    }
+    
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        e.target.value = '';
+        return;
+      }
+      
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload PDF, JPG, or PNG files only');
+        e.target.value = '';
+        return;
+      }
+      
+      setFileNames(prev => ({ ...prev, [fieldName]: file.name }));
+      setFormValue(fieldName, file, { 
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true 
+      });
+    }
+  };
+
+  const validateFile = (value, fieldName) => {
+    if (!value) {
+      if (fieldName === 'taxCertificate') return true;
+      return `${fieldName === 'licenseFile' ? 'License file' : 'Owner ID proof'} is required`;
+    }
+    
+    if (!(value instanceof File)) {
+      return 'Invalid file';
+    }
+
+    if (value.size > 5 * 1024 * 1024) {
+      return 'File size must be less than 5MB';
+    }
+
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    
+    if (!validTypes.includes(value.type)) {
+      return 'Only PDF, JPG, or PNG files are allowed';
+    }
+
+    return true;
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            Pharmacy License Certificate <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => handleFileChange(e, 'licenseFile')}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('licenseFile')}`}
+            />
+            <input
+              type="hidden"
+              {...register('licenseFile', {
+                validate: (value) => validateFile(value, 'licenseFile')
+              })}
+            />
+          </div>
+          {errors.licenseFile && (
+            <span className="text-red-500 text-sm mt-1">{errors.licenseFile.message}</span>
+          )}
+          {fileNames.licenseFile && (
+            <p className="mt-1 text-sm text-[#2c6774] flex items-center">
+              <FaCheck className="mr-1" /> Selected: {fileNames.licenseFile}
+            </p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">Upload pharmacy license certificate (PDF, JPG, PNG, max 5MB)</p>
+        </div>
+
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            Tax Certificate
+          </label>
+          <div className="relative">
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => handleFileChange(e, 'taxCertificate')}
+              className="w-full px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
+            />
+            <input
+              type="hidden"
+              {...register('taxCertificate', {
+                validate: (value) => validateFile(value, 'taxCertificate')
+              })}
+            />
+          </div>
+          {errors.taxCertificate && (
+            <span className="text-red-500 text-sm mt-1">{errors.taxCertificate.message}</span>
+          )}
+          {fileNames.taxCertificate && (
+            <p className="mt-1 text-sm text-[#2c6774] flex items-center">
+              <FaCheck className="mr-1" /> Selected: {fileNames.taxCertificate}
+            </p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">Upload tax certificate (Optional, PDF, JPG, PNG, max 5MB)</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        <label className="font-medium text-[#174047] mb-1">
+          Owner ID Proof (CNIC/Passport) <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={(e) => handleFileChange(e, 'ownerIdProof')}
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] ${getFieldErrorStyle('ownerIdProof')}`}
+          />
+          <input
+            type="hidden"
+            {...register('ownerIdProof', {
+              validate: (value) => validateFile(value, 'ownerIdProof')
+            })}
+          />
+        </div>
+        {errors.ownerIdProof && (
+          <span className="text-red-500 text-sm mt-1">{errors.ownerIdProof.message}</span>
+        )}
+        {fileNames.ownerIdProof && (
+          <p className="mt-1 text-sm text-[#2c6774] flex items-center">
+            <FaCheck className="mr-1" /> Selected: {fileNames.ownerIdProof}
+          </p>
+        )}
+        <p className="text-xs text-gray-500 mt-1">Upload owner's CNIC or Passport (PDF, JPG, PNG, max 5MB)</p>
+      </div>
+
+      <div className="p-4 bg-[#9fbfc5] bg-opacity-20 border border-[#2c6774] border-opacity-30 rounded-lg">
+        <p className="text-sm text-[#174047]">
+          <strong className="text-[#2c6774]">Document Requirements:</strong> Upload PDF, JPG, or PNG files (max 5MB each). All documents must be clear and readable.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// Step 5 Component - Review
+const Step5Review = ({ register, errors, formValues, pharmacyTypes, setCurrentStep, isSubmitting }) => {
+  const getFileName = (fileField) => {
+    if (!fileField) return 'Not uploaded';
+    if (typeof fileField === 'string') return fileField;
+    if (fileField instanceof File) return fileField.name;
+    if (fileField && fileField.name) return fileField.name;
+    return 'Uploaded';
+  };
+
+  const getProvinceName = (provinceId) => {
+    if (!provinceId) return 'Not selected';
+    const province = PAKISTAN_DATA.provinces.find(p => p.id === provinceId);
+    return province ? province.name : provinceId;
+  };
+
+  const getPharmacyTypeName = (pharmacyTypeId) => {
+    if (!pharmacyTypeId) return 'Not selected';
+    const pharmacyType = pharmacyTypes.find(t => t.id === pharmacyTypeId);
+    return pharmacyType ? pharmacyType.name : pharmacyTypeId;
+  };
+
+  const sections = [
+    {
+      title: 'Pharmacy Details',
+      step: 1,
+      fields: [
+        { label: 'Pharmacy Name', value: formValues?.pharmacyName || 'Not provided' },
+        { label: 'License Number', value: formValues?.licenseNumber || 'Not provided' },
+        { label: 'Pharmacy Type', value: getPharmacyTypeName(formValues?.pharmacyType) },
+        { label: 'License Expiry', value: formValues?.licenseExpiry || 'Not provided' },
+        { label: 'Year Established', value: formValues?.yearEstablished || 'Not provided' }
+      ]
+    },
+    {
+      title: 'Contact Information',
+      step: 2,
+      fields: [
+        { label: 'Owner Name', value: formValues?.ownerName || 'Not provided' },
+        { label: 'Owner CNIC', value: formValues?.ownerCnic || 'Not provided' },
+        { label: 'Email', value: formValues?.email || 'Not provided' },
+        { label: 'Phone', value: formValues?.phone ? `+92 ${formValues.phone}` : 'Not provided' }
+      ]
+    },
+    {
+      title: 'Location',
+      step: 3,
+      fields: [
+        { label: 'Province', value: getProvinceName(formValues?.province) },
+        { label: 'City', value: formValues?.city || 'Not selected' },
+        { label: 'Complete Address', value: formValues?.address || 'Not provided' }
+      ]
+    },
+    {
+      title: 'Documents',
+      step: 4,
+      fields: [
+        { label: 'License Certificate', value: getFileName(formValues?.licenseFile) },
+        { label: 'Tax Certificate', value: getFileName(formValues?.taxCertificate) },
+        { label: 'Owner ID Proof', value: getFileName(formValues?.ownerIdProof) }
+      ]
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {sections.map((section) => (
+        <div key={section.step} className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="bg-[#9fbfc5] bg-opacity-20 px-4 py-3 flex justify-between items-center">
+            <h3 className="font-semibold text-[#174047]">{section.title}</h3>
+            <button
+              type="button"
+              onClick={() => setCurrentStep(section.step)}
+              className="flex items-center text-sm text-[#2c6774] hover:text-[#174047] transition-colors"
+              disabled={isSubmitting}
+            >
+              <FaEdit className="mr-1" /> Edit
+            </button>
+          </div>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {section.fields.map((field, index) => (
+              <div key={index}>
+                <p className="text-xs text-gray-500">{field.label}</p>
+                <p className="text-sm font-medium text-gray-900">{field.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div className="space-y-4 mt-6">
+        <div className="flex items-start space-x-3">
+          <input
+            type="checkbox"
+            {...register('termsAccepted', {
+              required: 'You must accept the terms to continue'
+            })}
+            className="mt-0.5 w-5 h-4.5 text-[#2c6774] rounded focus:ring-[#2c6774]"
+            disabled={isSubmitting}
+          />
+          <div className="text-sm">
+            <p className="font-medium text-gray-700">
+              I confirm that all information provided is correct and complete
+            </p>
+            {errors?.termsAccepted && (
+              <span className="text-red-500 text-sm mt-1">{errors.termsAccepted.message}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-start space-x-3">
+          <input
+            type="checkbox"
+            {...register('commissionAgreed', {
+              required: 'You must agree to the terms and conditions'
+            })}
+            className="mt-0.5 w-5 h-4.5 text-[#2c6774] rounded focus:ring-[#2c6774]"
+            disabled={isSubmitting}
+          />
+          <div className="text-sm">
+            <p className="font-medium text-gray-700">
+              I agree to the platform's terms and conditions
+            </p>
+            {errors?.commissionAgreed && (
+              <span className="text-red-500 text-sm mt-1">{errors.commissionAgreed.message}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main Component
+const PharmacyRegistration = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isCheckingLicense, setIsCheckingLicense] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false); // Add this state
+
+  const steps = [
+    { id: 1, title: 'Pharmacy Details', icon: <FaStore /> },
+    { id: 2, title: 'Contact Info', icon: <FaUser /> },
+    { id: 3, title: 'Location', icon: <FaMapMarkerAlt /> },
+    { id: 4, title: 'Documents', icon: <FaFileUpload /> },
+    { id: 5, title: 'Review', icon: <FaCheck /> }
+  ];
+
+  const pharmacyTypes = [
+    { id: 'retail', name: 'Retail Pharmacy' },
+    { id: 'hospital', name: 'Hospital Pharmacy' },
+    { id: 'chain', name: 'Chain Pharmacy' },
+    { id: 'independent', name: 'Independent Pharmacy' },
+    { id: 'compounding', name: 'Compounding Pharmacy' },
+    { id: 'online', name: 'Online Pharmacy' }
+  ];
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    trigger,
+    setValue,
+    reset,
+    getValues,
+    setError: setFormError,
+    clearErrors
+  } = useForm({
+    mode: 'onChange',
+    defaultValues: {}
+  });
+
+  const formValues = watch();
+
+  const stepRequirements = {
+    1: ['pharmacyName', 'licenseNumber', 'pharmacyType', 'licenseExpiry', 'yearEstablished'],
+    2: ['email', 'ownerName', 'ownerCnic', 'phone'],
+    3: ['province', 'city', 'address'],
+    4: ['licenseFile', 'ownerIdProof'],
+    5: ['termsAccepted', 'commissionAgreed']
+  };
+
+  const checkEmail = async (email) => {
+    setIsCheckingEmail(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/check-email?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+      return data.exists;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  const checkLicense = async (licenseNumber) => {
+    setIsCheckingLicense(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/check-license?licenseNumber=${encodeURIComponent(licenseNumber)}`);
+      const data = await response.json();
+      return data.exists;
+    } catch (error) {
+      console.error('Error checking license number:', error);
+      return false;
+    } finally {
+      setIsCheckingLicense(false);
+    }
+  };
+
+  const validateStep = async (step) => {
+    const fields = stepRequirements[step];
+    if (!fields) return true;
+    const result = await trigger(fields);
+    return result;
+  };
+
+  const isCurrentStepValid = () => {
+    const fields = stepRequirements[currentStep];
+    if (!fields) return true;
+    
+    for (const field of fields) {
+      if (!formValues[field] || errors[field]) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const nextStep = async () => {
+    const isValid = await validateStep(currentStep);
+    if (isValid) {
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps([...completedSteps, currentStep]);
+      }
+      setCurrentStep(currentStep + 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const goToStep = (stepNumber) => {
+    if (stepNumber <= currentStep || completedSteps.includes(stepNumber - 1)) {
+      setCurrentStep(stepNumber);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    setError('');
+    
+    try {
+      const formData = new FormData();
+      
+      formData.append('pharmacyName', data.pharmacyName);
+      formData.append('licenseNumber', data.licenseNumber);
+      formData.append('pharmacyType', data.pharmacyType);
+      formData.append('licenseExpiry', data.licenseExpiry);
+      formData.append('yearEstablished', data.yearEstablished);
+      formData.append('ownerName', data.ownerName);
+      formData.append('ownerCnic', data.ownerCnic);
+      formData.append('email', data.email);
+      formData.append('phone', data.phone);
+      formData.append('province', data.province);
+      formData.append('city', data.city);
+      formData.append('address', data.address);
+      formData.append('termsAccepted', data.termsAccepted);
+      formData.append('commissionAgreed', data.commissionAgreed);
+      
+      if (data.licenseFile) {
+        formData.append('licenseFile', data.licenseFile);
+      }
+      if (data.taxCertificate) {
+        formData.append('taxCertificate', data.taxCertificate);
+      }
+      if (data.ownerIdProof) {
+        formData.append('ownerIdProof', data.ownerIdProof);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/submit`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSubmitSuccess(true); // Show success page
+        // Reset form after successful submission
+        reset();
+        setCurrentStep(1);
+        setCompletedSteps([]);
+      } else {
+        setError(result.message || 'Registration failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const renderStepContent = () => {
-    switch (step) {
-      case 1:
-        return (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">
-                  <FaStore className="inline-block mr-2" />
-                  Pharmacy Name *
-                </label>
-                <input
-                  type="text"
-                  name="pharmacyName"
-                  placeholder="Enter pharmacy name"
-                  value={formData.pharmacyName}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.pharmacyName && <span className="text-red-500 text-sm mt-1">{errors.pharmacyName}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">Pharmacy Type *</label>
-                <select
-                  name="pharmacyType"
-                  value={formData.pharmacyType}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                >
-                  <option value="">Select Type</option>
-                  {pharmacyTypes.map((type, index) => (
-                    <option key={index} value={type}>{type}</option>
-                  ))}
-                </select>
-                {errors.pharmacyType && <span className="text-red-500 text-sm mt-1">{errors.pharmacyType}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">License Number *</label>
-                <input
-                  type="text"
-                  name="licenseNumber"
-                  placeholder="e.g.,Su DA 1234 56789"
-                  value={formData.licenseNumber}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.licenseNumber && <span className="text-red-500 text-sm mt-1">{errors.licenseNumber}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">License Expiry Date *</label>
-                <input
-                  type="date"
-                  name="licenseExpiry"
-                  value={formData.licenseExpiry}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                  min={new Date().toISOString().split('T')[0]}
-                />
-                {errors.licenseExpiry && <span className="text-red-500 text-sm mt-1">{errors.licenseExpiry}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">Year Established *</label>
-                <input
-                  type="number"
-                  name="yearEstablished"
-                  placeholder="e.g., 2010"
-                  value={formData.yearEstablished}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                  min="1900"
-                  max={new Date().getFullYear()}
-                />
-                {errors.yearEstablished && <span className="text-red-500 text-sm mt-1">{errors.yearEstablished}</span>}
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-8">
-              <button 
-                type="button" 
-                className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleNext}
-              >
-                Save & Continue →
-              </button>
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">
-                  <FaUser className="inline-block mr-2" />
-                  Owner Name *
-                </label>
-                <input
-                  type="text"
-                  name="ownerName"
-                  placeholder="Enter owner's full name"
-                  value={formData.ownerName}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.ownerName && <span className="text-red-500 text-sm mt-1">{errors.ownerName}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">
-                  <FaEnvelope className="inline-block mr-2" />
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">
-                  <FaPhone className="inline-block mr-2" />
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="e.g., 03001234567"
-                  value={formatPhoneForDisplay(formData.phone)}
-                  onChange={handleChange}
-                  maxLength={12}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.phone && <span className="text-red-500 text-sm mt-1">{errors.phone}</span>}
-              </div>
-            </div>
-
-            <div className="flex justify-between mt-8">
-              <button 
-                type="button" 
-                className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-                onClick={handlePrevious}
-              >
-                ← Previous
-              </button>
-              <button 
-                type="button" 
-                className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-                onClick={handleNext}
-              >
-                Save & Continue →
-              </button>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-              <div className="flex flex-col md:col-span-2">
-                <label className="font-medium text-[#174047] mb-1">
-                  <FaMapMarkerAlt className="inline-block mr-2" />
-                  Full Address *
-                </label>
-                <textarea
-                  name="address"
-                  placeholder="Street address, area, landmark"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows="2"
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.address && <span className="text-red-500 text-sm mt-1">{errors.address}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">City *</label>
-                <input
-                  type="text"
-                  name="city"
-                  placeholder="Enter city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.city && <span className="text-red-500 text-sm mt-1">{errors.city}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">State *</label>
-                <input
-                  type="text"
-                  name="state"
-                  placeholder="Enter state/province"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                />
-                {errors.state && <span className="text-red-500 text-sm mt-1">{errors.state}</span>}
-              </div>
-            </div>
-
-            <div className="flex justify-between mt-8">
-              <button 
-                type="button" 
-                className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-                onClick={handlePrevious}
-              >
-                ← Previous
-              </button>
-              <button 
-                type="button" 
-                className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-                onClick={handleNext}
-              >
-                Save & Continue →
-              </button>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">Pharmacy License *</label>
-                <input
-                  type="file"
-                  name="licenseFile"
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                />
-                <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 5MB)</p>
-                {errors.licenseFile && <span className="text-red-500 text-sm mt-1">{errors.licenseFile}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">Tax Certificate *</label>
-                <input
-                  type="file"
-                  name="taxCertificate"
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                />
-                <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 5MB)</p>
-                {errors.taxCertificate && <span className="text-red-500 text-sm mt-1">{errors.taxCertificate}</span>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="font-medium text-[#174047] mb-1">Owner ID Proof *</label>
-                <input
-                  type="file"
-                  name="ownerIdProof"
-                  onChange={handleChange}
-                  className="px-3 py-2 border border-[#c0d3dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa]"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                />
-                <p className="text-xs text-gray-500 mt-1">CNIC, Passport, etc. (max 5MB)</p>
-                {errors.ownerIdProof && <span className="text-red-500 text-sm mt-1">{errors.ownerIdProof}</span>}
-              </div>
-            </div>
-
-            <div className="flex justify-between mt-8">
-              <button 
-                type="button" 
-                className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-                onClick={handlePrevious}
-              >
-                ← Previous
-              </button>
-              <button 
-                type="button" 
-                className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-                onClick={handleNext}
-              >
-                Review →
-              </button>
-            </div>
-          </div>
-        );
-
-      case 5:
-        return (
-          <div className="space-y-6">
-            <div className="bg-[#f8f9fa] rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold text-[#174047] mb-2">
-                <FaEye className="inline-block mr-2" />
-                Review Your Information
-              </h3>
-              <p className="text-sm text-gray-600">
-                Please review all the information carefully before submitting. If you need to make any changes, click the edit button for that section.
-              </p>
-            </div>
-
-            {/* API Error Message */}
-            {apiError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center text-red-800">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span className="font-medium">Error</span>
-                </div>
-                <p className="mt-1 text-sm text-red-700">{apiError}</p>
-              </div>
-            )}
-
-            {/* Review Sections */}
-            <div className="space-y-6">
-              {/* Pharmacy Details Review */}
-              <div className="border border-[#c0d3dc] rounded-lg p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-[#174047]">Pharmacy Details</h4>
-                  <button
-                    type="button"
-                    onClick={() => handleEditStep(1)}
-                    className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-                  >
-                    <FaEdit className="mr-1 h-3 w-3" /> Edit
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-gray-600">Pharmacy Name:</span> <span className="font-medium">{formData.pharmacyName || "Not provided"}</span></div>
-                  <div><span className="text-gray-600">Pharmacy Type:</span> <span className="font-medium">{formData.pharmacyType || "Not provided"}</span></div>
-                  <div><span className="text-gray-600">License Number:</span> <span className="font-medium">{formData.licenseNumber || "Not provided"}</span></div>
-                  <div><span className="text-gray-600">License Expiry:</span> <span className="font-medium">{formData.licenseExpiry || "Not provided"}</span></div>
-                  <div><span className="text-gray-600">Year Established:</span> <span className="font-medium">{formData.yearEstablished || "Not provided"}</span></div>
-                </div>
-              </div>
-
-              {/* Contact Information Review */}
-              <div className="border border-[#c0d3dc] rounded-lg p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-[#174047]">Contact Information</h4>
-                  <button
-                    type="button"
-                    onClick={() => handleEditStep(2)}
-                    className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-                  >
-                    <FaEdit className="mr-1 h-3 w-3" /> Edit
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-gray-600">Owner Name:</span> <span className="font-medium">{formData.ownerName || "Not provided"}</span></div>
-                  <div><span className="text-gray-600">Email:</span> <span className="font-medium">{formData.email || "Not provided"}</span></div>
-                  <div><span className="text-gray-600">Phone:</span> <span className="font-medium">{formData.phone ? `03${formData.phone.slice(1)}` : "Not provided"}</span></div>
-                </div>
-              </div>
-
-              {/* Location Review */}
-              <div className="border border-[#c0d3dc] rounded-lg p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-[#174047]">Location</h4>
-                  <button
-                    type="button"
-                    onClick={() => handleEditStep(3)}
-                    className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-                  >
-                    <FaEdit className="mr-1 h-3 w-3" /> Edit
-                  </button>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div><span className="text-gray-600">Address:</span> <span className="font-medium">{formData.address || "Not provided"}</span></div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><span className="text-gray-600">City:</span> <span className="font-medium">{formData.city || "Not provided"}</span></div>
-                    <div><span className="text-gray-600">State:</span> <span className="font-medium">{formData.state || "Not provided"}</span></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Documents Review */}
-              <div className="border border-[#c0d3dc] rounded-lg p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-[#174047]">Documents</h4>
-                  <button
-                    type="button"
-                    onClick={() => handleEditStep(4)}
-                    className="flex items-center text-sm text-[#2c6774] hover:text-[#1e4e56]"
-                  >
-                    <FaEdit className="mr-1 h-3 w-3" /> Edit
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-                  <div className={`px-3 py-1 rounded text-xs font-medium ${formData.licenseFile ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    License: {formData.licenseFile ? "✓ Uploaded" : "✗ Required"}
-                  </div>
-                  <div className={`px-3 py-1 rounded text-xs font-medium ${formData.taxCertificate ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    Tax Cert: {formData.taxCertificate ? "✓ Uploaded" : "✗ Required"}
-                  </div>
-                  <div className={`px-3 py-1 rounded text-xs font-medium ${formData.ownerIdProof ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    ID Proof: {formData.ownerIdProof ? "✓ Uploaded" : "✗ Required"}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-between mt-8">
-              <button 
-                type="button" 
-                className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1"
-                onClick={handlePrevious}
-              >
-                ← Previous
-              </button>
-              <button
-                type="button"
-                className="bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                    Submitting...
-                  </>
-                ) : (
-                  'Submit Registration'
-                )}
-              </button>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  const getStepColor = (step) => {
+    if (currentStep === step) return 'bg-[#2c6774] text-white scale-110';
+    if (completedSteps.includes(step)) return 'bg-[#2c6774] text-white';
+    return 'bg-[#c0d3dc] text-[#174047]';
   };
 
+  const canGoToStep = (step) => {
+    if (step === 1) return true;
+    if (step <= currentStep) return true;
+    return completedSteps.includes(step - 1);
+  };
+
+  // Success Page Component
   if (submitSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#9fbfc5] p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
+        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center animate-fade-in">
           <div className="mb-6">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2645,11 +1069,24 @@ const PharmacyRegistration = () => {
               <button
                 onClick={() => {
                   setSubmitSuccess(false);
-                  setStep(1);
+                  setCurrentStep(1);
+                  setCompletedSteps([]);
+                  reset();
                 }}
                 className="w-full bg-[#2c6774] hover:bg-[#1e4e56] text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300"
               >
                 Register Another Pharmacy
+              </button>
+              
+              <button
+                onClick={() => {
+                  setSubmitSuccess(false);
+                  // You can also redirect to home page or dashboard here
+                  window.location.href = '/'; // Optional: redirect to home
+                }}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-[#174047] py-3 px-4 rounded-lg font-semibold transition-all duration-300"
+              >
+                Go to Home
               </button>
             </div>
           </div>
@@ -2659,33 +1096,55 @@ const PharmacyRegistration = () => {
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen flex items-center justify-center bg-[#9fbfc5] p-4 md:p-8">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 md:p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#9fbfc5] p-4 md:p-8">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 md:p-8 animate-fade-in">
         <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#2c6774] mb-2">Pharmacy Registration</h1>
-          <p className="text-[#174047]">Join our network to provide free home delivery of medicines</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#2c6774] mb-2">
+            Pharmacy Registration
+          </h1>
+          <p className="text-[#174047]">
+            Register your pharmacy with our network for free medicine delivery
+          </p>
         </div>
+
+        {showSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
+            <p className="text-green-700 font-medium">Registration submitted successfully!</p>
+            <p className="text-sm text-green-600">Admin will review your application within 24-48 hours.</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg animate-fade-in">
+            <p className="text-red-700 font-medium">Error</p>
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
 
         {/* Progress Stepper */}
         <div className="flex justify-between items-start relative mb-8">
-          {steps.map((s, index) => (
-            <div key={index} className="flex flex-col items-center relative z-10 flex-1">
-              <div
-                className={`w-12 h-12 rounded-full z-100 flex items-center justify-center transition-all duration-300 ${
-                  step >= index + 1 
-                    ? "bg-[#2c6774] text-white scale-110" 
-                    : "bg-[#c0d3dc] text-[#174047]"
+          {steps.map((step, index) => (
+            <div key={step.id} className="flex flex-col items-center relative flex-1">
+              <button
+                type="button"
+                onClick={() => goToStep(step.id)}
+                className={`w-12 h-12 rounded-full z-4 flex items-center justify-center transition-all duration-300 ${getStepColor(step.id)} ${
+                  !canGoToStep(step.id) ? 'opacity-100 cursor-not-allowed' : 'cursor-pointer'
                 }`}
+                disabled={!canGoToStep(step.id) || isSubmitting}
+                title={!canGoToStep(step.id) ? 'Complete previous steps first' : ''}
               >
-                {s.icon}
-              </div>
-              <p className="text-sm font-medium text-[#174047] mt-2 text-center">{s.label}</p>
+                {step.icon}
+              </button>
+              <p className={`text-sm font-medium text-[#174047] mt-2 text-center ${currentStep === step.id ? 'text-[#2c6774]' : ''}`}>
+                {step.title}
+              </p>
               
               {/* Connector line */}
               {index < steps.length - 1 && (
                 <div
-                  className={`absolute top-6 left-5/8  w-5/6 h-1 transition-colors duration-300 ${
-                    step > index + 1 ? "bg-[#2c6774]" : "bg-[#c0d3dc]"
+                  className={`absolute top-6 left-5/8 w-5/6 h-1 z-0 transition-colors duration-300 ${
+                    completedSteps.includes(step.id) ? 'bg-[#2c6774]' : 'bg-[#c0d3dc]'
                   }`}
                   style={{ top: '33%', transform: 'translateY(-50%)' }}
                 ></div>
@@ -2696,25 +1155,167 @@ const PharmacyRegistration = () => {
 
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-semibold text-[#2c6774] text-center mb-6">
-            {steps[step - 1].label}
+            {steps[currentStep - 1]?.title} Information
           </h2>
-          
-          {/* Show API error at top if exists */}
-          {apiError && step !== 5 && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-center text-red-800">
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <span className="font-medium">Error</span>
+
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {currentStep === 1 && (
+              <Step1PharmacyDetails
+                register={register}
+                errors={errors}
+                pharmacyTypes={pharmacyTypes}
+                isChecking={isCheckingLicense}
+                setError={setFormError}
+                clearErrors={clearErrors}
+                formValues={formValues}
+              />
+            )}
+
+            {currentStep === 2 && (
+              <Step2ContactInformation
+                register={register}
+                errors={errors}
+                isCheckingEmail={isCheckingEmail}
+                setError={setFormError}
+                clearErrors={clearErrors}
+                formValues={formValues}
+              />
+            )}
+
+            {currentStep === 3 && (
+              <Step3Location
+                register={register}
+                errors={errors}
+                formValues={formValues}
+                setValue={setValue}
+              />
+            )}
+
+            {currentStep === 4 && (
+              <Step4Documents
+                register={register}
+                errors={errors}
+                setValue={setValue}
+                clearErrors={clearErrors}
+                formValues={formValues}
+              />
+            )}
+
+            {currentStep === 5 && (
+              <Step5Review
+                register={register}
+                errors={errors}
+                formValues={formValues}
+                pharmacyTypes={pharmacyTypes}
+                setCurrentStep={setCurrentStep}
+                isSubmitting={isSubmitting}
+              />
+            )}
+
+            {currentStep < 5 ? (
+              <div className="flex justify-between mt-8">
+                {currentStep > 1 ? (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="bg-[#c0d3dc] hover:bg-[#9fbfc5] text-[#174047] px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                  >
+                    ← Previous
+                  </button>
+                ) : (
+                  <div></div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className={`${
+                    isCurrentStepValid() 
+                      ? 'bg-[#2c6774] hover:bg-[#1e4e56]' 
+                      : 'bg-gray-400 cursor-not-allowed'
+                  } text-white px-6 py-2 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  disabled={!isCurrentStepValid() || isSubmitting}
+                  title={!isCurrentStepValid() ? 'Please fill all required fields correctly' : ''}
+                >
+                  Save & Continue →
+                </button>
               </div>
-              <p className="mt-1 text-sm text-red-700">{apiError}</p>
-            </div>
-          )}
-          
-          {renderStepContent()}
+            ) : (
+              <div className="mt-8">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#2c6774] hover:bg-[#1e4e56] text-white px-6 py-3 rounded-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Registration'
+                  )}
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-4">
+          <div className="text-xs text-gray-500 text-center mb-2">
+            Step {currentStep} of {steps.length}
+          </div>
+          <div className="w-full bg-[#c0d3dc] rounded-full h-2">
+            <div 
+              className="bg-[#2c6774] h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / steps.length) * 100}%` }}
+            ></div>
+          </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-in;
+        }
+        
+        .no-spinner::-webkit-inner-spin-button,
+        .no-spinner::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        
+        .no-spinner {
+          -moz-appearance: textfield;
+        }
+      `}
+      </style>
     </div>
   );
 };
