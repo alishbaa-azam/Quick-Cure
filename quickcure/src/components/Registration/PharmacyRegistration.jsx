@@ -1066,7 +1066,7 @@ const PharmacyRegistration = () => {
             </div>
 
             <div className="space-y-3">
-              <button
+              {/* <button
                 onClick={() => {
                   setSubmitSuccess(false);
                   setCurrentStep(1);
@@ -1076,7 +1076,7 @@ const PharmacyRegistration = () => {
                 className="w-full bg-[#2c6774] hover:bg-[#1e4e56] text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300"
               >
                 Register Another Pharmacy
-              </button>
+              </button> */}
               
               <button
                 onClick={() => {
