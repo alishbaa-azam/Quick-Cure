@@ -1276,7 +1276,8 @@ const DoctorRegistration = () => {
         </div>
       )}
 
-      <style jsx>{`
+{/* // this was current change  */}
+      {/* <style jsx>{`
         .react-select-container { width: 100%; }
         .react-select__control { border-color: #c0d3dc !important; background-color: #f8f9fa !important; min-height: 42px; }
         .react-select__control:hover { border-color: #2c6774 !important; }
@@ -1284,7 +1285,40 @@ const DoctorRegistration = () => {
         .react-select__menu { z-index: 30 !important; max-height: 300px !important; overflow-y: auto !important; }
         .react-select__option--is-focused { background-color: #e6f0f3 !important; }
         .react-select__option--is-selected { background-color: #2c6774 !important; }
-        .backdrop-blur-sm { backdrop-filter: blur(4px); }
+        .backdrop-blur-sm { backdrop-filter: blur(4px); } */}
+
+{/* // this was incoming change */}
+      {/* Add CSS for react-select */}
+      <style>{`
+        .react-select-container {
+          width: 100%;
+        }
+        .react-select__control {
+          border-color: #c0d3dc !important;
+          background-color: #f8f9fa !important;
+          min-height: 42px;
+        }
+        .react-select__control:hover {
+          border-color: #2c6774 !important;
+        }
+        .react-select__control--is-focused {
+          border-color: #2c6774 !important;
+          box-shadow: 0 0 0 1px #2c6774 !important;
+        }
+        .react-select__menu {
+          z-index: 30 !important;
+          max-height: 300px !important;
+          overflow-y: auto !important;
+        }
+        .react-select__option--is-focused {
+          background-color: #e6f0f3 !important;
+        }
+        .react-select__option--is-selected {
+          background-color: #2c6774 !important;
+        }
+        .backdrop-blur-sm {
+          backdrop-filter: blur(4px);
+        }
       `}</style>
     </div>
   );

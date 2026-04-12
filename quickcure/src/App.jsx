@@ -385,6 +385,7 @@ import Header from "./components/Header/header";
 import Footer from "./components/footer";
 import Home from "./components/Home/home";
 import MyOrders from './components/UserDashboard/MyOrders.jsx';
+import AboutUs from "./components/AboutUs";
 
 //------------Doctor Module---------------------------------------//
 import DoctorsPage from "./components/Doctors/DoctorsPage";
@@ -443,6 +444,8 @@ function Layout() {
 
       <Routes>
         <Route path="/" element={<Home />} />
+        {/* <Route path="/about" element={<AboutContactPage />} /> */}
+        <Route path="/about" element={<AboutUs />} />
         <Route path="/login" element={<LoginPage />} />
         
         {/* Doctor Module */}
