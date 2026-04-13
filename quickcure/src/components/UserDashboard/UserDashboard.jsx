@@ -59,11 +59,13 @@ const UserDashboard = () => {
     
     // Custom event for when appointments are updated
     window.addEventListener('appointmentsUpdated', loadStats);
+    window.addEventListener('labTestsUpdated', loadStats);
 
     return () => {
       window.removeEventListener('userChanged', handleUserChange);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('appointmentsUpdated', loadStats);
+      window.removeEventListener('labTestsUpdated', loadStats);
     };
   }, [navigate]);
 
@@ -71,7 +73,7 @@ const UserDashboard = () => {
   const loadStats = () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userKey = user?.id || user?._id || 'guest';
+      const userKey = user?._id || user?.id || 'guest';
       
       // Get appointments count
       const appointmentsKey = `appointments_${userKey}`;
@@ -120,7 +122,7 @@ const UserDashboard = () => {
     // Also update localStorage for persistence
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userKey = user?.id || user?._id || 'guest';
+      const userKey = user?._id || user?.id || 'guest';
       
       if (section === 'appointments') {
         const appointmentsKey = `appointments_${userKey}`;
@@ -147,7 +149,7 @@ const UserDashboard = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-gray-800 font-medium">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -175,7 +177,7 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Total Appointments</p>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Total Appointments</p>
                 <p className="text-3xl font-bold" style={{ color: 'var(--primary-color)' }}>
                   {stats.appointments}
                 </p>
@@ -194,7 +196,7 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Medicine Orders</p>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Medicine Orders</p>
                 <p className="text-3xl font-bold" style={{ color: 'var(--secondary-color)' }}>
                   {stats.orders}
                 </p>
@@ -208,7 +210,7 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Lab Tests</p>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Lab Tests</p>
                 <p className="text-3xl font-bold" style={{ color: 'var(--accent-color)' }}>
                   {stats.labTests}
                 </p>
@@ -245,6 +247,16 @@ const UserDashboard = () => {
                   {tab.id === 'appointments' && stats.appointments > 0 && (
                     <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
                       {stats.appointments}
+                    </span>
+                  )}
+                  {tab.id === 'orders' && stats.orders > 0 && (
+                    <span className="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full">
+                      {stats.orders}
+                    </span>
+                  )}
+                  {tab.id === 'labtests' && stats.labTests > 0 && (
+                    <span className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full">
+                      {stats.labTests}
                     </span>
                   )}
                 </button>
@@ -292,7 +304,7 @@ const UserDashboard = () => {
             </div>
             <div className="text-left">
               <p className="font-medium" style={{ color: 'var(--secondary-color)' }}>Book Appointment</p>
-              <p className="text-xs text-gray-500">Schedule a visit with a doctor</p>
+              <p className="text-xs text-gray-700">Schedule a visit with a doctor</p>
             </div>
           </button>
 
@@ -305,7 +317,7 @@ const UserDashboard = () => {
             </div>
             <div className="text-left">
               <p className="font-medium" style={{ color: 'var(--secondary-color)' }}>Order Medicines</p>
-              <p className="text-xs text-gray-500">Get medicines delivered</p>
+              <p className="text-xs text-gray-700">Get medicines delivered</p>
             </div>
           </button>
 
@@ -318,7 +330,7 @@ const UserDashboard = () => {
             </div>
             <div className="text-left">
               <p className="font-medium" style={{ color: 'var(--secondary-color)' }}>Book Lab Test</p>
-              <p className="text-xs text-gray-500">Schedule diagnostic tests</p>
+              <p className="text-xs text-gray-700">Schedule diagnostic tests</p>
             </div>
           </button>
         </div>
@@ -329,7 +341,7 @@ const UserDashboard = () => {
         :root {
           --primary-color: #2c6774;
           --secondary-color: #174047;
-          --accent-color: #5c878f;
+          --accent-color: #3d5a61;
           --hover-color: #1e4e56;
           --bg-light: #9fbfc5;
           --text-light: #c0d3dc;

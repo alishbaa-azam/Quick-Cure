@@ -1,9 +1,9 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import { FaTruck } from 'react-icons/fa';
-import { FiPlus, FiEdit2, FiTrash2, FiUser, FiMapPin, FiFileText, FiCheckCircle, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiUser, FiMapPin, FiFileText, FiCheckCircle, FiClock, FiCalendar, FiExternalLink } from 'react-icons/fi';
 
-export default function CollectionsTab({ collections, theme, onAddCollection, onEditCollection, onDeleteCollection }) {
+export default function CollectionsTab({ collections, bookings, theme, onAddCollection, onEditCollection, onDeleteCollection, onViewBooking, onUpdateStatus }) {
   const StatusBadge = ({ status }) => {
     const config = {
       scheduled: 'bg-blue-100 text-blue-800',
@@ -37,7 +37,11 @@ export default function CollectionsTab({ collections, theme, onAddCollection, on
           // Fetch data from Booking
           const patient = collection.bookingId?.patientDetails || collection.patientId;
           const booking = collection.bookingId;
-          const isCompleted = ['collected', 'completed', 'delivered'].includes(collection.status?.toLowerCase());
+          
+          // Logic consistent with Patients Tab
+          const isCompleted = 
+            ['collected', 'completed', 'delivered'].includes(collection.status?.toLowerCase()) || 
+            booking?.bookingStatus?.toLowerCase() === 'completed';
 
           const testList = Array.isArray(booking?.tests) ? booking.tests : 
                          Array.isArray(booking?.testDetails) ? booking.testDetails : [];
@@ -48,8 +52,8 @@ export default function CollectionsTab({ collections, theme, onAddCollection, on
               <div className="p-5 flex-1">
                 <div className="flex justify-between items-start mb-5">
                   <div className="space-y-1">
-                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Tracking ID</p>
-                    <p className="font-mono text-sm font-bold text-gray-700">{collection.trackingId || 'N/A'}</p>
+                    <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Tracking ID</p>
+                    <p className="font-mono text-sm font-medium text-gray-700">{collection.trackingId || 'N/A'}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <StatusBadge status={collection.status} />
@@ -79,8 +83,8 @@ export default function CollectionsTab({ collections, theme, onAddCollection, on
                       <FiUser size={16} />
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Patient & Contact</p>
-                      <p className="text-sm font-extrabold text-gray-800">{patient?.name || "N/A"}</p>
+                      <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Patient & Contact</p>
+                      <p className="text-sm font-bold text-gray-800">{patient?.name || "N/A"}</p>
                       <p className="text-xs text-gray-500">{patient?.mobile}</p>
                     </div>
                   </div>
@@ -91,7 +95,7 @@ export default function CollectionsTab({ collections, theme, onAddCollection, on
                       <FiFileText size={16} />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Booking Details</p>
+                      <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Booking Details</p>
                       <p className="text-xs font-mono text-indigo-600 font-bold">{booking?.bookingReference || 'N/A'}</p>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {testList.slice(0, 3).map((t, i) => (
@@ -101,7 +105,7 @@ export default function CollectionsTab({ collections, theme, onAddCollection, on
                         ))}
                         {testList.length > 3 && <span className="text-[9px] text-gray-400">+{testList.length - 3} more</span>}
                       </div>
-                      <p className="text-sm font-black text-gray-700 mt-1">₨{(booking?.totalAmount || 0).toLocaleString()}</p>
+                      {/* <p className="text-sm font-bold text-gray-700 mt-1">₨{(booking?.totalAmount || 0).toLocaleString()}</p> */}
                     </div>
                   </div>
 
@@ -111,26 +115,52 @@ export default function CollectionsTab({ collections, theme, onAddCollection, on
                       <FiMapPin size={16} />
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Collection Address</p>
+                      <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Collection Address</p>
                       <p className="text-xs text-gray-600 line-clamp-2 italic">"{collection.collectionAddress || patient?.address || "Address not provided"}"</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Status Banner */}
-                <div className={`mt-6 p-2.5 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] border ${isCompleted ? 'bg-green-50 text-green-600 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'}`}>
-                  {isCompleted ? <FiCheckCircle size={14} /> : <FiClock size={14} />}
-                  Collection {isCompleted ? 'Completed' : 'Pending'}
+                <div className="mt-6 flex flex-col gap-2">
+                  {/* Status Banner */}
+                  <div className={`p-2.5 rounded-xl flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest border ${isCompleted ? 'bg-green-50 text-green-600 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'}`}>
+                    {isCompleted ? <FiCheckCircle size={14} /> : <FiClock size={14} />}
+                    Collection {isCompleted ? 'Completed' : 'Pending'}
+                  </div>
+
+                  {/* Quick Update Button */}
+                  {!isCompleted && (
+                    <button
+                      onClick={() => onUpdateStatus?.(collection._id, 'collected')}
+                      className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 rounded-xl transition-colors border border-green-100"
+                    >
+                      <FiCheckCircle size={14} />
+                      Mark as Collected
+                    </button>
+                  )}
+
+                  {/* View Details Button */}
+                  <button
+                    onClick={() => {
+                      const bookingId = booking?._id || booking;
+                      const fullBooking = bookings?.find(b => b._id === bookingId);
+                      if (fullBooking) onViewBooking?.(fullBooking);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-xl transition-colors border border-teal-100"
+                  >
+                    <FiExternalLink size={14} />
+                    View Booking Details
+                  </button>
                 </div>
               </div>
 
               {/* Bottom Bar: Schedule Time */}
-              <div className="bg-gray-50/80 px-5 py-3 border-t border-gray-100 flex items-center justify-between text-gray-500">
-                <div className="flex items-center gap-1.5 text-xs font-bold">
+              <div className="bg-gray-50/50 px-5 py-3 border-t border-gray-100 flex items-center justify-between text-gray-500">
+                <div className="flex items-center gap-1.5 text-xs font-medium">
                   <FiCalendar size={14} />
                   {dayjs(collection.scheduledDate).format('DD MMM YYYY')}
                 </div>
-                <div className="flex items-center gap-1.5 text-xs font-bold capitalize">
+                <div className="flex items-center gap-1.5 text-xs font-medium capitalize">
                   <FiClock size={14} />
                   {collection.scheduledTimeSlot}
                 </div>

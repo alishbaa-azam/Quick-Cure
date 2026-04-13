@@ -6342,7 +6342,7 @@ const MedicineBooking = ({ cart, setCart }) => {
             </div>
           </div>
           
-          {orders.length > 0 && (
+          {/* {orders.length > 0 && (
             <button
               onClick={viewOrderHistory}
               className="inline-flex items-center text-[var(--primary-color)] hover:text-[var(--secondary-color)] transition-colors text-sm sm:text-base"
@@ -6350,7 +6350,7 @@ const MedicineBooking = ({ cart, setCart }) => {
               <FaReceipt className="mr-2" />
               Order History ({orders.length})
             </button>
-          )}
+          )} */}
         </div>
 
         {/* Pharmacy loading/error messages */}

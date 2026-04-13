@@ -1,601 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import axios from 'axios';
-// import dayjs from 'dayjs';
-// import LabDashboardSidebar from './LabDashboardSidebar';
-// import LabDashboardPages from './LabDashboardPages';
-// import LabDashboardModals from './LabDashboardModals';
-
-// const API_BASE_URL = 'http://localhost:5000/api';
-// axios.defaults.baseURL = API_BASE_URL;
-
-// export default function LabDashboard() {
-//   const navigate = useNavigate();
-  
-//   // State
-//   const [lab, setLab] = useState(null);
-//   const [tests, setTests] = useState([]);
-//   const [bookings, setBookings] = useState([]);
-//   const [filteredBookings, setFilteredBookings] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [activeTab, setActiveTab] = useState('dashboard');
-  
-//   // Modal States
-//   const [isTestModalVisible, setIsTestModalVisible] = useState(false);
-//   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
-//   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
-//   const [selectedBooking, setSelectedBooking] = useState(null);
-//   const [editingTest, setEditingTest] = useState(null);
-//   const [logoFile, setLogoFile] = useState(null);
-  
-//   // Filter States
-//   const [statusFilter, setStatusFilter] = useState('all');
-//   const [searchText, setSearchText] = useState('');
-//   const [timeRange, setTimeRange] = useState('30');
-  
-
-//   // Theme
-//   const theme = {
-//     primary: '#2c6774',
-//     secondary: '#174047',
-//     accent: '#5c878f',
-//     hover: '#1e4e56',
-//     bgLight: '#9fbfc5',
-//     textLight: '#c0d3dc',
-//     white: '#ffffff',
-//     success: '#52c41a',
-//     warning: '#faad14',
-//     error: '#ff4d4f',
-//     info: '#1890ff',
-//     purple: '#722ed1'
-//   };
-
-//   // ========== API Functions ==========
-//   const getCurrentUser = () => {
-//     try {
-//       const user = JSON.parse(localStorage.getItem("user"));
-//       return user;
-//     } catch (error) {
-//       console.error("Error parsing user:", error);
-//       return null;
-//     }
-//   };
-
-//   const fetchLabData = async () => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       // Get current user
-//       const currentUser = getCurrentUser();
-      
-//       // Validate user
-//       if (!currentUser) {
-//         setError("Please login first");
-//         setLoading(false);
-//         return;
-//       }
-
-//       if (currentUser.role !== "lab") {
-//         setError("Access denied. Lab users only.");
-//         setLoading(false);
-//         return;
-//       }
-
-//       // Fetch all labs
-//       const { data: labs } = await axios.get("/labs");
-      
-//       // Find lab belonging to current user
-//       const userLab = labs.find(lab => {
-//         // Handle both populated and non-populated userId
-//         const labUserId = lab.userId?._id || lab.userId;
-//         const currentUserId = currentUser._id || currentUser.id;
-        
-//         return labUserId?.toString() === currentUserId?.toString();
-//       });
-
-//       if (!userLab) {
-//         setError("Lab not registered");
-//         setLoading(false);
-//         return;
-//       }
-
-//       setLab(userLab);
-
-//       // Fetch tests and bookings in parallel
-//       await Promise.all([
-//         fetchTests(userLab._id),
-//         fetchBookings(userLab._id)
-//       ]);
-      
-//     } catch (error) {
-//       console.error("Dashboard error:", error);
-//       setError(error.response?.data?.message || "Failed to load dashboard");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-// // Update collection status
-// const handleUpdateCollectionStatus = async (bookingId, status) => {
-//   try {
-//     await axios.patch(`/api/bookings/${bookingId}/collection-status`, { status });
-//     fetchBookings(lab._id); // Refresh
-//   } catch (error) {
-//     console.error('Error updating collection status:', error);
-//   }
-// };
-
-// // Upload report
-// const handleUploadReport = async (bookingId, testId, reportData) => {
-//   const formData = new FormData();
-//   formData.append('testResults', reportData.testResults);
-//   formData.append('interpretation', reportData.interpretation);
-//   formData.append('doctorComments', reportData.doctorComments);
-//   if (reportData.reportFile) {
-//     formData.append('reportFile', reportData.reportFile);
-//   }
-  
-//   try {
-//     await axios.post(`/api/bookings/${bookingId}/reports/${testId}`, formData, {
-//       headers: { 'Content-Type': 'multipart/form-data' }
-//     });
-//     fetchBookings(lab._id); // Refresh
-//   } catch (error) {
-//     console.error('Error uploading report:', error);
-//   }
-// };
-
-// // View patient history
-// const handleViewPatientHistory = async (patientId) => {
-//   try {
-//     const response = await axios.get(`/api/bookings/patient/${patientId}/history`);
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error fetching patient history:', error);
-//   }
-// };
-
-// // Fetch patients
-// const fetchPatients = async (labId) => {
-//   try {
-//     const response = await axios.get(`/api/patients/lab/${labId}`);
-//     setPatients(response.data);
-//   } catch (error) {
-//     console.error('Error fetching patients:', error);
-//   }
-// };
-//   const fetchTests = async (labId) => {
-//     try {
-//       const response = await axios.get(`/tests/lab/${labId}`);
-//       setTests(response.data);
-//     } catch (error) {
-//       console.error('Failed to fetch tests:', error);
-//     }
-//   };
-
-//   const fetchBookings = async (labId) => {
-//     try {
-//       const response = await axios.get(`/bookings/lab/${labId}`);
-//       const sorted = response.data.sort((a, b) => 
-//         new Date(b.createdAt) - new Date(a.createdAt)
-//       );
-//       setBookings(sorted);
-//       setFilteredBookings(sorted);
-//     } catch (error) {
-//       console.error('Failed to fetch bookings:', error);
-//     }
-//   };
-
-//   const createTest = async (values) => {
-//     try {
-//       await axios.post('/tests', { ...values, labId: lab._id });
-//       await fetchTests(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to create test:', error);
-//       return false;
-//     }
-//   };
-
-//   const updateTest = async (id, values) => {
-//     try {
-//       await axios.put(`/tests/${id}`, values);
-//       await fetchTests(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to update test:', error);
-//       return false;
-//     }
-//   };
-
-//   const deleteTest = async (id) => {
-//     try {
-//       await axios.delete(`/tests/${id}`);
-//       await fetchTests(lab._id);
-//     } catch (error) {
-//       console.error('Failed to delete test:', error);
-//     }
-//   };
-
-//   const updateLabProfile = async (values) => {
-//     try {
-//       const formData = new FormData();
-//       if (values.name) formData.append('name', values.name);
-//       if (values.branches) formData.append('branches', values.branches);
-//       if (values.discount !== undefined && values.discount !== null) {
-//         formData.append('discount', values.discount.toString());
-//       }
-//       if (logoFile) formData.append('logo', logoFile);
-
-//       await axios.put(`/labs/${lab._id}`, formData, {
-//         headers: { 'Content-Type': 'multipart/form-data' }
-//       });
-      
-//       await fetchLabData(); // Refresh all lab data
-//       setLogoFile(null);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to update profile:', error);
-//       return false;
-//     }
-//   };
-
-//   const updateBookingStatus = async (id, status) => {
-//     try {
-//       await axios.put(`/bookings/${id}/status`, { status });
-//       await fetchBookings(lab._id);
-//     } catch (error) {
-//       console.error('Failed to update booking:', error);
-//     }
-//   };
-
-//   // Initialize data
-//   useEffect(() => {
-//     fetchLabData();
-//   }, []);
-
-//   // ========== Filter Effect ==========
-//   useEffect(() => {
-//     let filtered = bookings;
-    
-//     if (statusFilter !== 'all') {
-//       filtered = filtered.filter(b => b.bookingStatus === statusFilter);
-//     }
-//     if (searchText) {
-//       filtered = filtered.filter(b => 
-//         b.bookingReference?.toLowerCase().includes(searchText.toLowerCase()) ||
-//         b.patientDetails?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-//         b.patientDetails?.mobile?.includes(searchText)
-//       );
-//     }
-//     if (timeRange !== 'all') {
-//       const days = parseInt(timeRange);
-//       const cutoff = dayjs().subtract(days, 'days');
-//       filtered = filtered.filter(b => dayjs(b.createdAt).isAfter(cutoff));
-//     }
-    
-//     setFilteredBookings(filtered);
-//   }, [bookings, statusFilter, searchText, timeRange]);
-
-//   // ========== Stats ==========
-//   const stats = {
-//     totalBookings: bookings.length,
-//     pendingBookings: bookings.filter(b => b.bookingStatus === 'pending').length,
-//     confirmedBookings: bookings.filter(b => b.bookingStatus === 'confirmed').length,
-//     completedBookings: bookings.filter(b => b.bookingStatus === 'completed').length,
-//     cancelledBookings: bookings.filter(b => b.bookingStatus === 'cancelled').length,
-//     totalRevenue: bookings.filter(b => b.bookingStatus === 'completed')
-//       .reduce((sum, b) => sum + (b.totals?.discounted || 0), 0),
-//     monthlyRevenue: bookings.filter(b => 
-//       b.bookingStatus === 'completed' && 
-//       dayjs(b.createdAt).isAfter(dayjs().subtract(30, 'days'))
-//     ).reduce((sum, b) => sum + (b.totals?.discounted || 0), 0),
-//     totalTests: tests.length,
-//     averageRating: 4.5
-//   };
-
-//   // ========== Handlers ==========
-//   const handleTestSubmit = async (values) => {
-//     setLoading(true);
-//     const success = values._id 
-//       ? await updateTest(values._id, values)
-//       : await createTest(values);
-//     if (success) {
-//       setIsTestModalVisible(false);
-//       setEditingTest(null);
-//     }
-//     setLoading(false);
-//   };
-
-//   const handleEditTest = (test) => {
-//     setEditingTest(test);
-//     setIsTestModalVisible(true);
-//   };
-
-//   const handleDeleteTest = (id) => {
-//     if (window.confirm('Are you sure you want to delete this test?')) {
-//       deleteTest(id);
-//     }
-//   };
-
-//   const handleViewBooking = (booking) => {
-//     setSelectedBooking(booking);
-//     setIsBookingModalVisible(true);
-//   };
-
-//   const handleLogout = () => {
-//     localStorage.removeItem('user');
-//     navigate('/login');
-//   };
-
-//   const handleRefresh = () => {
-//     fetchLabData();
-//   };
-
-//   // ========== Render Header ==========
-//   const renderHeader = () => (
-//     <header className="bg-white px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 h-16">
-//       <div className="flex flex-col">
-//         <h4 className="text-lg font-semibold m-0" style={{ color: theme.secondary }}>
-//           {activeTab === 'dashboard' && 'Dashboard Overview'}
-//           {activeTab === 'tests' && 'Test Management'}
-//           {activeTab === 'bookings' && 'Booking Management'}
-//           {activeTab === 'profile' && 'Lab Profile'}
-//         </h4>
-//         <span className="text-xs text-gray-500">
-//           {dayjs().format('dddd, MMMM D, YYYY')} • Last updated: {dayjs().format('hh:mm A')}
-//         </span>
-//       </div>
-      
-//       <div className="flex items-center space-x-4">
-//         {/* Lab Info */}
-//         <div className="flex items-center gap-2">
-//           <div className="w-10 h-10 rounded-full overflow-hidden" style={{ backgroundColor: lab?.logo ? 'transparent' : theme.primary }}>
-//             {lab?.logo ? (
-//               <img 
-//                 // src={`${API_BASE_URL}/uploads/${lab.logo}`} 
-//                 src={`http://localhost:5000/uploads/${lab.logo}`}
-
-//                 alt={lab.name}
-//                 className="w-full h-full object-cover"
-//               />
-//             ) : (
-//               <div className="w-full h-full flex items-center justify-center text-white font-semibold">
-//                 L
-//               </div>
-//             )}
-//           </div>
-//           <div className="flex flex-col">
-//             <span className="text-sm font-semibold">{lab?.name || 'Lab'}</span>
-//             <span className="text-xs text-gray-500">Lab Manager</span>
-//           </div>
-//         </div>
-
-//         <div className="w-px h-6 bg-gray-300"></div>
-
-//         {/* Notification Bell with Badge */}
-//         <div className="relative">
-//           <button 
-//             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-//             onClick={() => {
-//               setActiveTab('bookings');
-//               setStatusFilter('pending');
-//             }}
-//             title={`${stats.pendingBookings} pending bookings`}
-//           >
-//             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-//             </svg>
-//           </button>
-//           {stats.pendingBookings > 0 && (
-//             <span className="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-//               {stats.pendingBookings}
-//             </span>
-//           )}
-//         </div>
-
-//         {/* Help Button */}
-//         <button 
-//           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-//           onClick={() => alert('Contact support: support@labpro.com')}
-//           title="Help & Support"
-//         >
-//           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-//           </svg>
-//         </button>
-
-//         {/* Refresh Button */}
-//         <button 
-//           className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${loading ? 'animate-spin' : ''}`}
-//           onClick={handleRefresh}
-//           title="Refresh Data"
-//         >
-//           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-//           </svg>
-//         </button>
-
-//         {/* Settings Dropdown */}
-//         <div className="relative group">
-//           <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-//             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-//             </svg>
-//           </button>
-          
-//           {/* Dropdown Menu */}
-//           <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block z-50">
-//             <button
-//               onClick={() => setActiveTab('profile')}
-//               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-//             >
-//               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-//               </svg>
-//               My Profile
-//             </button>
-//             <button
-//               onClick={() => alert('Settings coming soon')}
-//               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-//             >
-//               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-//               </svg>
-//               Settings
-//             </button>
-//             <div className="border-t border-gray-100 my-1"></div>
-//             <button
-//               onClick={handleLogout}
-//               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-//             >
-//               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-//               </svg>
-//               Logout
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </header>
-//   );
-
-//   // ========== Render ==========
-  
-//   // Show registration option if no lab
-//   if (!loading && !lab && error === "Lab not registered") {
-//     return (
-//       <div className="min-h-screen bg-gray-50">
-//         {renderHeader()}
-//         <div className="m-6 p-12 bg-white rounded-lg">
-//           <div className="max-w-md mx-auto text-center">
-//             <h2 className="text-3xl font-bold text-gray-800 mb-4">
-//               Welcome to Lab Dashboard
-//             </h2>
-//             <p className="text-gray-600 mb-6 text-lg">
-//               You haven't registered your lab yet. Please register to start managing your laboratory.
-//             </p>
-//             <button 
-//               onClick={() => navigate("/lab/register")}
-//               className="px-6 py-3 text-white rounded-lg transition-colors hover:opacity-90"
-//               style={{ backgroundColor: theme.primary }}
-//             >
-//               Register Lab
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Show loading state
-//   if (loading && !lab) {
-//     return (
-//       <div className="min-h-screen bg-gray-50">
-//         {renderHeader()}
-//         <div className="m-6 p-12 bg-white rounded-lg">
-//           <div className="flex justify-center items-center h-96">
-//             <div className="text-center">
-//               <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-//               <p style={{ color: theme.primary }}>Loading dashboard...</p>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Show error state
-//   if (error && error !== "Lab not registered") {
-//     return (
-//       <div className="min-h-screen bg-gray-50">
-//         {renderHeader()}
-//         <div className="m-6 p-6 bg-white rounded-lg">
-//           <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-lg text-center">
-//             <p className="text-lg mb-4">{error}</p>
-//             <button 
-//               onClick={fetchLabData}
-//               className="px-4 py-2 text-white rounded-lg transition-colors hover:opacity-90"
-//               style={{ backgroundColor: theme.primary }}
-//             >
-//               Try Again
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Main render
-//   return (
-//     <div className="flex min-h-screen bg-gray-50">
-//       <LabDashboardSidebar
-//         activeTab={activeTab}
-//         setActiveTab={setActiveTab}
-//         lab={lab}
-//         stats={stats}
-//         theme={theme}
-//         onLogout={handleLogout}
-//       />
-      
-//       <div className="flex-1">
-//         {renderHeader()}
-        
-//         <div className="m-6 p-6 bg-white rounded-lg">
-//           <LabDashboardPages
-//             activeTab={activeTab}
-//             lab={lab}
-//             tests={tests}
-//             bookings={bookings}
-//             filteredBookings={filteredBookings}
-//             stats={stats}
-//             theme={theme}
-//             loading={loading}
-//             searchText={searchText}
-//             setSearchText={setSearchText}
-//             statusFilter={statusFilter}
-//             setStatusFilter={setStatusFilter}
-//             timeRange={timeRange}
-//             setTimeRange={setTimeRange}
-//             onAddTest={() => {
-//               setEditingTest(null);
-//               setIsTestModalVisible(true);
-//             }}
-//             onEditTest={handleEditTest}
-//             onDeleteTest={handleDeleteTest}
-//             onViewBooking={handleViewBooking}
-//             onEditProfile={() => setIsProfileModalVisible(true)}
-//             onUpdateStatus={updateBookingStatus}
-//           />
-//         </div>
-//       </div>
-
-//       <LabDashboardModals
-//         isTestModalVisible={isTestModalVisible}
-//         setIsTestModalVisible={setIsTestModalVisible}
-//         isProfileModalVisible={isProfileModalVisible}
-//         setIsProfileModalVisible={setIsProfileModalVisible}
-//         isBookingModalVisible={isBookingModalVisible}
-//         setIsBookingModalVisible={setIsBookingModalVisible}
-//         selectedBooking={selectedBooking}
-//         editingTest={editingTest}
-//         lab={lab}
-//         logoFile={logoFile}
-//         setLogoFile={setLogoFile}
-//         theme={theme}
-//         loading={loading}
-//         onTestSubmit={handleTestSubmit}
-//         onProfileSubmit={updateLabProfile}
-//         onUpdateStatus={updateBookingStatus}
-//         API_BASE_URL={API_BASE_URL}
-//       />
-//     </div>
-//   );
-// }
-
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -644,6 +46,7 @@ export default function LabDashboard() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isCollectionModalVisible, setIsCollectionModalVisible] = useState(false);
+  const [isReportModalVisible, setIsReportModalVisible] = useState(false);
   const [isPatientModalVisible, setIsPatientModalVisible] = useState(false);
   const [editingCollection, setEditingCollection] = useState(null);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -694,7 +97,8 @@ export default function LabDashboard() {
         fetchTests(userLab._id),
         fetchBookings(userLab._id),
         fetchPatients(userLab._id),
-        fetchCollections(userLab._id)
+        fetchCollections(userLab._id),
+        fetchReports(userLab._id)
       ]);
       
     } catch (error) {
@@ -735,11 +139,20 @@ export default function LabDashboard() {
 
   const fetchCollections = async (labId) => {
     try {
-      // ✅ Fetch all collections for this lab, not just today's
+      //  Fetch all collections for this lab, not just today's
       const response = await axios.get(`/sample-collection/lab/${labId}`);
       setCollections(response.data.data || response.data || []);
     } catch (error) {
       console.error('Error fetching collections:', error);
+    }
+  };
+
+  const fetchReports = async (labId) => {
+    try {
+      const response = await axios.get(`/reports/lab/${labId}`);
+      setReports(response.data.data || response.data || []);
+    } catch (error) {
+      console.error('Error fetching reports:', error);
     }
   };
 
@@ -800,29 +213,85 @@ export default function LabDashboard() {
   const handleScheduleCollection = async (data) => {
     if (!lab?._id) return alert("Lab information missing!");
     
-    // ✅ Find the specific booking to extract required patient info
+    //  Find the specific booking to extract required patient info
     const booking = bookings.find(b => b._id === data.bookingId);
     if (!booking) return alert("Selected booking not found!");
 
     try {
       setLoading(true);
       
-      // ✅ Enrich payload with patient details the backend likely requires
+      //  Enrich payload with patient details the backend likely requires
       const payload = { 
         ...data, 
         labId: lab._id,
-        patientId: booking.patientDetails?._id, // ✅ Send ObjectId, not email
+        patientId: booking.patientDetails?._id, //  Send ObjectId, not email
         collectionAddress: booking.patientDetails?.address 
       };
 
-      await axios.post('/sample-collection/schedule', payload);
+      if (data._id) {
+        await axios.put(`/sample-collection/${data._id}`, payload);
+      } else {
+        await axios.post('/sample-collection/schedule', payload);
+      }
+
       await fetchCollections(lab._id);
       setIsCollectionModalVisible(false);
-      alert("Sample collection scheduled successfully! ✅");
+      alert("Sample collection scheduled successfully!");
       return true;
     } catch (error) {
       console.error('Schedule Error:', error.response?.data || error.message);
       alert(`Failed to schedule collection: ${error.response?.data?.message || "Internal Server Error"}`);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateCollectionStatus = async (id, status) => {
+    try {
+      setLoading(true);
+      // Use PATCH or PUT based on your backend API for status updates
+      await axios.patch(`/sample-collection/${id}/status`, { status });
+      
+      if (lab?._id) await fetchCollections(lab._id);
+      alert(`Status updated to ${status}! ✅`);
+    } catch (error) {
+      console.error('Update Collection Status Error:', error);
+      alert(`Failed to update status: ${error.response?.data?.message || "Internal error"}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteReport = async (id) => {
+    if (window.confirm("Are you sure you want to delete this report? 🗑️")) {
+      try {
+        setLoading(true);
+        await axios.delete(`/reports/${id}`);
+        await fetchReports(lab._id);
+        alert("Report deleted successfully!");
+      } catch (error) {
+        console.error('Delete Report Error:', error);
+        alert(`Failed to delete report: ${error.response?.data?.message || "Internal error"}`);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleUploadReport = async (formData) => {
+    try {
+      setLoading(true);
+      await axios.post('/reports/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      await fetchReports(lab._id);
+      setIsReportModalVisible(false);
+      alert("Report uploaded successfully! ✅");
+      return true;
+    } catch (error) {
+      alert(`Failed to upload report: ${error.response?.data?.message || "Internal error"}`);
       return false;
     } finally {
       setLoading(false);
@@ -834,9 +303,9 @@ export default function LabDashboard() {
       try {
         await axios.delete(`/sample-collection/${id}`);
         if (lab?._id) await fetchCollections(lab._id);
-        alert("Collection deleted successfully ✅");
+        alert("Collection deleted successfully");
       } catch (error) {
-        alert("Failed to delete collection schedule ❌");
+        alert("Failed to delete collection schedule");
       }
     }
   };
@@ -847,13 +316,13 @@ export default function LabDashboard() {
     
     try {
       setLoading(true);
-      // ✅ Use PATCH for partial updates and send both possible keys
+      //  Use PATCH for partial updates and send both possible keys
       await axios.patch(`/bookings/${id}/status`, { 
         status: status, 
         bookingStatus: status 
       });
 
-      // ✅ Simplified lab ID check
+      //  Simplified lab ID check
       if (lab?._id) await fetchBookings(lab._id);
       
       setIsBookingModalVisible(false);
@@ -874,7 +343,7 @@ export default function LabDashboard() {
   const handlePatientSubmit = async (values) => {
     // In this derived system, editing a patient updates the latest booking info
     // or can be extended to an actual patients collection update
-    alert("Patient details updated successfully (Mock) ✅");
+    alert("Patient details updated successfully (Mock)");
     setIsPatientModalVisible(false);
     setEditingPatient(null);
   };
@@ -883,7 +352,7 @@ export default function LabDashboard() {
     if (window.confirm("Are you sure you want to remove this patient and their history?")) {
       try {
         // Implementation depends on backend, typically deleting by email or ID
-        alert(`Patient ${email} removed from registry ✅`);
+        alert(`Patient ${email} removed from registry`);
         fetchLabData();
       } catch (error) {
         alert("Failed to delete patient");
@@ -930,7 +399,7 @@ export default function LabDashboard() {
   const handleTestSubmit = async (values) => {
     setLoading(true);
     
-    // ✅ Clean payload: extract _id and send only data to prevent backend errors
+    // Clean payload: extract _id and send only data to prevent backend errors
     const { _id, ...data } = values;
     
     const success = _id 
@@ -976,9 +445,9 @@ const deleteBooking = async (id) => {
   try {
     await axios.delete(`/bookings/${id}`);
     await fetchBookings(lab._id);
-    alert("Deleted successfully ✅");
+    alert("Deleted successfully");
   } catch (err) {
-    alert("Delete failed ❌");
+    alert("Delete failed ");
   }
 };
   // Render tab content
@@ -1038,23 +507,31 @@ const deleteBooking = async (id) => {
 
         return <PatientsTab
           patients={patientsWithBookings}
+          reports={reports}
+          bookings={bookings}
           searchText={searchText}
           setSearchText={setSearchText}
           theme={theme}
           onEditPatient={handleEditPatient}
           onDeletePatient={handleDeletePatient}
+          onViewBooking={handleViewBooking}
         />;
       case 'collections':
         return <CollectionsTab 
           collections={collections}
+          bookings={bookings}
           theme={theme}
           onAddCollection={() => { setEditingCollection(null); setIsCollectionModalVisible(true); }}
           onEditCollection={(col) => { setEditingCollection(col); setIsCollectionModalVisible(true); }}
           onDeleteCollection={handleDeleteCollection}
+          onUpdateStatus={handleUpdateCollectionStatus}
+          onViewBooking={handleViewBooking}
         />;
       case 'reports':
         return <ReportsTab 
           reports={reports}
+          onAddReport={() => setIsReportModalVisible(true)}
+          onDeleteReport={handleDeleteReport}
           theme={theme}
         />;
       case 'profile':
@@ -1072,10 +549,16 @@ const deleteBooking = async (id) => {
   if (loading && !lab) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        {/* <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
           <p style={{ color: theme.primary }}>Loading dashboard...</p>
-        </div>
+        </div> */}
+        <div className="flex justify-center items-center min-h-[400px]">
+  <div className="text-center">
+    <div className="w-12 h-12 border-4 border-[var(--bg-light)] border-t-[var(--primary-color)] rounded-full animate-spin mx-auto mb-4"></div>
+    <p style={{ color: 'var(--primary-color)' }} className="font-medium">Loading dashboard...</p>
+  </div>
+</div>
       </div>
     );
   }
@@ -1149,12 +632,15 @@ const deleteBooking = async (id) => {
         setIsBookingModalVisible={setIsBookingModalVisible}
         isCollectionModalVisible={isCollectionModalVisible}
         setIsCollectionModalVisible={setIsCollectionModalVisible}
+        isReportModalVisible={isReportModalVisible}
+        setIsReportModalVisible={setIsReportModalVisible}
         isPatientModalVisible={isPatientModalVisible}
         setIsPatientModalVisible={setIsPatientModalVisible}
         editingPatient={editingPatient}
         selectedBooking={selectedBooking}
         editingTest={editingTest}
         lab={lab}
+        tests={tests}
         bookings={bookings}
         logoFile={logoFile}
         setLogoFile={setLogoFile}
@@ -1165,6 +651,7 @@ const deleteBooking = async (id) => {
         onProfileSubmit={updateLabProfile}
         onUpdateStatus={updateBookingStatus}
         onScheduleCollection={handleScheduleCollection}
+        onReportSubmit={handleUploadReport}
         API_BASE_URL={API_BASE_URL}
       />
     </div>

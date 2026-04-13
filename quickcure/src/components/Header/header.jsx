@@ -152,9 +152,9 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
   
-  const CHUGHTAI_LAB_ID = "692b638f52ab6641e190e85e";
-  const ESSA_LAB_ID = "692c230d64f88713b962b08c";
-  const Excel_LAB_ID = "692c1f71b3255d0a7e054808";
+  const CHUGHTAI_LAB_ID = "69db564eb03bdd408b8e7292";
+  const ESSA_LAB_ID = "69dbeaec09ad17c0d8a883ff";
+  const ALNOOR_LAB_ID = "69b19a26243075f1d6068c8b";
   
   const menus = {
     doctor: [
@@ -175,7 +175,7 @@ export default function Header() {
     labs: [
       { label: "Chughtai Lab", to:`/labs/${CHUGHTAI_LAB_ID}`},
       { label: "Dr. Essa's Laboratory", to: `/labs/${ESSA_LAB_ID}` },
-      { label: "Excel Labs", to: `/labs/${Excel_LAB_ID}` },
+      { label: "Alnoor Diagnostic Lab", to: `/labs/${ALNOOR_LAB_ID}` },
       { label: "All Labs", to: "/labs" },
     ],
     joinUs: [

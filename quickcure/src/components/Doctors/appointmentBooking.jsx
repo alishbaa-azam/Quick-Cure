@@ -653,7 +653,7 @@ export default function BookAppointment() {
 
       {/* POPUP */}
       {popup.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center backdrop-blur-sm justify-center">
           <div
             className="w-96 p-6 rounded-2xl shadow-2xl"
             style={{ backgroundColor: "var(--white)" }}

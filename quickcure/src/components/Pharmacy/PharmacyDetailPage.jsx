@@ -1464,7 +1464,7 @@ const PharmacyDetailPage = ({ cart, setCart }) => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-12 h-12 border-4 #174047 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading pharmacy...</p>
         </div>
       </div>
@@ -1480,7 +1480,7 @@ const PharmacyDetailPage = ({ cart, setCart }) => {
           <p className="text-gray-600 mb-4">{error || 'The pharmacy you are looking for does not exist.'}</p>
           <button
             onClick={() => navigate('/pharmacies')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 #174047 text-white rounded-lg  transition-colors"
           >
             Browse Pharmacies
           </button>
@@ -1548,7 +1548,7 @@ const PharmacyDetailPage = ({ cart, setCart }) => {
             </div>
             <a
               href={`tel:${pharmacy.phone}`}
-              className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex-shrink-0"
+              className="p-2 bg-blue-50#174047 rounded-lg hover:bg-blue-100 transition-colors flex-shrink-0"
               aria-label="Call pharmacy"
             >
               <FiPhone className="w-5 h-5" />
@@ -1579,7 +1579,7 @@ const PharmacyDetailPage = ({ cart, setCart }) => {
             {/* Medicines Grid */}
             {medicineLoading ? (
               <div className="text-center py-12">
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div className="w-8 h-8 border-4 var(--primary-color) border-t-transparent rounded-full animate-spin mx-auto"></div>
                 <p className="mt-3 text-gray-600">Loading medicines...</p>
               </div>
             ) : filteredMedicines.length > 0 ? (

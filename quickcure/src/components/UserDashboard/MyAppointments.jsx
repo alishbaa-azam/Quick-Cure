@@ -1866,21 +1866,21 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
                     <div className="flex items-center space-x-3">
                       <FaCalendarAlt className="text-sm" style={{ color: 'var(--accent-color)' }} />
                       <div>
-                        <p className="text-xs text-gray-500">Date</p>
+                        <p className="text-xs text-gray-700 font-semibold">Date</p>
                         <p className="text-sm font-medium">{formatDate(appointment.date)}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <FaClock className="text-sm" style={{ color: 'var(--accent-color)' }} />
                       <div>
-                        <p className="text-xs text-gray-500">Time</p>
+                        <p className="text-xs text-gray-700 font-semibold">Time</p>
                         <p className="text-sm font-medium">{appointment.time}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <FaPhone className="text-sm" style={{ color: 'var(--accent-color)' }} />
                       <div>
-                        <p className="text-xs text-gray-500">Contact</p>
+                        <p className="text-xs text-gray-700 font-semibold">Contact</p>
                         <p className="text-sm font-medium">{appointment.phoneNo}</p>
                       </div>
                     </div>
@@ -2176,5 +2176,3 @@ const MyAppointments = ({ refreshTrigger, onStatsUpdate }) => {
 };
 
 export default MyAppointments;
-
-

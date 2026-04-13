@@ -783,6 +783,8 @@ export default function LabDashboardModals({
   setIsBookingModalVisible,
   isCollectionModalVisible,
   setIsCollectionModalVisible,
+  isReportModalVisible,
+  setIsReportModalVisible,
   isPatientModalVisible,
   setIsPatientModalVisible,
   selectedBooking,
@@ -790,6 +792,7 @@ export default function LabDashboardModals({
   editingTest,
   editingPatient,
   lab,
+  tests,
   bookings,
   logoFile,
   setLogoFile,
@@ -800,18 +803,23 @@ export default function LabDashboardModals({
   onProfileSubmit,
   onUpdateStatus,
   onScheduleCollection,
+  onReportSubmit,
   isPatientEdit = false
 }) {
-  // ✅ Safe theme
+  //  Safe theme
   const primary = theme?.primary || "#0d9488";
   const success = theme?.success || "#16a34a";
 
-  // ✅ STATE
+  //  STATE
   const [testForm, setTestForm] = useState({
     _id: '',
     name: '',
     description: '',
-    price: ''
+    price: '',
+    email: '',
+    mobile: '',
+    age: '',
+    gender: 'Male'
   });
 
   const [profileForm, setProfileForm] = useState({
@@ -830,7 +838,14 @@ export default function LabDashboardModals({
     fastingHours: 8
   });
 
-  // ✅ SYNC form with editingTest or Reset on Open
+  const [reportForm, setReportForm] = useState({
+    bookingId: '',
+    testId: '',
+    reportFile: null,
+    reportData: ''
+  });
+
+  //  SYNC form with editingTest or Reset on Open
   useEffect(() => {
     if (isTestModalVisible || isPatientModalVisible) {
       const activeItem = editingPatient || editingTest;
@@ -838,16 +853,20 @@ export default function LabDashboardModals({
         setTestForm({
           _id: activeItem._id || '',
           name: activeItem.name || '',
-          description: activeItem.description || activeItem.email || '',
-          price: activeItem.price || ''
+          description: activeItem.description || '',
+          price: activeItem.price || '',
+          email: activeItem.email || '',
+          mobile: activeItem.mobile || '',
+          age: activeItem.age || '',
+          gender: activeItem.gender || 'Male'
         });
       } else {
-        setTestForm({ _id: '', name: '', description: '', price: '' });
+        setTestForm({ _id: '', name: '', description: '', price: '', email: '', mobile: '', age: '', gender: 'Male' });
       }
     }
   }, [isTestModalVisible, isPatientModalVisible, editingTest, editingPatient]);
 
-  // ✅ SYNC lab profile form
+  // SYNC lab profile form
   useEffect(() => {
     if (isProfileModalVisible && lab) {
       setProfileForm({
@@ -858,7 +877,7 @@ export default function LabDashboardModals({
     }
   }, [isProfileModalVisible, lab]);
 
-  // ✅ SYNC Schedule Form on Open
+  //  SYNC Schedule Form on Open
   useEffect(() => {
     if (isCollectionModalVisible) {
       if (editingCollection) {
@@ -889,9 +908,9 @@ export default function LabDashboardModals({
     }
   }, [isCollectionModalVisible, editingCollection, bookings]);
 
-  // ✅ Auto-fill date when booking selection changes
+  //  Auto-fill date when booking selection changes
   useEffect(() => {
-    if (isCollectionModalVisible && scheduleForm.bookingId) {
+    if (isCollectionModalVisible && scheduleForm.bookingId && !editingCollection) {
       const selected = bookings?.find(b => b._id === scheduleForm.bookingId);
       if (selected?.appointmentDetails?.preferredDate) {
         setScheduleForm(prev => ({
@@ -900,7 +919,7 @@ export default function LabDashboardModals({
         }));
       }
     }
-  }, [scheduleForm.bookingId, bookings, isCollectionModalVisible]);
+  }, [scheduleForm.bookingId, bookings, isCollectionModalVisible, editingCollection]);
 
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -925,25 +944,33 @@ export default function LabDashboardModals({
             <form onSubmit={(e) => {
               e.preventDefault();
               const submitHandler = isPatientEditMode ? onPatientSubmit : onTestSubmit;
-              submitHandler?.({ ...testForm, price: Number(testForm.price) });
+              submitHandler?.(isPatientEditMode ? testForm : { ...testForm, price: Number(testForm.price) });
             }}>
               
               <input
                 type="text"
-                placeholder={isPatientEdit ? "Patient Name" : "Test Name"}
+                placeholder={isPatientEditMode ? "Patient Name" : "Test Name"}
                 value={testForm.name}
                 onChange={(e) => setTestForm({ ...testForm, name: e.target.value })}
                 className="w-full mb-3 px-3 py-2 border rounded-lg"
                 required
               />
 
-              {isPatientEdit ? (
+              {isPatientEditMode ? (
                 <>
                   <input
                     type="email"
                     placeholder="Email"
-                    value={testForm.description}
-                    onChange={(e) => setTestForm({ ...testForm, description: e.target.value })}
+                    value={testForm.email}
+                    onChange={(e) => setTestForm({ ...testForm, email: e.target.value })}
+                    className="w-full mb-3 px-3 py-2 border rounded-lg"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Mobile Number"
+                    value={testForm.mobile}
+                    onChange={(e) => setTestForm({ ...testForm, mobile: e.target.value })}
                     className="w-full mb-3 px-3 py-2 border rounded-lg"
                     required
                   />
@@ -951,11 +978,19 @@ export default function LabDashboardModals({
                     <input
                       type="number"
                       placeholder="Age"
+                      value={testForm.age}
+                      onChange={(e) => setTestForm({ ...testForm, age: e.target.value })}
                       className="px-3 py-2 border rounded-lg"
+                      required
                     />
-                    <select className="px-3 py-2 border rounded-lg">
-                      <option>Male</option>
-                      <option>Female</option>
+                    <select 
+                      value={testForm.gender}
+                      onChange={(e) => setTestForm({ ...testForm, gender: e.target.value })}
+                      className="px-3 py-2 border rounded-lg"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                 </>
@@ -1142,7 +1177,7 @@ export default function LabDashboardModals({
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col">
           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tests & Payment</h4>
           
-          <div className="flex-1 space-y-2 max-h-[200px] overflow-y-auto mb-4 pr-2">
+          <div className="flex-1 space-y-2 max-h-50 overflow-y-auto mb-4 pr-2">
             {(() => {
           const tests =
             Array.isArray(selectedBooking.tests)
@@ -1189,7 +1224,7 @@ export default function LabDashboardModals({
         </div>
       </div>
 
-      {/* ✅ Case-insensitive status check */}
+      {/*  Case-insensitive status check */}
       {(() => {
         const currentStatus = (selectedBooking.bookingStatus || selectedBooking.status || "").toLowerCase();
         const isActionable = ['pending', 'confirmed'].includes(currentStatus);
@@ -1249,94 +1284,188 @@ export default function LabDashboardModals({
       {/* ================= SCHEDULE COLLECTION MODAL ================= */}
       {isCollectionModalVisible && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md p-6 overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Schedule Sample Collection</h3>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-0 overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+              <h3 className="text-xl font-bold text-gray-800">
+                {editingCollection ? 'Edit Collection Schedule' : 'Schedule Sample Collection'}
+              </h3>
+              <button 
+                onClick={() => setIsCollectionModalVisible(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             
             <form onSubmit={(e) => {
               e.preventDefault();
               onScheduleCollection?.(scheduleForm);
-            }} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Select Booking</label>
-                <select
-                  value={scheduleForm.bookingId}
-                  onChange={(e) => setScheduleForm({ ...scheduleForm, bookingId: e.target.value })}
-                  className="w-full p-2 border rounded-lg"
-                  required
-                >
-                  <option value="">Select a booking</option>
-                  {bookings?.filter(b => 
-                    b.bookingStatus?.toLowerCase() === 'confirmed'
-                  ).map(booking => (
-                    <option key={booking._id} value={booking._id}>
-                      {booking.bookingReference} - {booking.patientDetails?.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            }} className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
               
-              {scheduleForm.bookingId && (
-                <div className="bg-gray-50 p-3 rounded-lg text-xs border border-gray-100">
-                  <p className="font-bold text-gray-400 uppercase tracking-wider mb-2">Patient Details</p>
-                  {(() => {
-                    const b = bookings?.find(x => x._id === scheduleForm.bookingId);
-                    return (
-                      <div className="space-y-1">
-                        <p className="font-semibold text-gray-800">{b?.patientDetails?.name} ({b?.patientDetails?.gender}, {b?.patientDetails?.age} yrs)</p>
-                        <p className="text-gray-500">{b?.patientDetails?.mobile}</p>
-                        <p className="text-gray-500 truncate">{b?.patientDetails?.address}</p>
-                      </div>
-                    );
-                  })()}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Select Booking Reference</label>
+                  <select
+                    value={scheduleForm.bookingId}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, bookingId: e.target.value })}
+                    className="w-full p-3 border rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                    required
+                    disabled={!!editingCollection}
+                  >
+                    <option value="">Choose a confirmed booking...</option>
+                    {bookings?.filter(b => 
+                      b.bookingStatus?.toLowerCase() === 'confirmed' || b._id === scheduleForm.bookingId
+                    ).map(booking => (
+                      <option key={booking._id} value={booking._id}>
+                        {booking.bookingReference} — {booking.patientDetails?.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              )}
+                
+                {scheduleForm.bookingId && (
+                  <div className="bg-teal-50 p-4 rounded-xl border border-teal-100 flex items-start gap-3">
+                    <div className="p-2 bg-white rounded-lg shadow-sm text-teal-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    </div>
+                    {(() => {
+                      const b = bookings?.find(x => x._id === scheduleForm.bookingId);
+                      return (
+                        <div className="text-sm">
+                          <p className="font-bold text-teal-900">{b?.patientDetails?.name}</p>
+                          <p className="text-teal-700">{b?.patientDetails?.mobile}</p>
+                          <p className="text-teal-600/80 text-xs mt-1 italic line-clamp-1">{b?.patientDetails?.address}</p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Collection Date</label>
-                <input
-                  type="date"
-                  value={scheduleForm.scheduledDate}
-                  onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledDate: e.target.value })}
-                  className="w-full p-2 border rounded-lg"
-                  required
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Collection Date</label>
+                    <input
+                      type="date"
+                      value={scheduleForm.scheduledDate}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledDate: e.target.value })}
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Preferred Slot</label>
+                    <select
+                      value={scheduleForm.scheduledTimeSlot}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledTimeSlot: e.target.value })}
+                      className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                    >
+                      <option value="morning">Morning (9-12)</option>
+                      <option value="afternoon">Afternoon (12-3)</option>
+                      <option value="evening">Evening (3-6)</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Special Instructions</label>
+                  <textarea
+                    value={scheduleForm.specialInstructions}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, specialInstructions: e.target.value })}
+                    rows={3}
+                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                    placeholder="E.g. Fasting required, house entrance details..."
+                  />
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Time Slot</label>
-                <select
-                  value={scheduleForm.scheduledTimeSlot}
-                  onChange={(e) => setScheduleForm({ ...scheduleForm, scheduledTimeSlot: e.target.value })}
-                  className="w-full p-2 border rounded-lg"
+
+              <div className="flex gap-4 pt-4 border-t">
+                <button 
+                  type="button" 
+                  onClick={() => setIsCollectionModalVisible(false)} 
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
                 >
-                  <option value="morning">Morning (9 AM - 12 PM)</option>
-                  <option value="afternoon">Afternoon (12 PM - 3 PM)</option>
-                  <option value="evening">Evening (3 PM - 6 PM)</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Instructions</label>
-                <textarea
-                  value={scheduleForm.specialInstructions}
-                  onChange={(e) => setScheduleForm({ ...scheduleForm, specialInstructions: e.target.value })}
-                  rows={3}
-                  className="w-full p-2 border rounded-lg"
-                  placeholder="Any special instructions..."
-                />
-              </div>
-              
-              <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setIsCollectionModalVisible(false)} className="flex-1 border py-2 rounded-lg">
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={loading || !scheduleForm.bookingId}
-                  className="flex-1 text-white py-2 rounded-lg font-medium disabled:opacity-50" 
+                  className="flex-1 text-white py-3 rounded-xl font-bold shadow-lg shadow-teal-700/20 disabled:opacity-50 transition-transform active:scale-95" 
                   style={{ backgroundColor: primary }}
                 >
-                  {loading ? 'Processing...' : 'Schedule Now'}
+                  {loading ? 'Processing...' : editingCollection ? 'Update Schedule' : 'Schedule Now'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= REPORT UPLOAD MODAL ================= */}
+      {isReportModalVisible && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Upload Lab Report</h3>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData();
+              formData.append('bookingId', reportForm.bookingId);
+              formData.append('testId', reportForm.testId);
+              formData.append('reportFile', reportForm.reportFile);
+              formData.append('reportData', reportForm.reportData);
+              onReportSubmit?.(formData);
+            }} className="space-y-4">
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Select Booking</label>
+                <select
+                  value={reportForm.bookingId}
+                  onChange={(e) => setReportForm({ ...reportForm, bookingId: e.target.value })}
+                  className="w-full p-3 border rounded-xl bg-white focus:ring-2 focus:ring-teal-500 outline-none"
+                  required
+                >
+                  <option value="">Choose booking...</option>
+                  {bookings?.filter(b => b.bookingStatus === 'confirmed' || b.bookingStatus === 'completed').map(b => (
+                    <option key={b._id} value={b._id}>{b.bookingReference} - {b.patientDetails?.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Select Test</label>
+                <select
+                  value={reportForm.testId}
+                  onChange={(e) => setReportForm({ ...reportForm, testId: e.target.value })}
+                  className="w-full p-3 border rounded-xl bg-white focus:ring-2 focus:ring-teal-500 outline-none"
+                  required
+                >
+                  <option value="">Choose test...</option>
+                  {tests?.map(t => (
+                    <option key={t._id} value={t._id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Report File (PDF/Image)</label>
+                <input
+                  type="file"
+                  onChange={(e) => setReportForm({ ...reportForm, reportFile: e.target.files[0] })}
+                  className="w-full p-2 border rounded-xl text-sm"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setIsReportModalVisible(false)} className="flex-1 py-3 border border-gray-200 rounded-xl font-semibold text-gray-600">
+                  Cancel
+                </button>
+                <button type="submit" disabled={loading} className="flex-1 text-white py-3 rounded-xl font-bold" style={{ backgroundColor: primary }}>
+                  {loading ? 'Uploading...' : 'Upload Now'}
                 </button>
               </div>
             </form>
