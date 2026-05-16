@@ -806,7 +806,7 @@ const DoctorRegistration = () => {
       if (response.data.success) {
         setSubmitSuccess(true);
         setRegistrationNumber(response.data.data.registrationNumber);
-        showNotificationModal(`✅ ${response.data.message}`, "success");
+        showNotificationModal(` ${response.data.message}`, "success");
         
         setFormData({
           fullName: "", email: "", phone: "", gender: "", dob: "", cnic: "",
@@ -825,7 +825,7 @@ const DoctorRegistration = () => {
       console.error('Registration error:', error);
       const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
       setSubmitError(errorMessage);
-      showNotificationModal(`❌ ${errorMessage}`, "error");
+      showNotificationModal(`${errorMessage}`, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -1240,7 +1240,7 @@ const DoctorRegistration = () => {
         <div className="flex justify-between items-start relative mb-8 px-2">
           {steps.map((s, index) => (
             <div key={index} className="flex flex-col items-center relative z-10 flex-1">
-              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${step >= index + 1 ? "bg-[#2c6774] text-white scale-110" : "bg-[#c0d3dc] text-[#174047]"}`}>
+              <div className={`w-10 z-100 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${step >= index + 1 ? "bg-[#2c6774] text-white scale-110" : "bg-[#c0d3dc] text-[#174047]"}`}>
                 {s.icon}
               </div>
               <p className="text-xs md:text-sm font-medium text-[#174047] mt-2 text-center">{s.label}</p>

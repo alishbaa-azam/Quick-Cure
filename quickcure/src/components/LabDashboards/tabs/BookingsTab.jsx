@@ -18,7 +18,7 @@ export default function BookingsTab({
   // State for group filter
   const [groupFilter, setGroupFilter] = useState('all'); // 'all', 'group', 'individual'
 
-  // ✅ SIMPLE FIX: Group booking = totalPatients > 1, Individual = totalPatients = 1
+  //  SIMPLE FIX: Group booking = totalPatients > 1, Individual = totalPatients = 1
   const isGroupBooking = (booking) => {
     if (!booking) return false;
     
@@ -31,7 +31,7 @@ export default function BookingsTab({
     return false;
   };
 
-  // ✅ Get persons count - simple and direct
+  //  Get persons count - simple and direct
   const getPersonsCount = (booking) => {
     if (!booking) return 1;
     
@@ -56,7 +56,7 @@ export default function BookingsTab({
   const getTestName = (t) =>
     t?.name || t?.test?.name || t?.testId?.name || "Unnamed Test";
 
-  // ✅ Apply all filters (status, search, AND group filter)
+  //  Apply all filters (status, search, AND group filter)
   const finalFilteredBookings = useMemo(() => {
     let result = [...(filteredBookings || [])];
     
@@ -68,7 +68,7 @@ export default function BookingsTab({
     }
     
     // Debug log to check counts
-    console.log('📊 Filter Stats:', {
+    console.log('Filter Stats:', {
       totalBookings: filteredBookings?.length,
       selectedFilter: groupFilter,
       groupBookings: result.filter(b => b.totalPatients && b.totalPatients > 1).length,
@@ -88,17 +88,17 @@ export default function BookingsTab({
     completedBookings: stats?.completedBookings || 0,
   };
 
-  // ✅ Calculate group bookings count from totalPatients
+  // Calculate group bookings count from totalPatients
   const actualGroupBookingsCount = useMemo(() => {
     return (filteredBookings || []).filter(booking => booking.totalPatients && booking.totalPatients > 1).length;
   }, [filteredBookings]);
 
-  // ✅ Calculate individual bookings count
+  //  Calculate individual bookings count
   const actualIndividualBookingsCount = useMemo(() => {
     return (filteredBookings || []).filter(booking => !booking.totalPatients || booking.totalPatients === 1).length;
   }, [filteredBookings]);
 
-  // ✅ Calculate group revenue
+  //  Calculate group revenue
   const groupRevenue = useMemo(() => {
     return (filteredBookings || [])
       .filter(b => b.totalPatients && b.totalPatients > 1)
@@ -143,9 +143,9 @@ export default function BookingsTab({
               borderColor: groupFilter !== 'all' ? primary : '#e5e7eb'
             }}
           >
-            <option value="all">📋 All Bookings ({filteredBookings?.length || 0})</option>
-            <option value="group">👥 Group Bookings ({actualGroupBookingsCount})</option>
-            <option value="individual">👤 Individual Bookings ({actualIndividualBookingsCount})</option>
+            <option value="all">All Bookings ({filteredBookings?.length || 0})</option>
+            <option value="group">Group Bookings ({actualGroupBookingsCount})</option>
+            <option value="individual">Individual Bookings ({actualIndividualBookingsCount})</option>
           </select>
 
           <select

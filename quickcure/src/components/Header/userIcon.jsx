@@ -112,7 +112,7 @@ const roleSpecificOptions = () => {
         {
           label: "Doctor Dashboard",
           icon: FaUserMd,
-          path: `/doctor/dashboard/${user?.id}`,
+          path: `/DoctorDashboard/dashboard/${user?.id || user?._id}`,
           color: "text-green-600",
         },
       ];
@@ -122,7 +122,7 @@ const roleSpecificOptions = () => {
         {
           label: "Lab Dashboard",
           icon: FaBookMedical,
-          path: `/lab/dashboard/${user?.id}`,
+          path: `/lab/dashboard/${user?.id || user?._id}`,
           color: "text-blue-600",
         },
       ];
@@ -132,7 +132,7 @@ const roleSpecificOptions = () => {
         {
           label: "Pharmacy Dashboard",
           icon: FaBookMedical,
-          path: `/PharmacyDashboard/${user?.id}`,
+          path: `/PharmacyDashboard/${user?.id || user?._id}`,
           color: "text-pink-600",
         },
       ];

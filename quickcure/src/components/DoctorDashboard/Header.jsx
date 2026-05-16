@@ -1,7 +1,10 @@
 import React from 'react';
-import { Bell, LogOut, Menu, X, Search } from 'lucide-react';
+import { Bell, LogOut, Menu, X, Search, User } from 'lucide-react';
 
-const Header = ({ sidebarOpen, setSidebarOpen }) => {
+const Header = ({ sidebarOpen, setSidebarOpen, onLogout, doctorData }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const doctorName = doctorData?.name || doctorData?.fullName || user?.name || 'Doctor';
+
   return (
     <header className="bg-white shadow-sm sticky top-0 z-30">
       <div className="px-4 md:px-6 py-3 md:py-4">
@@ -17,6 +20,15 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Doctor Name & Role */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
+              <User className="w-4 h-4 text-[#2c6774]" />
+              <div className="text-sm">
+                <p className="font-medium text-[#174047]">{doctorName}</p>
+                <p className="text-xs text-gray-500">Doctor</p>
+              </div>
+            </div>
+
             {/* Search Bar */}
             <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -37,7 +49,10 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
             
-            <button className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm">
+            <button 
+              onClick={onLogout}
+              className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+            >
               <LogOut size={14} />
               <span className="hidden md:inline">Logout</span>
             </button>

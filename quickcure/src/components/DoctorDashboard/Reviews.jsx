@@ -5,7 +5,7 @@ import { Star, Calendar, User, Search, Filter, ChevronDown, MessageSquare, Thumb
 
 const API_URL = "http://localhost:5000";
 
-const Reviews = () => {
+const Reviews = ({ doctorId }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, positive, negative
@@ -20,27 +20,19 @@ const Reviews = () => {
     oneStar: 0
   });
 
-  // Get doctor ID from localStorage
-  const getDoctorId = () => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      return parsed._id || parsed.id;
-    }
-    return null;
-  };
-
   useEffect(() => {
-    fetchReviews();
-  }, []);
+    if (doctorId) {
+      fetchReviews();
+    }
+  }, [doctorId]);
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const doctorId = getDoctorId();
       
       if (!doctorId) {
         console.error("Doctor ID not found");
+        setLoading(false);
         return;
       }
 

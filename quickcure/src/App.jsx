@@ -83,13 +83,14 @@ import ScrollToTop from "./ScrollToTop";
 function Layout() {
   const location = useLocation();
   const [cart, setCart] = useState([]);
-  const hideLayoutRoutes = ["/login", "/lab/dashboard/:id", "/PharmacyDashboard", "/DoctorDashboard","/reg","/regis","/registration","/userdashboard"];
+  const hideLayoutRoutes = ["/login", "/lab/dashboard/:id", "/PharmacyDashboard", "/DoctorDashboard/dashboard/:id","/reg","/regis","/registration","/userdashboard"];
 
   const hideLayout = hideLayoutRoutes.includes(location.pathname);
 
   const shouldHideLayout =
   hideLayoutRoutes.includes(location.pathname) ||
   location.pathname.startsWith("/lab/dashboard") ||
+  location.pathname.startsWith("/DoctorDashboard/dashboard") ||
   location.pathname.startsWith("/pharmacy/dashboard");
   return (
     <>
@@ -109,7 +110,7 @@ function Layout() {
         <Route path="/book-appointment/:doctorId" element={<BookAppointment />} />
         <Route path="/doctor/:id" element={<ViewProfile />} />
         <Route path="/registration" element={<DoctorRegistration />} />
-        <Route path="/DoctorDashboard" element={<DoctorDashboard />} />
+        <Route path="/DoctorDashboard/dashboard/:id" element={<DoctorDashboard />} />
         <Route path="/userdashboard" element={<UserDashboard />} />
         <Route path="/doctor-reviews/:id" element={<AllReviews />} />
 
@@ -141,7 +142,7 @@ function Layout() {
         <Route path="/reg" element={<PharmacyRegistration />} />
         {/* <Route path="/orders" element={<OrderHistory />} /> */}
 
-        <Route path="/pharmacy/dashboard/:pharmacyId" element={<PharmacyDashboardLayout />}>
+  <Route path="/pharmacy/dashboard/:pharmacyId" element={<PharmacyDashboardLayout />}>
   <Route index element={<DashboardHome />} />
   <Route path="products" element={<ProductsPage />} />
   <Route path="products/add" element={<AddMedicinePage />} />
@@ -183,10 +184,8 @@ const App = () => {
   return (
 
     <Router>
-      {/* <AuthProvider> */}
       <ScrollToTop />
       <Layout />
-      {/* </AuthProvider> */}
     </Router>
 
   );

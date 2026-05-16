@@ -179,7 +179,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Settings = () => {
+const Settings = ({ doctorId, doctorData }) => {
   const [settings, setSettings] = useState({
     name: "",
     speciality: "",
@@ -193,13 +193,34 @@ const Settings = () => {
 
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
-  const doctorId = "YOUR_DOCTOR_ID_HERE"; // Replace with actual doctor ID from auth context
+  const id = doctorId || (JSON.parse(localStorage.getItem('user') || '{}').id || JSON.parse(localStorage.getItem('user') || '{}')._id);
 
   // Fetch doctor's current data on component mount
   useEffect(() => {
+    if (!doctorId) {
+      setInitialLoad(false);
+      return;
+    }
+
+    // If doctorData is provided, use it directly
+    if (doctorData) {
+      setSettings({
+        name: doctorData.name || doctorData.fullName || "",
+        speciality: doctorData.speciality || doctorData.specialization || "",
+        qualification: doctorData.qualification || "",
+        experience: doctorData.experience || "",
+        fee: doctorData.fee || "",
+        services: doctorData.services || [],
+        availability: doctorData.availability || [],
+        image: doctorData.image || null
+      });
+      setInitialLoad(false);
+      return;
+    }
+
     const fetchDoctorData = async () => {
       try {
-        const response = await axios.get(`/api/doctors/${doctorId}`);
+        const response = await axios.get(`http://localhost:5000/api/doctors/${doctorId}`);
         const doctorData = response.data;
         
         setSettings({

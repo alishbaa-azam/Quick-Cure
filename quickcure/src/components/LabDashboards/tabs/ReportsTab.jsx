@@ -510,7 +510,7 @@ export default function ReportsTab({ reports, onAddReport, onDeleteReport, theme
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-3">
-                        {(report.reportFile?.url || report.fileUrl) && (
+                        {/* {(report.reportFile?.url || report.fileUrl) && (
                           <a 
                             href={report.reportFile?.url || report.fileUrl} 
                             target="_blank" 
@@ -520,7 +520,7 @@ export default function ReportsTab({ reports, onAddReport, onDeleteReport, theme
                           >
                             <FiDownload size={18} />
                           </a>
-                        )}
+                        )} */}
                         <button 
                           onClick={() => onDeleteReport?.(report._id)}
                           className="text-red-600 hover:text-red-800 transition-colors" 

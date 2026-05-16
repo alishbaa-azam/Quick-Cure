@@ -1340,13 +1340,13 @@ export default function LoginPage({ onLogin }) {
       navigate("/admin/dashboard");
     } 
     else if (user?.role === "doctor") {
-      navigate(`/doctor/dashboard/${user?.id}`);
+      navigate(`/DoctorDashboard/dashboard/${user?.id || user?._id}`);
     } 
     else if (user?.role === "lab") {
-      navigate(`/lab/dashboard/${user?.id}`);
+      navigate(`/lab/dashboard/${user?.id || user?._id}`);
     } 
     else if (user?.role === "pharmacy") {
-      navigate(`/pharmacy/dashboard/${user?.id}`);
+      navigate(`/pharmacy/dashboard/${user?.id || user?._id}`);
     } 
     else {
       navigate("/");
