@@ -1,9 +1,8 @@
 // AddMedicinePage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Plus, Save, X, Upload, Image as ImageIcon, 
-  ArrowLeft, AlertCircle, CheckCircle, Package
+  Save, X, Upload, Package, AlertCircle
 } from 'lucide-react';
 import { message } from 'antd';
 import { pharmacyAPI } from '../../services/pharmacyAPI';
@@ -13,136 +12,296 @@ const AddMedicinePage = () => {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [activeTab, setActiveTab] = useState('basic');
+  const [pharmacyId, setPharmacyId] = useState(null);
   
   // Medicine forms
   const medicineForms = ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Powder', 'Spray'];
-  const packSizeOptions = ['50ml Bottle', '100ml Bottle', '150ml Bottle', '200ml Bottle', '10 Tablets', '20 Tablets', '30 Tablets', '50 Tablets', '100 Tablets'];
+  const packSizeOptions = ['50ml', '60ml', '100ml', '120ml', '150ml', '200ml', '250ml', '10 Tablets', '20 Tablets', '30 Tablets', '50 Tablets', '100 Tablets'];
+  const volumeOptions = ['50ml', '60ml', '100ml', '120ml', '150ml', '200ml', '250ml', '500ml'];
+  const weightOptions = ['5g', '10g', '15g', '20g', '25g', '30g', '50g', '100g', '150g', '200g', '250g', '500g'];
 
   // Form state
   const [medicineForm, setMedicineForm] = useState({
     name: '',
     genericName: '',
     description: '',
-    detailedDescription: '',
     price: '',
     discountedPrice: '',
     discountPercentage: 0,
-    inStock: true,
     stockQuantity: '',
-    reorderLevel: 10,
     category: '',
     dosage: 'As prescribed',
     strength: '',
     form: 'Tablet',
     manufacturer: '',
     image: null,
-    sideEffects: [],
-    uses: [],
-    precautions: [],
-    instructions: [],
+    sideEffects: '',
+    uses: '',
+    precautions: '',
+    instructions: '',
     storageInstructions: 'Store in a cool, dry place away from direct sunlight',
-    tags: [],
     isFeatured: false,
-    sku: '',
-    barcode: '',
-    packSizes: [],
-    expiryDate: '',
-    tabletsPerUnit: 10
+    tabletsPerUnit: 10,
+    tabletsPerStrip: 10,
+    volume: '60ml',
+    weight: ''
   });
+
+  // Form validation errors
+  const [errors, setErrors] = useState({});
+
+  // Get pharmacyId on component mount
+  useEffect(() => {
+    const id = localStorage.getItem('pharmacyId');
+    if (id) {
+      setPharmacyId(id);
+    }
+  }, []);
+
+  // Check if current form is tablet/capsule type
+  const isTabletOrCapsule = () => {
+    const form = medicineForm.form?.toLowerCase() || '';
+    return form.includes('tablet') || form.includes('capsule');
+  };
+
+  // Check if current form is syrup/liquid type
+  const isSyrupOrLiquid = () => {
+    const form = medicineForm.form?.toLowerCase() || '';
+    return form.includes('syrup') || form.includes('suspension') || 
+           form.includes('liquid') || form.includes('solution') || 
+           form.includes('drops') || form.includes('injection') || form.includes('spray');
+  };
+
+  const isCreamOrOintment = () => {
+    const form = medicineForm.form?.toLowerCase() || '';
+    return form.includes('cream') || form.includes('ointment');
+  };
+
+  const isPowder = () => {
+    const form = medicineForm.form?.toLowerCase() || '';
+    return form.includes('powder');
+  };
+
+  // Compress image before storing
+  const compressImage = (base64String, maxWidth = 400, quality = 0.6) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64String;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Scale down if image is larger than maxWidth
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+    });
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size before processing (limit 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Image size should be less than 2MB. Please upload a smaller image or compress it.' }));
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, image: 'Please upload a valid image file (JPEG, PNG, GIF, WebP)' }));
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result;
+        // Compress the image
+        const compressed = await compressImage(base64, 400, 0.6);
+        setImagePreview(compressed);
+        setMedicineForm(prev => ({ ...prev, image: compressed }));
+        if (errors.image) {
+          setErrors(prev => ({ ...prev, image: null }));
+        }
+      };
+      reader.onerror = () => {
+        setErrors(prev => ({ ...prev, image: 'Failed to read image file. Please try again.' }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove image
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setMedicineForm(prev => ({ ...prev, image: null }));
+    if (errors.image) {
+      setErrors(prev => ({ ...prev, image: null }));
+    }
+  };
 
   // Handle form changes
   const handleFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    let { name, value, type, checked } = e.target;
     
-    if (name === 'packSizes' && e.target.options) {
-      const options = e.target.options;
-      const selected = [];
-      for (let i = 0; i < options.length; i++) {
-        if (options[i].selected) {
-          selected.push(options[i].value);
-        }
+    // Restrict price and discountedPrice to 2 decimal places
+    if (name === 'price' || name === 'discountedPrice') {
+      if (value.includes('.') && value.split('.')[1].length > 2) {
+        return; // Don't update state if more than 2 decimals
       }
-      setMedicineForm(prev => ({ ...prev, packSizes: selected }));
-    } else if (name === 'sideEffects' || name === 'uses' || name === 'precautions' || name === 'instructions' || name === 'tags') {
-      const items = value.split(',').map(item => item.trim()).filter(item => item);
-      setMedicineForm(prev => ({ ...prev, [name]: items }));
-    } else {
-      setMedicineForm(prev => ({
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value
-      }));
+    }
+
+    setMedicineForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
     }
 
     // Auto-calculate discount percentage
     if (name === 'price' || name === 'discountedPrice') {
       const price = parseFloat(name === 'price' ? value : medicineForm.price) || 0;
       const discountedPrice = parseFloat(name === 'discountedPrice' ? value : medicineForm.discountedPrice) || 0;
-      if (price > 0 && discountedPrice > 0) {
+      
+      if (price > 0 && discountedPrice >= 0 && discountedPrice <= price) {
         const discountPercentage = Math.round(((price - discountedPrice) / price) * 100);
         setMedicineForm(prev => ({ ...prev, discountPercentage }));
+      } else if (price > 0 && discountedPrice === 0) {
+        setMedicineForm(prev => ({ ...prev, discountPercentage: 0 }));
       }
+    }
+
+    // Sync tabletsPerStrip with tabletsPerUnit
+    if (name === 'tabletsPerUnit') {
+      setMedicineForm(prev => ({ ...prev, tabletsPerStrip: parseInt(value) || 10 }));
     }
   };
 
-  // Handle image upload
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setMedicineForm(prev => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
+  // Validate form
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Basic Info Tab
+    if (!medicineForm.name?.trim()) newErrors.name = 'Product name is required';
+    if (!medicineForm.genericName?.trim()) newErrors.genericName = 'Generic name is required';
+    if (!medicineForm.manufacturer?.trim()) newErrors.manufacturer = 'Manufacturer is required';
+    if (!medicineForm.form?.trim()) newErrors.form = 'Form is required';
+    if (!medicineForm.strength?.trim()) newErrors.strength = 'Strength is required';
+    if (!medicineForm.image) newErrors.image = 'Product image is required';
+    if (!medicineForm.description?.trim()) newErrors.description = 'Description is required';
+
+    // Pricing & Stock Tab
+    if (!medicineForm.price || parseFloat(medicineForm.price) <= 0) {
+      newErrors.price = 'Valid price is required';
     }
+    if (!medicineForm.stockQuantity && medicineForm.stockQuantity !== 0) {
+      newErrors.stockQuantity = 'Stock quantity is required';
+    }
+    
+    // Tablets per unit for tablet/capsule
+    if (isTabletOrCapsule()) {
+      const val = parseInt(medicineForm.tabletsPerUnit);
+      if (!medicineForm.tabletsPerUnit || val < 1 || val > 30) {
+        newErrors.tabletsPerUnit = 'Tablets per unit must be between 1 and 30';
+      }
+    }
+    
+    // Volume for syrups/liquids
+    if (isSyrupOrLiquid()) {
+      if (!medicineForm.volume?.trim()) newErrors.volume = 'Volume is required';
+    }
+
+    // Weight for creams/ointments/powders
+    if (isCreamOrOintment() || isPowder()) {
+      if (!medicineForm.weight?.trim()) newErrors.weight = 'Weight is required';
+    }
+
+    // Details Tab
+    if (!medicineForm.dosage?.trim()) newErrors.dosage = 'Dosage is required';
+    if (!medicineForm.uses?.trim()) newErrors.uses = 'Uses are required';
+    if (!medicineForm.sideEffects?.trim()) newErrors.sideEffects = 'Side effects are required';
+    if (!medicineForm.precautions?.trim()) newErrors.precautions = 'Precautions are required';
+    if (!medicineForm.instructions?.trim()) newErrors.instructions = 'Instructions are required';
+    if (!medicineForm.storageInstructions?.trim()) newErrors.storageInstructions = 'Storage instructions are required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      message.error('Please fill in all required fields');
+      if (errors.name || errors.genericName || errors.manufacturer || errors.form || 
+          errors.strength || errors.sku || errors.batchNumber || errors.image || errors.description) {
+        setActiveTab('basic');
+      } else if (errors.price || errors.stockQuantity || errors.packSize || errors.tabletsPerUnit || errors.volume) {
+        setActiveTab('pricing');
+      } else {
+        setActiveTab('details');
+      }
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const pharmacyId = localStorage.getItem('pharmacyId');
       if (!pharmacyId) {
         message.error('Pharmacy ID not found');
         return;
       }
 
+      // Ensure integer values
+      const stockQty = Math.floor(parseInt(medicineForm.stockQuantity) || 0);
+      const tabletsPerUnitValue = isTabletOrCapsule() ? Math.floor(parseInt(medicineForm.tabletsPerUnit) || 10) : 10;
+
       const medicineData = {
         name: medicineForm.name,
         genericName: medicineForm.genericName,
         description: medicineForm.description,
-        detailedDescription: medicineForm.detailedDescription,
         price: parseFloat(medicineForm.price) || 0,
         discountedPrice: parseFloat(medicineForm.discountedPrice) || null,
         discountPercentage: medicineForm.discountPercentage,
-        inStock: medicineForm.inStock,
-        stockQuantity: parseInt(medicineForm.stockQuantity) || 0,
-        reorderLevel: parseInt(medicineForm.reorderLevel) || 10,
+        stockQuantity: stockQty,
         category: medicineForm.category,
         dosage: medicineForm.dosage,
         strength: medicineForm.strength,
         form: medicineForm.form,
         manufacturer: medicineForm.manufacturer,
         image: medicineForm.image,
-        sideEffects: medicineForm.sideEffects,
-        uses: medicineForm.uses,
-        precautions: medicineForm.precautions,
-        instructions: medicineForm.instructions,
+        sideEffects: medicineForm.sideEffects.split(',').map(item => item.trim()).filter(item => item),
+        uses: medicineForm.uses.split(',').map(item => item.trim()).filter(item => item),
+        precautions: medicineForm.precautions.split(',').map(item => item.trim()).filter(item => item),
+        instructions: medicineForm.instructions.split(',').map(item => item.trim()).filter(item => item),
         storageInstructions: medicineForm.storageInstructions,
-        tags: medicineForm.tags,
         isFeatured: medicineForm.isFeatured,
-        sku: medicineForm.sku,
-        barcode: medicineForm.barcode,
-        packSizes: medicineForm.packSizes,
-        expiryDate: medicineForm.expiryDate,
-        tabletsPerUnit: parseInt(medicineForm.tabletsPerUnit) || 10
+        tabletsPerUnit: tabletsPerUnitValue,
+        tabletsPerStrip: tabletsPerUnitValue,
+        volume: isSyrupOrLiquid() ? medicineForm.volume : undefined,
+        weight: (isCreamOrOintment() || isPowder()) ? medicineForm.weight : undefined,
       };
 
       await pharmacyAPI.addMedicine(pharmacyId, medicineData);
       message.success('Medicine added successfully!');
-      navigate('/PharmacyDashboard/products');
+      navigate(`/pharmacy/dashboard/${pharmacyId}/products`);
       
     } catch (error) {
       console.error('Error adding medicine:', error);
@@ -163,10 +322,10 @@ const AddMedicinePage = () => {
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <button
-            onClick={() => navigate('/PharmacyDashboard/products')}
+            onClick={() => navigate(`/pharmacy/dashboard/${pharmacyId}/products`)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <ArrowLeft size={20} />
+            ← Back
           </button>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Add New Medicine</h1>
@@ -178,42 +337,20 @@ const AddMedicinePage = () => {
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {/* Tab Navigation */}
         <div className="px-6 pt-4 border-b border-gray-200 flex flex-wrap gap-4">
-          <button
-            type="button"
-            onClick={() => setActiveTab('basic')}
-            className={`pb-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === 'basic' ? 'border-[#2c6774] text-[#2c6774]' : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Basic Information
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('pricing')}
-            className={`pb-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === 'pricing' ? 'border-[#2c6774] text-[#2c6774]' : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Pricing & Stock
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('details')}
-            className={`pb-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === 'details' ? 'border-[#2c6774] text-[#2c6774]' : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Details
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('additional')}
-            className={`pb-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === 'additional' ? 'border-[#2c6774] text-[#2c6774]' : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Additional Info
-          </button>
+          {['basic', 'pricing', 'details'].map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`pb-3 px-1 font-medium text-sm border-b-2 transition-colors capitalize ${
+                activeTab === tab ? 'border-[#2c6774] text-[#2c6774]' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab === 'basic' ? 'Basic Information' : 
+               tab === 'pricing' ? 'Pricing & Stock' : 
+               'Details'}
+            </button>
+          ))}
         </div>
 
         <div className="p-6">
@@ -230,52 +367,59 @@ const AddMedicinePage = () => {
                     name="name"
                     value={medicineForm.name}
                     onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                    placeholder="e.g., Gaviscon Suspension"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="e.g., Panadol Tablets"
                   />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Generic Name
+                    Generic Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="genericName"
                     value={medicineForm.genericName}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                    placeholder="e.g., Aluminium Hydroxide"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.genericName ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="e.g., Paracetamol"
                   />
+                  {errors.genericName && <p className="text-red-500 text-xs mt-1">{errors.genericName}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Manufacturer
+                    Manufacturer <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="manufacturer"
                     value={medicineForm.manufacturer}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                    placeholder="e.g., Reckitt Benckiser"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.manufacturer ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="e.g., GSK"
                   />
+                  {errors.manufacturer && <p className="text-red-500 text-xs mt-1">{errors.manufacturer}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category <span className="text-red-500">*</span>
+                    Category
                   </label>
                   <input
                     type="text"
                     name="category"
                     value={medicineForm.category}
                     onChange={handleFormChange}
-                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                    placeholder="e.g., Antacid"
+                    placeholder="e.g., Pain Relief"
                   />
                 </div>
               </div>
@@ -283,69 +427,59 @@ const AddMedicinePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Form
+                    Form <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="form"
                     value={medicineForm.form}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.form ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     {medicineForms.map(form => (
                       <option key={form} value={form}>{form}</option>
                     ))}
                   </select>
+                  {errors.form && <p className="text-red-500 text-xs mt-1">{errors.form}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Strength
+                    Strength <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="strength"
                     value={medicineForm.strength}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.strength ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="e.g., 500mg"
                   />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SKU
-                  </label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={medicineForm.sku}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Barcode
-                  </label>
-                  <input
-                    type="text"
-                    name="barcode"
-                    value={medicineForm.barcode}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  />
+                  {errors.strength && <p className="text-red-500 text-xs mt-1">{errors.strength}</p>}
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Image
+                  Product Image <span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center gap-4">
-                  <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                  <div className={`w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden bg-gray-50 ${
+                    errors.image ? 'border-red-500' : 'border-gray-300'
+                  }`}>
                     {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      <div className="relative w-full h-full">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
                     ) : (
                       <Package className="text-gray-400" size={32} />
                     )}
@@ -363,6 +497,15 @@ const AddMedicinePage = () => {
                     />
                   </label>
                 </div>
+                {errors.image && (
+                  <div className="flex items-start gap-2 mt-2">
+                    <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-red-500 text-xs">{errors.image}</p>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Supported formats: JPEG, PNG, GIF, WebP. Maximum size: 2MB. Images will be automatically compressed.
+                </p>
               </div>
 
               <div>
@@ -373,11 +516,13 @@ const AddMedicinePage = () => {
                   name="description"
                   value={medicineForm.description}
                   onChange={handleFormChange}
-                  required
                   rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                    errors.description ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Brief description of the medicine..."
                 />
+                {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
               </div>
             </div>
           )}
@@ -395,11 +540,14 @@ const AddMedicinePage = () => {
                     name="price"
                     value={medicineForm.price}
                     onChange={handleFormChange}
-                    required
                     min="0"
                     step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.price ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="e.g., 100.00"
                   />
+                  {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -411,8 +559,10 @@ const AddMedicinePage = () => {
                     value={medicineForm.discountedPrice}
                     onChange={handleFormChange}
                     min="0"
+                    max={medicineForm.price || undefined}
                     step="0.01"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
+                    placeholder="e.g., 90.00"
                   />
                 </div>
                 <div>
@@ -420,9 +570,8 @@ const AddMedicinePage = () => {
                     Discount %
                   </label>
                   <input
-                    type="number"
-                    name="discountPercentage"
-                    value={medicineForm.discountPercentage}
+                    type="text"
+                    value={`${medicineForm.discountPercentage}%`}
                     readOnly
                     className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600"
                   />
@@ -432,7 +581,7 @@ const AddMedicinePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock Quantity
+                    Stock Quantity <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -440,80 +589,77 @@ const AddMedicinePage = () => {
                     value={medicineForm.stockQuantity}
                     onChange={handleFormChange}
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
+                    step="1"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.stockQuantity ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="e.g., 100"
                   />
+                  {errors.stockQuantity && <p className="text-red-500 text-xs mt-1">{errors.stockQuantity}</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Reorder Level
-                  </label>
-                  <input
-                    type="number"
-                    name="reorderLevel"
-                    value={medicineForm.reorderLevel}
-                    onChange={handleFormChange}
-                    min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tablets Per Unit
-                  </label>
-                  <input
-                    type="number"
-                    name="tabletsPerUnit"
-                    value={medicineForm.tabletsPerUnit}
-                    onChange={handleFormChange}
-                    min="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                    placeholder="e.g., 10"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Expiry Date
-                  </label>
-                  <input
-                    type="date"
-                    name="expiryDate"
-                    value={medicineForm.expiryDate}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  />
-                </div>
-                <div className="flex items-center pt-6">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                {isTabletOrCapsule() && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tablets Per Strip <span className="text-red-500">*</span>
+                    </label>
                     <input
-                      type="checkbox"
-                      name="inStock"
-                      checked={medicineForm.inStock}
+                      type="number"
+                      name="tabletsPerUnit"
+                      value={medicineForm.tabletsPerUnit}
                       onChange={handleFormChange}
-                      className="w-4 h-4 text-[#2c6774] rounded border-gray-300 focus:ring-[#2c6774]"
+                      min="1"
+                      max="30"
+                      step="1"
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                        errors.tabletsPerUnit ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="e.g., 10"
                     />
-                    <span className="text-sm text-gray-700">In Stock</span>
-                  </label>
-                </div>
-              </div>
+                    {errors.tabletsPerUnit && <p className="text-red-500 text-xs mt-1">{errors.tabletsPerUnit}</p>}
+                  </div>
+                )}
+                {isSyrupOrLiquid() && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Volume <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="volume"
+                      value={medicineForm.volume}
+                      onChange={handleFormChange}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                        errors.volume ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      {volumeOptions.map(vol => (
+                        <option key={vol} value={vol}>{vol}</option>
+                      ))}
+                    </select>
+                    {errors.volume && <p className="text-red-500 text-xs mt-1">{errors.volume}</p>}
+                  </div>
+                )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pack Sizes (Hold Ctrl/Cmd to select multiple)
-                </label>
-                <select
-                  name="packSizes"
-                  multiple
-                  value={medicineForm.packSizes}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent h-32"
-                >
-                  {packSizeOptions.map(size => (
-                    <option key={size} value={size}>{size}</option>
-                  ))}
-                </select>
+              {(isCreamOrOintment() || isPowder()) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isCreamOrOintment() ? "Grams Per Tube" : "Grams Per Pack"} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="weight"
+                    value={medicineForm.weight || ''}
+                    onChange={handleFormChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                      errors.weight ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Select weight</option>
+                    {weightOptions.map(w => (
+                      <option key={w} value={w}>{w}</option>
+                    ))}
+                  </select>
+                  {errors.weight && <p className="text-red-500 text-xs mt-1">{errors.weight}</p>}
+                </div>
+              )}
               </div>
             </div>
           )}
@@ -523,164 +669,118 @@ const AddMedicinePage = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Dosage
+                  Dosage <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="dosage"
                   value={medicineForm.dosage}
                   onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  placeholder="e.g., As prescribed"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                    errors.dosage ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., 1-2 tablets every 4-6 hours"
                 />
+                {errors.dosage && <p className="text-red-500 text-xs mt-1">{errors.dosage}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Detailed Description
-                </label>
-                <textarea
-                  name="detailedDescription"
-                  value={medicineForm.detailedDescription}
-                  onChange={handleFormChange}
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  placeholder="Additional details about the medicine..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Uses (comma separated)
+                  Uses <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="uses"
-                  value={medicineForm.uses.join(', ')}
+                  value={medicineForm.uses}
                   onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  placeholder="e.g., Heartburn, Acid Indigestion"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                    errors.uses ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., Fever, Headache, Pain relief"
                 />
+                {errors.uses && <p className="text-red-500 text-xs mt-1">{errors.uses}</p>}
+                <p className="text-xs text-gray-500 mt-1">Separate multiple uses with commas</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Side Effects (comma separated)
+                  Side Effects <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="sideEffects"
-                  value={medicineForm.sideEffects.join(', ')}
+                  value={medicineForm.sideEffects}
                   onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  placeholder="e.g., Constipation, Diarrhea, Nausea"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                    errors.sideEffects ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., Nausea, Drowsiness"
                 />
+                {errors.sideEffects && <p className="text-red-500 text-xs mt-1">{errors.sideEffects}</p>}
+                <p className="text-xs text-gray-500 mt-1">Separate multiple side effects with commas</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Precautions (comma separated)
+                  Precautions <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="precautions"
-                  value={medicineForm.precautions.join(', ')}
+                  value={medicineForm.precautions}
                   onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  placeholder="e.g., Consult doctor if symptoms persist"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                    errors.precautions ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., Do not exceed recommended dose"
                 />
+                {errors.precautions && <p className="text-red-500 text-xs mt-1">{errors.precautions}</p>}
+                <p className="text-xs text-gray-500 mt-1">Separate multiple precautions with commas</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Instructions (comma separated)
+                  Instructions <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="instructions"
-                  value={medicineForm.instructions.join(', ')}
+                  value={medicineForm.instructions}
                   onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  placeholder="e.g., Take after meals, Shake well before use"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                    errors.instructions ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., Take with food, Shake well before use"
                 />
+                {errors.instructions && <p className="text-red-500 text-xs mt-1">{errors.instructions}</p>}
+                <p className="text-xs text-gray-500 mt-1">Separate multiple instructions with commas</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Storage Instructions
+                  Storage Instructions <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="storageInstructions"
                   value={medicineForm.storageInstructions}
                   onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent ${
+                    errors.storageInstructions ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {errors.storageInstructions && <p className="text-red-500 text-xs mt-1">{errors.storageInstructions}</p>}
               </div>
             </div>
           )}
 
-          {/* Additional Info Tab */}
-          {activeTab === 'additional' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tags (comma separated)
-                </label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={medicineForm.tags.join(', ')}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2c6774] focus:border-transparent"
-                  placeholder="e.g., prescription, over-the-counter, pediatric"
-                />
-              </div>
-
-              <div className="flex items-center">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="isFeatured"
-                    checked={medicineForm.isFeatured}
-                    onChange={handleFormChange}
-                    className="w-4 h-4 text-[#2c6774] rounded border-gray-300 focus:ring-[#2c6774]"
-                  />
-                  <span className="text-sm text-gray-700">Featured Product</span>
-                </label>
-              </div>
-
-              <div className="bg-blue-50 rounded-lg p-4 mt-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="text-blue-600 mt-0.5" size={18} />
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">Summary</p>
-                    <div className="grid grid-cols-2 gap-2 mt-2 text-sm text-blue-800">
-                      <div>
-                        <span className="font-medium">Name:</span> {medicineForm.name || 'Not set'}
-                      </div>
-                      <div>
-                        <span className="font-medium">Category:</span> {medicineForm.category || 'Not set'}
-                      </div>
-                      <div>
-                        <span className="font-medium">Price:</span> {formatCurrency(medicineForm.price)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Stock:</span> {medicineForm.stockQuantity || 0} units
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Form Actions */}
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
           <button
             type="button"
-            onClick={() => navigate('/PharmacyDashboard/products')}
+            onClick={() => navigate(`/pharmacy/dashboard/${pharmacyId}/products`)}
             className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
           >
             Cancel
