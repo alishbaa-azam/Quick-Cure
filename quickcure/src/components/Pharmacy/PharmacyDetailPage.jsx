@@ -1,4 +1,3 @@
-// Order placing now 15/4/26
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSearch, FiShoppingCart, FiMapPin, FiPhone, FiClock, FiMinus, FiPlus, FiTrash2, FiShare2 } from 'react-icons/fi';

@@ -270,6 +270,14 @@ export const CartProvider = ({ children }) => {
 
   const updateQuantity = useCallback((medicineId, pharmacyId, newQuantity) => {
     setCartState(prevCart => {
+      // If newQuantity is 0 or less, remove the item entirely
+      if (newQuantity <= 0) {
+        return prevCart.filter(item => 
+          !((item.id === medicineId || item._id === medicineId) && 
+            (item.pharmacyId === pharmacyId || item.selectedPharmacy?._id === pharmacyId))
+        );
+      }
+
       return prevCart.map(item => {
         if ((item.id === medicineId || item._id === medicineId) && 
             (item.pharmacyId === pharmacyId || item.selectedPharmacy?._id === pharmacyId)) {
@@ -278,7 +286,6 @@ export const CartProvider = ({ children }) => {
           const maxStock = item.maxStock || 999;
           
           if (newQuantity > maxStock) return item;
-          if (newQuantity < 1) return null;
           
           return {
             ...item,
@@ -287,7 +294,7 @@ export const CartProvider = ({ children }) => {
           };
         }
         return item;
-      }).filter(Boolean);
+      });
     });
   }, []);
 

@@ -927,39 +927,24 @@ const MedicineBooking = () => {
             </div>
           ) : (
             <>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredCart.map(item => {
                   const pharmacyName = getPharmacyNameForItem(item);
-                  const itemFormIcon = getFormIcon(item);
-                  const perTabletPrice = isTabletForm(item.form) ? getPricePerTabletForItem(item) : null;
                   const itemId = item.id || item._id;
                   const maxStock = getMaxStockForItem(item);
-                  const canIncrement = canIncrementQuantity(item);
-                  const tabletsPerStrip = item.tabletsPerStrip || item.tabletsPerUnit || 10;
                   const isTablet = isTabletForm(item.form);
                   const isSyrup = isSyrupForm(item.form);
+                  const price = item.discountedPrice || item.price || 0;
+                  const itemTotal = price * (item.quantity || 1);
                   
                   return (
-                    <div key={itemId} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative">
-                      {maxStock <= 5 && (
-                        <div className="absolute top-0 left-0 right-0 bg-yellow-50 text-yellow-700 text-xs px-4 py-1 rounded-t-xl border-b border-yellow-200">
-                          ⚠️ Only {maxStock} unit{maxStock > 1 ? 's' : ''} available in stock
-                        </div>
-                      )}
-                      
-                      <button
-                        onClick={() => handleRemoveFromCart(item)}
-                        className="absolute top-3 right-3 p-2 text-red-500 hover:bg-red-50 rounded-full transition-all duration-200 z-10"
-                      >
-                        <FaTrash className="w-4 h-4" />
-                      </button>
-                      
-                      <div className={`flex flex-col sm:flex-row items-start gap-4 pr-8 ${maxStock <= 5 ? 'mt-6' : ''}`}>
-                        <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div key={itemId} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="max-h-16 max-w-16 object-contain"
+                            className="max-h-12 max-w-12 object-contain"
                             onError={(e) => {
                               e.target.onerror = null;
                               e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
@@ -967,78 +952,41 @@ const MedicineBooking = () => {
                           />
                         </div>
                         
-                        <div className="flex-1 min-w-0 w-full">
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-semibold text-gray-800 text-base sm:text-lg truncate max-w-[200px] sm:max-w-none">
-                                  {item.name}
-                                </h3>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                                  {itemFormIcon}
-                                  <span className="ml-1">{item.form || 'Medicine'}</span>
-                                </span>
-                              </div>
-                              
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
-                                <p className="text-gray-600 text-sm sm:text-base">
-                                  Rs. {(item.discountedPrice || item.price || 0).toFixed(2)} per {isTablet ? 'strip' : (isSyrup ? 'bottle' : 'unit')}
-                                </p>
-                                {perTabletPrice && (
-                                  <p className="text-xs text-gray-500">
-                                    (Rs. {perTabletPrice.toFixed(2)} per tablet)
-                                  </p>
-                                )}
-                                <span className="inline-block px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full whitespace-nowrap">
-                                  {pharmacyName}
-                                </span>
-                              </div>
-                              
-                              {isTablet && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {tabletsPerStrip} tablets per strip
-                                </p>
-                              )}
-                              
-                              <p className="text-xs text-gray-500 mt-1">
-                                Stock: {maxStock} {isTablet ? 'strip' : (isSyrup ? 'bottle' : 'unit')}{maxStock > 1 ? 's' : ''} available
-                              </p>
-                            </div>
-                            
-                            <div className="w-full sm:w-auto mt-3 sm:mt-0">
-                              <div className="flex items-center justify-end">
-                                <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                                  <button
-                                    onClick={() => handleUpdateQuantity(item, (item.quantity || 1) - 1)}
-                                    className="w-10 h-10 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center"
-                                    disabled={(item.quantity || 1) <= 1}
-                                  >
-                                    <FaMinus className="w-3 h-3" />
-                                  </button>
-                                  <span className="w-12 text-center font-medium text-sm sm:text-base">
-                                    {item.quantity || 1}
-                                  </span>
-                                  <button
-                                    onClick={() => handleUpdateQuantity(item, (item.quantity || 1) + 1)}
-                                    className={`w-10 h-10 transition-colors flex items-center justify-center ${
-                                      canIncrement 
-                                        ? 'bg-gray-100 hover:bg-gray-200' 
-                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    }`}
-                                    disabled={!canIncrement}
-                                  >
-                                    <FaPlus className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <h3 className="font-semibold text-gray-800 text-sm truncate">{item.name}</h3>
+                            <button
+                              onClick={() => handleRemoveFromCart(item)}
+                              className="p-1.5 text-red-400 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                            >
+                              <FaTrash className="w-3 h-3" />
+                            </button>
                           </div>
                           
-                          <div className="mt-3 text-right border-t pt-3 border-gray-100">
-                            <span className="text-sm text-gray-600">Item Total: </span>
-                            <span className="font-bold text-[var(--secondary-color)]">
-                              Rs. {calculateItemTotalForDisplay(item).toFixed(2)}
-                            </span>
+                          <p className="text-xs text-gray-500 mt-0.5">Rs. {price.toFixed(2)} each</p>
+                          
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                              <button
+                                onClick={() => handleUpdateQuantity(item, (item.quantity || 1) - 1)}
+                                className="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                              >
+                                <FaMinus className="w-2.5 h-2.5" />
+                              </button>
+                              <span className="w-10 text-center font-medium text-sm">{item.quantity || 1}</span>
+                              <button
+                                onClick={() => handleUpdateQuantity(item, (item.quantity || 1) + 1)}
+                                className={`w-8 h-8 flex items-center justify-center ${
+                                  canIncrementQuantity(item)
+                                    ? 'bg-gray-100 hover:bg-gray-200' 
+                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                }`}
+                                disabled={!canIncrementQuantity(item)}
+                              >
+                                <FaPlus className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                            <span className="font-semibold text-green-600 text-sm">Rs. {itemTotal.toFixed(2)}</span>
                           </div>
                         </div>
                       </div>

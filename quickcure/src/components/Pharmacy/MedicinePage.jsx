@@ -305,8 +305,6 @@ const MedicinePage = () => {
             key={medicine._id}
             medicine={medicine}
             onAddToCart={handleAddToCart}
-           volume context="all-medicines"
-            // context="all-medicines"
           />
         ))}
       </div>

@@ -44,55 +44,6 @@ export default function UserIcon({ user, onLogout }) {
     return "U";
   };
 
-  /* ---------------- ROLE BASED OPTIONS ---------------- */
-
-  // const roleSpecificOptions = () => {
-  //   switch (role) {
-  //     case "admin":
-  //       return [
-  //         {
-  //           label: "Admin Dashboard",
-  //           icon: FaTachometerAlt,
-  //           path: "/admin/dashboard",
-  //           color: "text-purple-600",
-  //         },
-  //       ];
-
-  //     case "doctor":
-  //       return [
-  //         {
-  //           label: "Doctor Dashboard",
-  //           icon: FaUserMd,
-  //           path: "/DoctorDashboard",
-  //           color: "text-green-600",
-  //         },
-  //       ];
-
-  //     case "lab":
-  //       return [
-  //         {
-  //           label: "Lab Dashboard",
-  //           icon: FaBookMedical,
-  //           path: `/lab/dashboard/${user?.labId}`,
-  //           color: "text-blue-600",
-  //         },
-  //       ];
-
-  //     case "pharmacy":
-  //       return [
-  //         {
-  //           label: "Pharmacy Dashboard",
-  //           icon: FaBookMedical,
-  //           path: "/PharmacyDashboard",
-  //           color: "text-pink-600",
-  //         },
-  //       ];
-
-  //     default:
-  //       return [];
-  //   }
-  // };
-
   /* -------- COMMON OPTIONS (USER PROFILE ONLY FOR USER) -------- */
 const roleSpecificOptions = () => {
   switch (role) {
@@ -132,7 +83,7 @@ const roleSpecificOptions = () => {
         {
           label: "Pharmacy Dashboard",
           icon: FaBookMedical,
-          path: `/PharmacyDashboard/${user?.id || user?._id}`,
+          path: `/pharmacy/dashboard/${user?.id || user?._id}`,
           color: "text-pink-600",
         },
       ];

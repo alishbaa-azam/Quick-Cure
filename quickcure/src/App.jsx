@@ -13,6 +13,7 @@ import Header from "./components/Header/header";
 import Footer from "./components/footer";
 import Home from "./components/Home/home";
 import AboutUs from "./components/AboutUs";
+
 // import AboutContactPage from './components/AboutContactPage';
 // import Contact from './components/ContactPage.jsx';
 import MyOrders from './components/UserDashboard/MyOrders.jsx';
@@ -39,13 +40,6 @@ import TestBooking from "./components/Lab/LabTestBooking";
 import LabRegistration from "./components/Registration/labRegistration";
 import LabUserDashboard from './components/LabDashboards/LabDashboard';
 
-//---------------------Lab Dashboard Components----------------------------------//
-// import LabLayout from './components/LabDashboards/LabLayout';
-// // import LabSidebar from './components/LabDashboards/LabSidebar';
-// import ManageTests from './components/LabDashboards/ManageTests';
-// import LabBookings from './components/LabDashboards/LabBookings';
-// // import LabProfile from './components/LabDashboards/LabProfile';
-
 //---------------------Pharmacy Module----------------------------------//
 
 import PharmacyPage from "./components/Pharmacy/PharmacyPage";
@@ -54,29 +48,32 @@ import MedicinePage from "./components/Pharmacy/MedicinePage";
 import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
 import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
-// import OrderHistory from './components/Pharmacy/OrderHistory';
 
-// Dashboard Components (NEW STRUCTURE)
+// Dashboard Components (NEW STRUCTURE) - ACTIVATED
 import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout.jsx';
 import DashboardHome from './components/Dashboard/DashboardHome.jsx';
 import CategoriesPage from './components/Dashboard/CategoriesPage.jsx';
 import ProductsPage from './components/Dashboard/ProductsPage.jsx';
 import SalesPage from './components/Dashboard/SalesPage.jsx';
 import OrdersPage from './components/Dashboard/OrdersPage.jsx';
-// import ReportsPage from './components/Dashboard/ReportsPage.jsx';
 import SettingsPage from './components/Dashboard/SettingsPage.jsx';
 import AddMedicinePage from './components/Dashboard/AddMedicinePage';
 import EditMedicinePage from './components/Dashboard/EditMedicinePage';
 import ViewMedicinePage from './components/Dashboard/ViewMedicinePage.jsx';
+import AboutPage from './components/AboutUs.jsx';
 
-// import SupportPage from '../../../Unused files/F/SupportPage.jsx';
-// import CustomersPage from '../../../Unused files/F/CustomersPage.jsx';
-// import FinancePage from '../../../Unused files/F/FinancePage.jsx';
-// import FeaturesPage from '../../../Unused files/F/FeaturesPage.jsx';
-// import ProfilePage from './components/Dashboard/ProfilePage.jsx';
-//context
-// import { AuthProvider } from './Context/authContext.jsx';
-
+// Admin Dashboard
+import AdminLayout from './components/AdminDashboard/AdminLayout';
+import AdminDashboardHome from './components/AdminDashboard/AdminDashboardHome';
+import UsersPage from './components/AdminDashboard/UsersPage';
+import AdminDoctorsPage from './components/AdminDashboard/DoctorsPage';
+import AdminLabsPage from './components/AdminDashboard/LabsPage';
+import AdminPharmaciesPage from './components/AdminDashboard/PharmaciesPage';
+import AdminOrdersPage from './components/AdminDashboard/OrdersPage';
+import AdminPaymentsPage from './components/AdminDashboard/PaymentsPage';
+import AdminReportsPage from './components/AdminDashboard/ReportsPage';
+import AdminSettingsPage from './components/AdminDashboard/SettingsPage';
+import RegistrationRequestsPage from './components/AdminDashboard/RegistrationRequestsPage';
 
 import ScrollToTop from "./ScrollToTop";
 
@@ -91,19 +88,29 @@ function Layout() {
   hideLayoutRoutes.includes(location.pathname) ||
   location.pathname.startsWith("/lab/dashboard") ||
   location.pathname.startsWith("/DoctorDashboard/dashboard") ||
-  location.pathname.startsWith("/pharmacy/dashboard");
+  location.pathname.startsWith("/pharmacy/dashboard") ||
+  location.pathname.startsWith("/admin");
   return (
     <>
       {!shouldHideLayout && <Header />}
-      {/* {!hideLayout && <Header />} */}
-
 
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* <Route path="/about" element={<AboutContactPage />} /> */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/about" element={<AboutUs />} />
-        {/* <Route path="/contact" element={<Contact />} /> */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardHome />} />
+          <Route path="dashboard" element={<AdminDashboardHome />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="registrations" element={<RegistrationRequestsPage />} />
+          <Route path="doctors" element={<AdminDoctorsPage />} />
+          <Route path="labs" element={<AdminLabsPage />} />
+          <Route path="pharmacies" element={<AdminPharmaciesPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="payments" element={<AdminPaymentsPage />} />
+          <Route path="reports" element={<AdminReportsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
+        </Route>
 {/* //-------------------------Doctor Module---------------------------------------// */}
 
         <Route path="/doctors" element={<DoctorsPage />} />
@@ -123,14 +130,6 @@ function Layout() {
         <Route path="/labs/:id/booking" element={<TestBooking />} />
         <Route path="/regis" element={<LabRegistration />} />
         <Route path="/about" element={<AboutPage />} />
-{/* //-------------------------Lab Dashboard Module---------------------------------------// */}
-
-        {/* <Route path="/lab/dashboard/:labId" element={<LabUserDashboard />}>
-          <Route index element={<DashboardHome />} />
-          <Route path="tests" element={<ManageTests />} />
-          <Route path="bookings" element={<LabBookings />} />
-          {/* <Route path="profile" element={<LabProfile />} /> */}
-        {/* </Route>  */}
 
 {/* //-------------------------Pharmacy Module---------------------------------------// */}
 
@@ -141,7 +140,7 @@ function Layout() {
         <Route path="/medicine/:id" element={<MedicineDetail />} />
         <Route path="/booking" element={<MedicineBooking />} />
 
-  <Route path="/pharmacy/dashboard/:pharmacyId" element={
+        <Route path="/pharmacy/dashboard/:id" element={
           <PharmacyProvider>
             <PharmacyDashboardLayout />
           </PharmacyProvider>
@@ -154,16 +153,13 @@ function Layout() {
           <Route path="orders" element={<OrdersPage />} />
           <Route path="sales" element={<SalesPage />} />
           <Route path="categories" element={<CategoriesPage />} />
-          <Route path="reports" element={<ReportsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
-  <Route path="/orders" element={<MyOrders />} />
 
      
 
       </Routes>
 
-      {/* {!hideLayout && <Footer />} */}
       {!shouldHideLayout && <Footer />}
     </>
   );
@@ -171,14 +167,12 @@ function Layout() {
 
 const App = () => {
   return (
-
     <Router>
      <CartProvider>
              <ScrollToTop />
              <Layout />
            </CartProvider>
     </Router>
-
   );
 };
 

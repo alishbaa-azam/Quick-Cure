@@ -15,7 +15,7 @@ const PharmacyDashboardLayout = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { pharmacyId } = useParams(); // ✅ Get pharmacyId from URL
+  const { id: pharmacyId } = useParams(); // ✅ Get pharmacyId from URL (route param is :id)
 
   // ✅ DYNAMIC navigation paths with pharmacyId
   const navigation = [
