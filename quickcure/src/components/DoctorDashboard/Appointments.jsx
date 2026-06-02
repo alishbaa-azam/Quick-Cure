@@ -7,8 +7,6 @@ const Appointments = ({ doctorId, setActiveTab, setSelectedPatient }) => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [actionLoading, setActionLoading] = useState(null);
-  const [meetLinkModal, setMeetLinkModal] = useState(null);
-  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     fetchAppointments();
@@ -128,40 +126,23 @@ const Appointments = ({ doctorId, setActiveTab, setSelectedPatient }) => {
                           >
                             View History
                           </button>
-                          {['pending', 'approved', 'confirmed'].includes((appt.status || '').toLowerCase()) && (
-                            <button
-                              title="Generate & Copy Google Meet Link"
-                              onClick={() => {
-                                const meetLink = `https://meet.google.com/new?hc=${Date.now()}&authuser=0`;
-                                navigator.clipboard.writeText(meetLink).then(() => {
-                                  setCopiedId(appt._id || appt.id);
-                                  setTimeout(() => setCopiedId(null), 2000);
-                                });
-                              }}
-                              className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 whitespace-nowrap flex items-center gap-1"
-                            >
-                              {copiedId === (appt._id || appt.id) ? (
-                                <><CheckCircle size={14} /> Copied</>
-                              ) : (
-                                <><Video size={14} /> Meet</>
-                              )}
-                            </button>
-                          )}
                           {(appt.status || '').toLowerCase() === 'pending' && (
                             <>
                               <button
-                                onClick={() => handleStatusUpdate(appt._id || appt.id, 'approved')}
+                                onClick={() => handleStatusUpdate(appt._id || appt.id, 'completed')}
                                 disabled={actionLoading === (appt._id || appt.id)}
-                                className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
+                                className="p-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
+                                title="Mark as Completed"
                               >
-                                <Check size={14} />
+                                <Check size={16} />
                               </button>
                               <button
                                 onClick={() => handleStatusUpdate(appt._id || appt.id, 'cancelled')}
                                 disabled={actionLoading === (appt._id || appt.id)}
-                                className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                className="p-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                title="Cancel Appointment"
                               >
-                                <X size={14} />
+                                <X size={16} />
                               </button>
                             </>
                           )}

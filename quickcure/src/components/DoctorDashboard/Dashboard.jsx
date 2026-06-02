@@ -45,19 +45,6 @@ const Dashboard = ({ doctorId, doctorData }) => {
     }
   };
 
-  const getTimeAgo = (dateStr) => {
-    if (!dateStr) return '';
-    try {
-      const d = new Date(dateStr);
-      const now = new Date();
-      const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
-      if (diff === 0) return 'Today';
-      if (diff === 1) return 'Yesterday';
-      if (diff < 7) return `${diff}d ago`;
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    } catch { return dateStr; }
-  };
-
   const StatCard = ({ icon: Icon, label, value, color, trend }) => (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between mb-3">
@@ -85,26 +72,32 @@ const Dashboard = ({ doctorId, doctorData }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 -mt-19">
       {/* Welcome + Doctor Profile */}
-      {doctorData && (
-        <div className="bg-gradient-to-r from-[#174047] to-[#2c6774] rounded-2xl p-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-              {doctorData.name?.charAt(0) || 'D'}
-            </div>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold">Welcome, Dr. {doctorData.name?.split(' ')[0] || doctorData.fullName?.split(' ')[0] || 'Doctor'}</h1>
-              <p className="text-white/80 text-sm mt-0.5">{doctorData.speciality || doctorData.specialization || 'General Practitioner'}</p>
-              <p className="text-white/60 text-xs mt-1">{doctorData.qualification || ''}</p>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2">
-              <Calendar size={16} />
-              <span className="text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-            </div>
+      <div className="bg-gradient-to-r from-[#174047] to-[#2c6774] rounded-2xl p-6 text-white shadow-lg">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold backdrop-blur-sm">
+            {doctorData?.name?.charAt(0) || doctorData?.fullName?.charAt(0) || 'D'}
+          </div>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold">
+              Welcome, Dr. {doctorData?.name?.split(' ')[0] || doctorData?.fullName?.split(' ')[0] || 'Doctor'}
+            </h1>
+            <p className="text-white/80 text-sm mt-0.5">
+              {doctorData?.speciality || doctorData?.specialization || 'General Practitioner'}
+            </p>
+            <p className="text-white/60 text-xs mt-1">
+              {doctorData?.qualification || ''}
+            </p>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2 backdrop-blur-sm">
+            <Calendar size={16} />
+            <span className="text-sm">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </span>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -163,19 +156,6 @@ const Dashboard = ({ doctorId, doctorData }) => {
                   </div>
                   <div className="flex items-center gap-3">
                     {getStatusBadge(appt.status)}
-                    {(appt.status || '').toLowerCase() === 'pending' && (
-                      <button
-                        className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
-                        title="Generate Google Meet Link"
-                        onClick={() => {
-                          const meetLink = `https://meet.google.com/new?hs=${Date.now()}`;
-                          navigator.clipboard.writeText(meetLink);
-                          alert(`Google Meet link copied to clipboard:\n${meetLink}\n\nShare this with the patient.`);
-                        }}
-                      >
-                        <Video size={16} />
-                      </button>
-                    )}
                   </div>
                 </div>
               ))}

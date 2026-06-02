@@ -6,8 +6,6 @@ import Dashboard from './Dashboard';
 import Appointments from './Appointments';
 import Patients from './Patients';
 import PatientHistory from './PatientHistory';
-import Prescriptions from './Prescriptions';
-import Schedule from './Schedule';
 import Reviews from './Reviews';
 import Settings from './Settings';
 import { getDoctorProfile } from '../../api/doctorApi';
@@ -96,38 +94,44 @@ const DoctorDashboard = () => {
     }
 
     switch(activeTab) {
-      case 'dashboard': return <Dashboard doctorId={id} doctorData={doctorData} />;
-      case 'appointments': return (
-        <Appointments 
-          doctorId={id}
-          setActiveTab={setActiveTab}
-          setSelectedPatient={setSelectedPatient}
-        />
-      );
-      case 'patients': return (
-        <Patients 
-          doctorId={id}
-          setActiveTab={setActiveTab} 
-          setSelectedPatient={setSelectedPatient} 
-        />
-      );
-      case 'patient-history': return (
-        <PatientHistory 
-          selectedPatient={selectedPatient} 
-          setActiveTab={setActiveTab} 
-        />
-      );
-      case 'prescriptions': return <Prescriptions doctorId={id} />;
-      case 'schedule': return <Schedule doctorId={id} />;
-      case 'reviews': return <Reviews doctorId={id} />;
-      case 'settings': return <Settings doctorId={id} doctorData={doctorData} />;
-      default: return <Dashboard doctorId={id} doctorData={doctorData} />;
+      case 'dashboard': 
+        return <Dashboard doctorId={id} doctorData={doctorData} />;
+      case 'appointments': 
+        return (
+          <Appointments 
+            doctorId={id}
+            setActiveTab={setActiveTab}
+            setSelectedPatient={setSelectedPatient}
+          />
+        );
+      case 'patients': 
+        return (
+          <Patients 
+            doctorId={id}
+            setActiveTab={setActiveTab} 
+            setSelectedPatient={setSelectedPatient} 
+          />
+        );
+      case 'patient-history': 
+        return (
+          <PatientHistory 
+            selectedPatient={selectedPatient} 
+            setActiveTab={setActiveTab}
+            doctorId={id}  // ← FIXED: doctorId is now passed correctly
+          />
+        );
+      case 'reviews': 
+        return <Reviews doctorId={id} />;
+      case 'settings': 
+        return <Settings doctorId={id} doctorData={doctorData} />;
+      default: 
+        return <Dashboard doctorId={id} doctorData={doctorData} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Header */}
+      {/* Top Header - Sticky */}
       <Header 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
@@ -135,28 +139,28 @@ const DoctorDashboard = () => {
         doctorData={doctorData}
       />
 
-      <div className="flex">
-        {/* Sidebar Backdrop */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-        
-        {/* Sidebar */}
-        <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          sidebarOpen={sidebarOpen} 
-          setSidebarOpen={setSidebarOpen} 
+      {/* Sidebar Backdrop for Mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
         />
+      )}
+      
+      {/* Sidebar - Static/Fixed */}
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+      />
 
-        {/* Main Content */}
-        <main className="flex-1 p-3 md:p-4 lg:p-6 w-full min-w-0">
+      {/* Main Content - with proper margins for fixed sidebar and header */}
+      <main className="lg:ml-72 pt-16">
+        <div className="p-3 md:p-4 lg:p-6">
           {renderContent()}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
