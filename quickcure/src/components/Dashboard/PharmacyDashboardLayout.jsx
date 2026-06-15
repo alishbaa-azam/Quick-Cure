@@ -13,6 +13,7 @@ const PharmacyDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pharmacy, setPharmacy] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState(null); // New state for dashboard-specific errors
   const navigate = useNavigate();
   const location = useLocation();
   const { id: pharmacyId } = useParams(); // ✅ Get pharmacyId from URL (route param is :id)
@@ -44,25 +45,25 @@ const PharmacyDashboardLayout = () => {
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
-        return user?.id || user?._id;
+        return { id: user?.id || user?._id, role: user?.role };
       } catch (e) {
         console.error('Error parsing user:', e);
       }
     }
-    return null;
+    return { id: null, role: null }; // Return an object even if user not found
   };
 
-  // ✅ Fetch pharmacy profile using userId from backend
+  // Fetch pharmacy profile using userId from backend
   const fetchPharmacyProfile = async () => {
     try {
-      const userId = getUserId();
+      const { id: userId, role: userRole } = getUserId(); // Destructure id and role
       if (!userId) {
         console.log('No user ID found');
         message.error('Please login again');
         navigate('/login');
         return null;
       }
-      
+
       console.log('Fetching pharmacy for user ID:', userId);
       console.log('URL pharmacyId:', pharmacyId);
       
@@ -73,21 +74,22 @@ const PharmacyDashboardLayout = () => {
       if (response.success) {
         const pharmacyData = response.data;
         
-        // ✅ Verify that the pharmacyId in URL matches the logged-in pharmacy
+        // ✅ Redirect to correct URL if pharmacyId doesn't match pharmacy's actual ID
         if (pharmacyData._id !== pharmacyId) {
-          console.warn('Pharmacy ID mismatch. Redirecting...');
-          message.warning('Accessing wrong pharmacy dashboard');
-          navigate(`/pharmacy/dashboard/${pharmacyData._id}`);
-          return null;
+          console.log('Redirecting to correct pharmacy dashboard URL');
+          navigate(`/pharmacy/dashboard/${pharmacyData._id}`, { replace: true });
+          return "REDIRECTING"; // Signal that a redirect is in progress
         }
         
         setPharmacy(pharmacyData);
         localStorage.setItem('pharmacyId', pharmacyData._id);
         console.log('✅ Pharmacy found:', pharmacyData.name, 'ID:', pharmacyData._id);
         return pharmacyData;
-      } else {
-        message.error('Pharmacy not registered. Please register your pharmacy.');
-        navigate('/reg');
+      } 
+      else {
+        // Pharmacy not found for this user, but user is 'pharmacy' role.
+        setDashboardError('Pharmacy profile not found or registered. Please register your pharmacy.');
+        setPharmacy(null);
         return null;
       }
     } catch (error) {
@@ -95,10 +97,12 @@ const PharmacyDashboardLayout = () => {
       
       if (error.response?.status === 404) {
         message.error('Pharmacy not registered. Please register your pharmacy.');
-        navigate('/reg');
+        setDashboardError('Pharmacy profile not found or registered. Please register your pharmacy.');
+        setPharmacy(null);
       } else if (error.response?.status === 401) {
         message.error('Session expired. Please login again.');
         localStorage.clear();
+        setPharmacy(null); // Explicitly clear pharmacy state
         navigate('/login');
       } else {
         message.error('Error connecting to server. Please try again.');
@@ -111,6 +115,7 @@ const PharmacyDashboardLayout = () => {
   const checkAuth = async () => {
     try {
       setLoading(true);
+      setDashboardError(null); // Clear any previous dashboard errors
       
       const token = localStorage.getItem('token');
       if (!token) {
@@ -120,7 +125,7 @@ const PharmacyDashboardLayout = () => {
       }
 
       const userId = getUserId();
-      if (!userId) {
+      if (!userId.id) {
         message.error('Unable to identify user. Please login again.');
         localStorage.clear();
         navigate('/login');
@@ -135,7 +140,16 @@ const PharmacyDashboardLayout = () => {
         return;
       }
 
-      await fetchPharmacyProfile();
+      const fetchedPharmacy = await fetchPharmacyProfile();
+
+      if (fetchedPharmacy === "REDIRECTING") {
+        return; // Stop here and keep loading=true while the URL changes
+      }
+
+      if (!fetchedPharmacy) {
+        // If it was a 404/success:false, then the dashboardError state will be set.
+        // No explicit action needed here, the render logic will pick up dashboardError.
+      }
 
     } catch (error) {
       console.error('Auth check error:', error);
@@ -168,8 +182,33 @@ const PharmacyDashboardLayout = () => {
     );
   }
 
-  if (!pharmacy) {
-    return null;
+  // If there's a dashboard error and no pharmacy data, show a specific message/component
+  if (dashboardError && !pharmacy) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+        <div className="text-center p-4 max-w-md">
+          <Pill size={64} className="text-[#2c6774] mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Pharmacy Not Found</h2>
+          <p className="text-gray-600 mb-6">{dashboardError}</p>
+          <button
+            onClick={() => navigate('/reg')} // Explicitly navigate to registration
+            className="px-6 py-3 bg-[#2c6774] text-white rounded-lg hover:bg-[#1a3a3a] transition-colors"
+          >
+            Register Your Pharmacy
+          </button>
+          <button
+            onClick={checkAuth} // Retry fetching
+            className="ml-4 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pharmacy) { // Fallback for any other case where pharmacy is null (should be covered by loading or dashboardError)
+    return null; 
   }
 
   return (

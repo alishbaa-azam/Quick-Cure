@@ -1,4 +1,3 @@
-// 15/4/26 order placing
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 

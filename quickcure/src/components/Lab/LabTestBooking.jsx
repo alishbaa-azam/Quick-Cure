@@ -562,9 +562,30 @@ export default function BookingPage() {
       // Set flag for lab detail page refresh
       sessionStorage.setItem("bookingConfirmed", "true");
 
-      // Set booking details and show success popup
-      setBookingDetails(response.data.booking);
-      setShowSuccessPopup(true);
+      // Get booking ID for payment
+      const bookingData_result = response.data.booking;
+      const firstBookingId = bookingData_result?.bookings?.[0]?.bookingId || 
+                              bookingData_result?.bookings?.[0]?._id;
+      const groupId = bookingData_result?.groupId;
+      const firstPatient = updatedPatients[0]?.details;
+
+      // Navigate to payment page
+      if (total.final > 0) {
+        navigate('/payment', {
+          state: {
+            bookingType: 'lab_booking',
+            bookingId: firstBookingId || groupId,
+            amount: total.final,
+            customerName: firstPatient?.name || '',
+            customerEmail: firstPatient?.email || '',
+            customerPhone: firstPatient?.mobile || ''
+          }
+        });
+      } else {
+        // Free booking - show success directly
+        setBookingDetails(response.data.booking);
+        setShowSuccessPopup(true);
+      }
       
     } catch (error) {
       console.error("Booking error details:", error);
@@ -1509,8 +1530,3 @@ export default function BookingPage() {
   );
  
 }
-
-
-
-
-

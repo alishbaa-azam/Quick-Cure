@@ -1,4 +1,4 @@
-// order placing now 15/4/26
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
@@ -656,10 +656,28 @@ const MedicineBooking = () => {
         localStorage.setItem(ordersKey, JSON.stringify(updatedOrders));
       }
       
-      setCurrentOrder(orderData);
-      setShowOrderConfirmation(true);
+      // Store current order and navigate to payment
+      const orderId = backendResult.order?._id || backendResult.order?.orderId || orderData.orderNumber;
       
-      clearCart();
+      setCurrentOrder(orderData);
+      
+      // Navigate to payment page
+      if (finalTotal > 0) {
+        navigate('/payment', {
+          state: {
+            bookingType: 'medicine_order',
+            bookingId: orderId,
+            amount: finalTotal,
+            customerName: patientInfo.name,
+            customerEmail: patientInfo.email,
+            customerPhone: patientInfo.phone
+          }
+        });
+      } else {
+        // Free order - show confirmation directly
+        setShowOrderConfirmation(true);
+        clearCart();
+      }
       
       setPatientInfo({
         name: '',

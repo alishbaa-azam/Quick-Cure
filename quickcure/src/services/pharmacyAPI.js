@@ -73,8 +73,8 @@ export const pharmacyAPI = {
     return api.get(`/pharmacies/dashboard/${pharmacyId}/medicines/alerts`);
   },
 
-  getCategories: (pharmacyId) => {
-    console.log('Fetching categories for pharmacyId:', pharmacyId);
+  getCategoryDistribution: (pharmacyId) => {
+    console.log('Fetching category distribution for pharmacyId:', pharmacyId);
     return api.get(`/pharmacies/dashboard/${pharmacyId}/categories/distribution`);
   },
 
@@ -212,6 +212,52 @@ export const pharmacyAPI = {
   getCities: async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/pharmacies/cities`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ========== CATEGORIES CRUD ==========
+  getCategories: async (pharmacyId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/pharmacies/categories/${pharmacyId}`, {
+        headers: getAuthHeader()
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  createCategory: async (pharmacyId, data) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/pharmacies/categories/create`, 
+        { pharmacyId, ...data }, 
+        { headers: getAuthHeader() }
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateCategory: async (categoryId, data) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/pharmacies/categories/update/${categoryId}`, data, {
+        headers: getAuthHeader()
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  deleteCategory: async (categoryId) => {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/pharmacies/categories/delete/${categoryId}`, {
+        headers: getAuthHeader()
+      });
       return response;
     } catch (error) {
       throw error;

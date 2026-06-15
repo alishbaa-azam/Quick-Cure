@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Star, ArrowLeft, Trash2, Edit2, X, CheckCircle, Shield } from "lucide-react";
+import { isRoleRestricted, getRestrictionMessage } from '../../utils/roleRestrictions';
 
 // Custom Popup Components
 const ConfirmDeletePopup = ({ isOpen, onClose, onConfirm, message }) => {

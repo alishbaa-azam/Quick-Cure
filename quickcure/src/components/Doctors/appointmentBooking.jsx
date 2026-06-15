@@ -537,6 +537,7 @@ export default function BookAppointment() {
           time: selectedSlot,
           status: 'pending',
           fee: doctor?.fee,
+          meetLink: appointmentData.meetLink || '',
           bookedAt: new Date().toISOString()
         };
         
@@ -628,11 +629,16 @@ export default function BookAppointment() {
         
         setTimeout(() => {
           setPopup({ open: false, type: "", message: "" });
-          if (currentUser) {
-            navigate("/userdashboard");
-          } else {
-            navigate(`/doctor/${doctorId}`);
-          }
+          navigate("/payment", {
+            state: {
+              bookingType: 'appointment',
+              bookingId: appointmentData._id || appointmentData.id,
+              amount: doctor?.fee || 0,
+              customerName: patientName,
+              customerEmail: email,
+              customerPhone: phoneNo
+            }
+          });
         }, 2500);
       } else {
         showErrorPopup("Booking failed");

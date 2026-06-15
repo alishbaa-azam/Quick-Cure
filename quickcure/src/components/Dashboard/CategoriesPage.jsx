@@ -1,35 +1,26 @@
-
-//    grid view update
-// CategoriesPage.js - Desktop mein grid view hata diya
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, Search, Filter, 
-  TrendingUp, X, Save, AlertTriangle, 
+  TrendingUp, X, AlertTriangle, 
   FolderOpen, CheckCircle, XCircle, 
-  Package, MoreVertical, Eye, Grid, List,
-  ChevronLeft, ChevronRight, Link,
-  LayoutGrid, Menu, Star, Clock,
+  Package, Grid, List, Eye,
+  ChevronLeft, ChevronRight,
   Pill, Activity, Leaf, Coffee, Apple, 
   Heart, Droplet, Droplets, Syringe, 
   Stethoscope, Box, FlaskConical,
   Bone, Thermometer, Wind, Sparkles,
-  Shield, Zap, Cloud, Moon, Sun
+  Shield, Zap, Cloud, Moon, Sun, RefreshCw
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { pharmacyAPI } from '../../services/pharmacyAPI';
+import { message } from 'antd';
 
 const CategoriesPage = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Pain Relief', description: 'Medicines for pain management', productCount: 24, status: 'Active', icon: 'Pill' },
-    { id: 2, name: 'Antibiotics', description: 'Anti-bacterial medications', productCount: 18, status: 'Active', icon: 'FlaskConical' },
-    { id: 3, name: 'Allergy', description: 'Allergy relief medicines', productCount: 12, status: 'Active', icon: 'Wind' },
-    { id: 4, name: 'Digestive', description: 'Gastrointestinal medicines', productCount: 15, status: 'Active', icon: 'Coffee' },
-    { id: 5, name: 'Vitamins', description: 'Nutritional supplements', productCount: 32, status: 'Active', icon: 'Apple' },
-    { id: 6, name: 'Cardiac', description: 'Heart-related medicines', productCount: 8, status: 'Inactive', icon: 'Heart' },
-    { id: 7, name: 'Skin Care', description: 'Dermatological products', productCount: 21, status: 'Active', icon: 'Sparkles' },
-    { id: 8, name: 'Diabetes', description: 'Diabetes management', productCount: 14, status: 'Active', icon: 'Droplets' },
-  ]);
+  const { id: pharmacyId } = useParams();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -38,7 +29,7 @@ const CategoriesPage = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
   const [filterStatus, setFilterStatus] = useState('All');
-  const [viewMode, setViewMode] = useState('list'); // Default to list view
+  const [viewMode, setViewMode] = useState('list');
   const [itemsPerPage, setItemsPerPage] = useState(8);
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -69,36 +60,83 @@ const CategoriesPage = () => {
     { name: 'Moon', component: Moon }
   ];
 
+  const getCategoryIcon = (name) => {
+    const iconMap = {
+      'Pain Relief': 'Pill',
+      'Antibiotics': 'FlaskConical',
+      'Allergy': 'Wind',
+      'Digestive': 'Coffee',
+      'Vitamins': 'Apple',
+      'Cardiac': 'Heart',
+      'Dermatology': 'Sparkles',
+      'Skin Care': 'Sparkles',
+      'Diabetes': 'Droplets',
+      'Cardiovascular': 'Heart'
+    };
+    return iconMap[name] || 'Package';
+  };
+
   // Helper function to render icon based on name
   const renderIcon = (iconName, className = "w-5 h-5") => {
     const iconMap = {
-      Pill: Pill,
-      FlaskConical: FlaskConical,
-      Wind: Wind,
-      Coffee: Coffee,
-      Apple: Apple,
-      Heart: Heart,
-      Sparkles: Sparkles,
-      Droplets: Droplets,
-      Syringe: Syringe,
-      Stethoscope: Stethoscope,
-      Box: Box,
-      Bone: Bone,
-      Thermometer: Thermometer,
-      Shield: Shield,
-      Zap: Zap,
-      Moon: Moon,
-      Package: Package,
-      Activity: Activity,
-      Leaf: Leaf,
-      Droplet: Droplet,
-      Cloud: Cloud,
-      Sun: Sun
+      Pill, FlaskConical, Wind, Coffee, Apple,
+      Heart, Sparkles, Droplets, Syringe,
+      Stethoscope, Box, Bone, Thermometer,
+      Shield, Zap, Moon, Sun,
+      Package, Activity, Leaf, Droplet, Cloud
     };
     
     const IconComponent = iconMap[iconName] || Package;
     return <IconComponent className={className} />;
   };
+
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const pid = pharmacyId || localStorage.getItem('pharmacyId');
+      if (!pid) {
+        setError('Pharmacy ID not found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await pharmacyAPI.getCategoryDistribution(pid);
+      
+      if (response.data?.success) {
+        const catData = response.data.data || [];
+        
+        // Transform API data into categories format
+        const transformedCategories = catData.map((cat, index) => ({
+          id: cat.name?.toLowerCase().replace(/\s+/g, '-') || index,
+          name: cat.name,
+          description: `${cat.name} category`,
+          productCount: cat.count || cat.value || 0,
+          status: 'Active',
+          icon: getCategoryIcon(cat.name)
+        }));
+
+        setCategories(transformedCategories);
+      } else {
+        setCategories([]);
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setError(err.message || 'Failed to load categories');
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const pid = pharmacyId || localStorage.getItem('pharmacyId');
+    if (pid) {
+      fetchCategories();
+    }
+  }, [pharmacyId]);
 
   // Calculate statistics
   const totalCategories = categories.length;
@@ -117,8 +155,7 @@ const CategoriesPage = () => {
     setShowModal(true);
   };
 
-  const handleEditCategory = (id) => {
-    const category = categories.find(c => c.id === id);
+  const handleEditCategory = (category) => {
     setEditingCategory(category);
     setFormData({
       name: category.name,
@@ -129,8 +166,7 @@ const CategoriesPage = () => {
     setShowModal(true);
   };
 
-  const handleDeleteClick = (id) => {
-    const category = categories.find(c => c.id === id);
+  const handleDeleteClick = (category) => {
     setCategoryToDelete(category);
     setShowDeleteModal(true);
   };
@@ -138,53 +174,70 @@ const CategoriesPage = () => {
   const confirmDelete = () => {
     if (categoryToDelete) {
       if (categoryToDelete.productCount > 0) {
-        alert('Cannot delete category with products. Please reassign or delete products first.');
+        message.warning('Cannot delete category with products. Please reassign or delete products first.');
         setShowDeleteModal(false);
         setCategoryToDelete(null);
         return;
       }
       
-      setCategories(categories.filter(c => c.id !== categoryToDelete.id));
+      // Delete category via API
+      const pid = pharmacyId || localStorage.getItem('pharmacyId');
+      if (pid) {
+        pharmacyAPI.deleteCategory(categoryToDelete.id)
+          .then(() => {
+            message.success('Category deleted successfully');
+            fetchCategories();
+          })
+          .catch(err => {
+            message.error('Failed to delete category');
+            console.error(err);
+          });
+      }
+      
       setShowDeleteModal(false);
       setCategoryToDelete(null);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      alert('Category name is required');
+      message.error('Category name is required');
       return;
     }
 
-    if (editingCategory) {
-      setCategories(categories.map(c => 
-        c.id === editingCategory.id 
-          ? { 
-              ...c, 
-              name: formData.name, 
-              description: formData.description,
-              status: formData.status,
-              icon: formData.icon
-            } 
-          : c
-      ));
-    } else {
-      const newCategory = {
-        id: categories.length + 1,
-        name: formData.name,
-        description: formData.description,
-        productCount: 0,
-        status: formData.status,
-        icon: formData.icon
-      };
-      setCategories([...categories, newCategory]);
+    const pid = pharmacyId || localStorage.getItem('pharmacyId');
+    if (!pid) {
+      message.error('Pharmacy ID not found');
+      return;
     }
-    
-    setShowModal(false);
-    setFormData({ name: '', description: '', status: 'Active', icon: 'Package' });
-    setEditingCategory(null);
+
+    try {
+      if (editingCategory) {
+        // Update category via API
+        await pharmacyAPI.updateCategory(editingCategory.id, {
+          name: formData.name,
+          description: formData.description,
+        });
+        message.success('Category updated successfully');
+      } else {
+        // Create category via API
+        await pharmacyAPI.createCategory(pid, {
+          name: formData.name,
+          description: formData.description
+        });
+        message.success('Category created successfully');
+      }
+      
+      setShowModal(false);
+      setFormData({ name: '', description: '', status: 'Active', icon: 'Package' });
+      setEditingCategory(null);
+      fetchCategories();
+    } catch (err) {
+      console.error('Error saving category:', err);
+      message.error('Failed to save category');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -195,14 +248,14 @@ const CategoriesPage = () => {
     }));
   };
 
-  const toggleStatus = (id) => {
+  const toggleStatus = (category) => {
     setCategories(categories.map(c => 
-      c.id === id ? { ...c, status: c.status === 'Active' ? 'Inactive' : 'Active' } : c
+      c.id === category.id ? { ...c, status: c.status === 'Active' ? 'Inactive' : 'Active' } : c
     ));
   };
 
   const viewProductsInCategory = (categoryName) => {
-    navigate('/PharmacyDashboard/products', { 
+    navigate(`/pharmacy/dashboard/${pharmacyId}/products`, { 
       state: { filterCategory: categoryName }
     });
   };
@@ -240,6 +293,32 @@ const CategoriesPage = () => {
     </button>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#2c6774] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading categories...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Categories</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button onClick={fetchCategories} className="px-6 py-3 bg-[#2c6774] text-white rounded-lg hover:bg-[#1a3a3a]">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
       {/* Page Header */}
@@ -249,6 +328,13 @@ const CategoriesPage = () => {
           <p className="text-sm text-gray-600 mt-1">Organize your products by categories</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={fetchCategories}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            <RefreshCw size={16} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
           <button
             onClick={handleAddCategory}
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#2c6774] to-[#174047] text-white rounded-xl hover:from-[#174047] hover:to-[#2c6774] transition-all duration-300 font-medium shadow-sm text-sm"
@@ -274,11 +360,7 @@ const CategoriesPage = () => {
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Growth</span>
-              <span className="text-green-600 flex items-center gap-1">
-                <TrendingUp size={12} />
-                +12%
-              </span>
+              <span className="text-gray-600">From pharmacy inventory</span>
             </div>
           </div>
         </div>
@@ -293,14 +375,16 @@ const CategoriesPage = () => {
               <CheckCircle className="text-green-600" size={22} />
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-green-500 rounded-full transition-all"
-                style={{ width: `${(activeCategories / totalCategories) * 100}%` }}
-              ></div>
+          {totalCategories > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-green-500 rounded-full transition-all"
+                  style={{ width: `${(activeCategories / totalCategories) * 100}%` }}
+                ></div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
@@ -429,203 +513,15 @@ const CategoriesPage = () => {
         )}
       </div>
 
-      {/* Categories Display - Desktop: Always List View, Mobile: Grid/List Toggle */}
-      
-      {/* Desktop List View */}
-      <div className="hidden md:block">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Description</th>
-                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Products</th>
-                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {paginatedCategories.map((category) => (
-                  <tr key={category.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-blue-50">
-                          {renderIcon(category.icon, "w-5 h-5 text-blue-600")}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{category.name}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">CAT-{category.id.toString().padStart(3, '0')}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600 hidden lg:table-cell max-w-xs truncate">
-                      {category.description}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900">{category.productCount}</span>
-                        <button 
-                          onClick={() => viewProductsInCategory(category.name)}
-                          className="text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
-                        >
-                          View products
-                        </button>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <StatusBadge status={category.status} onClick={() => toggleStatus(category.id)} />
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleEditCategory(category.id)}
-                          className="p-2 text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(category.id)}
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                          disabled={category.productCount > 0}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Views */}
-      <div className="md:hidden">
-        {viewMode === 'grid' ? (
-          /* Mobile Grid View */
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {paginatedCategories.map((category) => (
-              <div key={category.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-50">
-                      {renderIcon(category.icon, "w-6 h-6 text-blue-600")}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{category.name}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">CAT-{category.id.toString().padStart(3, '0')}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
-
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-xs text-gray-500">Products</p>
-                    <p className="text-lg font-bold text-gray-900">{category.productCount}</p>
-                  </div>
-                  <StatusBadge status={category.status} onClick={() => toggleStatus(category.id)} />
-                </div>
-
-                <div className="flex gap-2 pt-3 border-t border-gray-100">
-                  <button
-                    onClick={() => viewProductsInCategory(category.name)}
-                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium"
-                  >
-                    <Eye size={14} />
-                    <span>View</span>
-                  </button>
-                  <button
-                    onClick={() => handleEditCategory(category.id)}
-                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-medium"
-                  >
-                    <Edit size={14} />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(category.id)}
-                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium"
-                    disabled={category.productCount > 0}
-                  >
-                    <Trash2 size={14} />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* Mobile List View */
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="divide-y divide-gray-100">
-              {paginatedCategories.map((category) => (
-                <div key={category.id} className="p-4 hover:bg-gray-50/80">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-blue-50">
-                        {renderIcon(category.icon, "w-5 h-5 text-blue-600")}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{category.name}</p>
-                        <p className="text-xs text-gray-500">CAT-{category.id.toString().padStart(3, '0')}</p>
-                      </div>
-                    </div>
-                    <StatusBadge status={category.status} onClick={() => toggleStatus(category.id)} />
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">{category.description}</p>
-                  
-                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-                    <div>
-                      <span className="text-xs text-gray-500">Products:</span>
-                      <span className="ml-1 font-semibold">{category.productCount}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => viewProductsInCategory(category.name)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                        title="View Products"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleEditCategory(category.id)}
-                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded"
-                        title="Edit"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(category.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                        title="Delete"
-                        disabled={category.productCount > 0}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Empty State */}
-      {filteredCategories.length === 0 && (
+      {/* Categories Display */}
+      {categories.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 sm:p-12 text-center">
           <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
             <FolderOpen className="text-gray-400" size={30} />
           </div>
           <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">No categories found</h3>
           <p className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
-            {searchTerm ? 'Try different keywords' : 'Start organizing your products by adding categories'}
+            {searchTerm ? 'Try different keywords' : 'Add medicines with categories to see them here'}
           </p>
           <button
             onClick={handleAddCategory}
@@ -635,62 +531,256 @@ const CategoriesPage = () => {
             <span>Add First Category</span>
           </button>
         </div>
-      )}
-
-      {/* Pagination */}
-      {filteredCategories.length > 0 && (
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-600 order-2 sm:order-1">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCategories.length)} of {filteredCategories.length}
-          </p>
-          <div className="flex items-center gap-2 order-1 sm:order-2">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            
-            {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
-              let pageNum;
-              if (totalPages <= 3) {
-                pageNum = i + 1;
-              } else if (currentPage <= 2) {
-                pageNum = i + 1;
-              } else if (currentPage >= totalPages - 1) {
-                pageNum = totalPages - 2 + i;
-              } else {
-                pageNum = currentPage - 1 + i;
-              }
-              
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === pageNum
-                      ? 'bg-[#2c6774] text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-            
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
+      ) : filteredCategories.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 sm:p-12 text-center">
+          <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">No matching categories</h3>
+          <p className="text-sm text-gray-600">Try adjusting your search or filter</p>
         </div>
+      ) : (
+        <>
+          {/* Desktop List View */}
+          <div className="hidden md:block">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Category</th>
+                      <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Description</th>
+                      <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Products</th>
+                      <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="text-left py-4 px-4 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {paginatedCategories.map((category) => (
+                      <tr key={category.id} className="hover:bg-gray-50/80 transition-colors">
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-blue-50">
+                              {renderIcon(category.icon, "w-5 h-5 text-blue-600")}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{category.name}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">CAT-{String(category.id).slice(0, 8)}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-600 hidden lg:table-cell max-w-xs truncate">
+                          {category.description}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-gray-900">{category.productCount}</span>
+                            <button 
+                              onClick={() => viewProductsInCategory(category.name)}
+                              className="text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                            >
+                              View products
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <StatusBadge status={category.status} onClick={() => toggleStatus(category)} />
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleEditCategory(category)}
+                              className="p-2 text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(category)}
+                              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                              disabled={category.productCount > 0}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Views */}
+          <div className="md:hidden">
+            {viewMode === 'grid' ? (
+              /* Mobile Grid View */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {paginatedCategories.map((category) => (
+                  <div key={category.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-50">
+                          {renderIcon(category.icon, "w-6 h-6 text-blue-600")}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                          <p className="text-xs text-gray-500 mt-0.5">ID: {String(category.id).slice(0, 8)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
+
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-xs text-gray-500">Products</p>
+                        <p className="text-lg font-bold text-gray-900">{category.productCount}</p>
+                      </div>
+                      <StatusBadge status={category.status} onClick={() => toggleStatus(category)} />
+                    </div>
+
+                    <div className="flex gap-2 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={() => viewProductsInCategory(category.name)}
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium"
+                      >
+                        <Eye size={14} />
+                        <span>View</span>
+                      </button>
+                      <button
+                        onClick={() => handleEditCategory(category)}
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-medium"
+                      >
+                        <Edit size={14} />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(category)}
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium"
+                        disabled={category.productCount > 0}
+                      >
+                        <Trash2 size={14} />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* Mobile List View */
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="divide-y divide-gray-100">
+                  {paginatedCategories.map((category) => (
+                    <div key={category.id} className="p-4 hover:bg-gray-50/80">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-blue-50">
+                            {renderIcon(category.icon, "w-5 h-5 text-blue-600")}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{category.name}</p>
+                            <p className="text-xs text-gray-500">ID: {String(category.id).slice(0, 8)}</p>
+                          </div>
+                        </div>
+                        <StatusBadge status={category.status} onClick={() => toggleStatus(category)} />
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{category.description}</p>
+                      
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                        <div>
+                          <span className="text-xs text-gray-500">Products:</span>
+                          <span className="ml-1 font-semibold">{category.productCount}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => viewProductsInCategory(category.name)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                            title="View Products"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleEditCategory(category)}
+                            className="p-1.5 text-amber-600 hover:bg-amber-50 rounded"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(category)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                            title="Delete"
+                            disabled={category.productCount > 0}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {filteredCategories.length > 0 && (
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-gray-600 order-2 sm:order-1">
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCategories.length)} of {filteredCategories.length}
+              </p>
+              <div className="flex items-center gap-2 order-1 sm:order-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                
+                {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 2) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 1) {
+                    pageNum = totalPages - 2 + i;
+                  } else {
+                    pageNum = currentPage - 1 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === pageNum
+                          ? 'bg-[#2c6774] text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Add/Edit Modal - Same as before */}
+      {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto">

@@ -1,6 +1,3 @@
-// order placing 15/4/26
-// src/components/Pharmacy/MedicinePage.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MedicineCard from './MedicineCard.jsx';
@@ -176,7 +173,6 @@ const MedicinePage = () => {
     fetchStats();
   }, []);
 
-  // ✅ FIXED: Add to cart function - properly passes to context
   const handleAddToCart = (medicine) => {
     console.log('MedicinePage: handleAddToCart called with:', medicine);
     

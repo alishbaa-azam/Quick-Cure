@@ -1,5 +1,3 @@
-
-// Restrictions added
 import React, { useState, useEffect, useRef } from "react";
 import {
   FaUserMd,

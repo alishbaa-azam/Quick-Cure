@@ -4,7 +4,9 @@ import DashboardHeader from './DashboardHeader';
 import MyAppointments from './MyAppointments';
 import MyOrders from './MyOrders';
 import MyLabTests from './MyLabTests';
-import { FaCalendarCheck, FaPills, FaFlask } from 'react-icons/fa';
+import MyPrescriptions from './MyPrescriptions';
+import { getPatientPrescriptions } from '../../api/prescriptionApi';
+import { FaCalendarCheck, FaPills, FaFlask, FaFilePrescription } from 'react-icons/fa';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -14,7 +16,8 @@ const UserDashboard = () => {
   const [stats, setStats] = useState({
     appointments: 0,
     orders: 0,
-    labTests: 0
+    labTests: 0,
+    prescriptions: 0
   });
 
   useEffect(() => {
@@ -70,7 +73,7 @@ const UserDashboard = () => {
   }, [navigate]);
 
   // Function to load all stats
-  const loadStats = () => {
+  const loadStats = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const userKey = user?._id || user?.id || 'guest';
@@ -95,16 +98,24 @@ const UserDashboard = () => {
         totalAppointments = phoneAppointments.length;
       }
 
+      // Fetch prescription count from API
+      let prescriptionCount = 0;
+      if (user.email) {
+        try {
+          const result = await getPatientPrescriptions(user.email);
+          if (result.success) {
+            prescriptionCount = Array.isArray(result.data) ? result.data.length : 0;
+          }
+        } catch (err) {
+          console.error('Error fetching prescription count:', err);
+        }
+      }
+
       setStats({
         appointments: totalAppointments,
         orders: orders.length,
-        labTests: labTests.length
-      });
-
-      console.log('Stats updated:', { 
-        appointments: totalAppointments, 
-        orders: orders.length, 
-        labTests: labTests.length 
+        labTests: labTests.length,
+        prescriptions: prescriptionCount
       });
 
     } catch (error) {
@@ -173,7 +184,7 @@ const UserDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
@@ -220,6 +231,20 @@ const UserDashboard = () => {
               </div>
             </div>
           </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Prescriptions</p>
+                <p className="text-3xl font-bold" style={{ color: '#2c6774' }}>
+                  {stats.prescriptions}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(44, 103, 116, 0.1)' }}>
+                <FaFilePrescription className="text-2xl" style={{ color: '#2c6774' }} />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -259,6 +284,11 @@ const UserDashboard = () => {
                       {stats.labTests}
                     </span>
                   )}
+                  {tab.id === 'prescriptions' && stats.prescriptions > 0 && (
+                    <span className="ml-2 px-2 py-0.5 text-xs bg-teal-100 text-teal-800 rounded-full">
+                      {stats.prescriptions}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -289,6 +319,12 @@ const UserDashboard = () => {
             <MyLabTests 
               refreshTrigger={refreshTrigger}
               onStatsUpdate={(count) => updateStats('labTests', count)}
+            />
+          )}
+          
+          {activeTab === 'prescriptions' && (
+            <MyPrescriptions 
+              refreshTrigger={refreshTrigger}
             />
           )}
         </div>
@@ -355,6 +391,7 @@ const UserDashboard = () => {
 // Tabs configuration
 const tabs = [
   { id: 'appointments', label: 'Appointments', icon: FaCalendarCheck, color: '#2c6774' },
+  { id: 'prescriptions', label: 'Prescriptions', icon: FaFilePrescription, color: '#2c6774' },
   { id: 'orders', label: 'Medicine Orders', icon: FaPills, color: '#174047' },
   { id: 'labtests', label: 'Lab Tests', icon: FaFlask, color: '#5c878f' }
 ];
