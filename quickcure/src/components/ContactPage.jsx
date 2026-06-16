@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, Mail, User, MessageSquare, Phone, BookOpen, ChevronDown, ChevronUp, HelpCircle, Clock, CreditCard, Shield, Video, Pill, FileText, Calendar, Star } from 'lucide-react';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -9,397 +9,504 @@ const ContactPage = () => {
     subject: '',
     message: ''
   });
+  
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
-  const [status, setStatus] = useState({
-    submitting: false,
-    submitted: false,
-    error: false,
-    message: ''
-  });
+  const faqs = [
+    {
+      question: "What is QuickCure and how does it work?",
+      answer: "QuickCure is an integrated web-based healthcare platform that connects patients with doctors, pharmacies, and diagnostic labs all in one place. You can register securely, book online consultations with specialist doctors, receive electronic prescriptions, order prescribed medicines online, and book lab tests - all from the comfort of your home.",
+      icon: <HelpCircle className="w-5 h-5" />
+    },
+    {
+      question: "How do I book an appointment with a doctor?",
+      answer: "Simply register on QuickCure, browse through our list of licensed doctors by specialty, check their real-time availability, and book an appointment at your preferred time. You'll receive instant confirmation, a Google Meet link for your consultation, and reminders for your appointment.",
+      icon: <Clock className="w-5 h-5" />
+    },
+    {
+      question: "How does the online consultation work?",
+      answer: "After booking an appointment, you will receive a Google Meet link via email and SMS. At your scheduled time, simply click the link to join the video consultation with your doctor. No additional software or account is needed - just a browser and stable internet connection.",
+      icon: <Video className="w-5 h-5" />
+    },
+    {
+      question: "Is my personal and medical information secure?",
+      answer: "Yes! We prioritize your privacy and security. Your medical records, prescriptions, and personal information are stored in encrypted databases with role-based access control. All data transmission uses SSL/TLS encryption, and we comply with healthcare data protection standards to ensure complete confidentiality.",
+      icon: <Shield className="w-5 h-5" />
+    },
+    {
+      question: "What payment methods are accepted on QuickCure?",
+      answer: "QuickCure uses Stripe as our secure payment gateway. We accept all major credit/debit cards (Visa, Mastercard, American Express), bank transfers, and popular digital wallets. Stripe ensures bank-grade security for all transactions with PCI compliance.",
+      icon: <CreditCard className="w-5 h-5" />
+    },
+    {
+      question: "Is Stripe payment secure?",
+      answer: "Absolutely! Stripe is a globally trusted payment processor used by millions of businesses. It provides end-to-end encryption, fraud detection, and never stores your full card details on our servers. Your payment information is completely safe and secure.",
+      icon: <Shield className="w-5 h-5" />
+    },
+    {
+      question: "Can I order prescribed medicines online?",
+      answer: "Absolutely! Once a doctor prescribes medication, you can order it directly through our integrated pharmacy partner. The prescription is validated digitally and medicines are delivered to your doorstep. Payment is processed securely via Stripe. No need to visit a physical pharmacy!",
+      icon: <Pill className="w-5 h-5" />
+    },
+    {
+      question: "Do I need a Google account for video consultation?",
+      answer: "Yes, you need a Google account to join Google Meet consultations. When you book an appointment, you'll receive a Google Meet link via email. Simply click the link and sign in to your Google account to join the video call. If you don't have a Google account, you can create one for free at accounts.google.com.",
+      icon: <Video className="w-5 h-5" />
+    },
+    {
+      question: "What equipment do I need for video consultation?",
+      answer: "You just need a smartphone, tablet, or computer with a stable internet connection (minimum 2 Mbps), a working camera, microphone, and speakers/headset. Google Chrome, Firefox, or Safari browser is recommended for the best experience.",
+      icon: <Star className="w-5 h-5" />
+    },
+    {
+      question: "How are my medical records stored and accessed?",
+      answer: "Your medical records, including prescriptions and test results, are securely stored in our MongoDB database. You can access them anytime from your dashboard. Doctors can also access previous records with your consent for better continuity of care. All data is encrypted at rest and in transit.",
+      icon: <FileText className="w-5 h-5" />
+    },
+    {
+      question: "What if I need a lab test?",
+      answer: "QuickCure integrates with diagnostic laboratories. You can book lab tests directly through the platform, pay securely via Stripe, get your samples collected from home, and receive test results digitally within the system - easily accessible to both you and your doctor.",
+      icon: <FileText className="w-5 h-5" />
+    },
+    {
+      question: "Can I cancel or reschedule my appointment?",
+      answer: "Yes, you can cancel or reschedule your appointment up to 2 hours before the scheduled time through your dashboard. Refunds for cancelled appointments are processed automatically through Stripe according to our refund policy.",
+      icon: <Calendar className="w-5 h-5" />
+    }
+  ];
 
-  const [expandedFaq, setExpandedFaq] = useState(null);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const toggleFaq = (index) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) return 'Name is required';
-    if (!formData.email.trim()) return 'Email is required';
-    if (!/\S+@\S+\.\S+/.test(formData.email)) return 'Email is invalid';
-    if (!formData.message.trim()) return 'Message is required';
-    return null;
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address (e.g., name@example.com)';
+    }
+    
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\d{11}$/.test(formData.phone)) {
+      newErrors.phone = 'Phone number must be exactly 11 digits';
+    }
+    
+    if (!formData.subject.trim()) {
+      newErrors.subject = 'Subject is required';
+    } else if (formData.subject.length < 3) {
+      newErrors.subject = 'Subject must be at least 3 characters';
+    }
+    
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length <= 11) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: digitsOnly
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const handleEmailBlur = () => {
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErrors(prev => ({
+        ...prev,
+        email: 'Please enter a valid email address (e.g., name@example.com)'
+      }));
+    } else if (formData.email && errors.email) {
+      setErrors(prev => ({
+        ...prev,
+        email: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form
-    const validationError = validateForm();
-    if (validationError) {
-      setStatus({
-        submitting: false,
-        submitted: false,
-        error: true,
-        message: validationError
-      });
+    if (!validateForm()) {
       return;
     }
-
-    setStatus({ submitting: true, submitted: false, error: false, message: 'Sending...' });
-
-    // Simulate API call - Replace with actual API endpoint
+    
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    
     try {
-      // This is where you'd make your actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-      
-      // Mock successful submission
-      setStatus({
-        submitting: false,
-        submitted: true,
-        error: false,
-        message: 'Thank you! Your message has been sent successfully.'
+      const response = await fetch('http://localhost:5000/api/contact/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
       });
       
-      // Clear form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
-      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubmitStatus({ type: 'success', message: data.message });
+        setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+        setTimeout(() => setSubmitStatus(null), 5000);
+      } else {
+        setSubmitStatus({ type: 'error', message: data.message || 'Something went wrong' });
+      }
     } catch (error) {
-      setStatus({
-        submitting: false,
-        submitted: false,
-        error: true,
-        message: 'Failed to send message. Please try again.'
-      });
+      setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const faqData = [
-    {
-      id: 1,
-      question: "How does QuickCure work?",
-      answer: "QuickCure connects you with healthcare professionals instantly. You can book appointments, consult online, get prescriptions, and order medicines—all from your mobile device or computer. Simply create an account, choose your specialty, and connect with a doctor within minutes."
-    },
-    {
-      id: 2,
-      question: "Is my medical data secure?",
-      answer: "Absolutely! We use bank-level encryption (256-bit SSL) to protect your data. We are HIPAA compliant and follow all healthcare data protection regulations. Your medical records and conversations are private and never shared without your consent."
-    },
-    {
-      id: 3,
-      question: "What are your consultation hours?",
-      answer: "Our doctors are available 24/7, including weekends and holidays. Emergency consultations are always available. For non-emergency appointments, you can schedule between 8 AM to 10 PM in your local timezone."
-    },
-    {
-      id: 4,
-      question: "How much does a consultation cost?",
-      answer: "Consultation fees vary by specialty and doctor experience, ranging from $29 to $79. We accept most insurance plans and offer subscription plans for regular patients. Free follow-up within 7 days is included with every consultation."
-    },
-    {
-      id: 5,
-      question: "Can I get a refund if I'm not satisfied?",
-      answer: "Yes, we offer a 100% satisfaction guarantee. If you're not happy with your consultation, you can request a full refund within 48 hours. Contact our support team with your consultation ID, and we'll process your refund immediately."
-    }
-  ];
-
-  const contactInfo = [
-    {
-      icon: <Phone className="w-6 h-6" />,
-      title: "Phone Support",
-      details: ["+1 (555) 123-4567", "+1 (555) 987-6543"],
-      availability: "24/7 Emergency Support"
-    },
-    {
-      icon: <Mail className="w-6 h-6" />,
-      title: "Email Us",
-      details: ["support@quickcure.com", "care@quickcure.com"],
-      availability: "Reply within 24 hours"
-    },
-    {
-      icon: <MapPin className="w-6 h-6" />,
-      title: "Visit Us",
-      details: ["123 Healthcare Ave", "Medical District, NY 10001"],
-      availability: "Mon-Fri, 9AM-6PM"
-    },
-    {
-      icon: <Clock className="w-6 h-6" />,
-      title: "Working Hours",
-      details: ["Monday - Friday: 24/7", "Saturday - Sunday: 24/7"],
-      availability: "Always Open"
-    }
-  ];
-
-  const toggleFaq = (id) => {
-    setExpandedFaq(expandedFaq === id ? null : id);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-bgLight/20">
-      {/* Hero Section */}
-      <div className="bg-primary text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Get in Touch</h1>
-          <p className="text-xl text-textLight max-w-2xl mx-auto">
-            Have questions about QuickCure? We're here to help 24/7. Reach out to us anytime!
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#f5f5f5' }}>
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: 'var(--primary-color)' }}>
+            Contact Us
+          </h1>
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'var(--secondary-color)' }}>
+            We'd love to hear from you! Send us a message and we'll respond as soon as possible.
           </p>
         </div>
-      </div>
 
-      {/* Contact Information Cards */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {contactInfo.map((info, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-bgLight/30"
-            >
-              <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center text-primary mb-4">
-                {info.icon}
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* Left Side - Info Section */}
+            <div className="p-8 lg:p-12" style={{ backgroundColor: 'var(--primary-color)' }}>
+              <div className="h-full flex flex-col justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-6">Get in Touch</h2>
+                  <p className="text-white/90 mb-8">
+                    Have questions about QuickCure? We're here to help you with any inquiries about our healthcare services.
+                  </p>
+                  
+                  <div className="space-y-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+                        <Mail className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-1">Email Us</h3>
+                        <p className="text-white/80">support@quickcure.com</p>
+                        <p className="text-white/80">hello@quickcure.com</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-4">
+                      <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+                        <Phone className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-1">Call Us</h3>
+                        <p className="text-white/80">+92 300 1234567</p>
+                        <p className="text-white/80">+92 321 7654321</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-4">
+                      <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+                        <BookOpen className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-1">Quick Response</h3>
+                        <p className="text-white/80">Average response time: 2-4 hours</p>
+                        <p className="text-white/80">We value your time</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-8 pt-8 border-t border-white/20">
+                  <p className="text-white/70 text-sm">
+                    🌟 Join thousands of satisfied patients using QuickCure
+                  </p>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold text-secondary mb-2">{info.title}</h3>
-              {info.details.map((detail, idx) => (
-                <p key={idx} className="text-gray-600 text-sm">{detail}</p>
-              ))}
-              <p className="text-accent text-xs mt-2 font-medium">{info.availability}</p>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Main Content - Contact Form & FAQ */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Form Section */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-bgLight/30">
-            <h2 className="text-3xl font-bold text-secondary mb-6">Send us a Message</h2>
-            <p className="text-gray-600 mb-8">
-              Fill out the form below and we'll get back to you within 24 hours.
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Field */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-secondary mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200"
-                  placeholder="John Doe"
-                  disabled={status.submitting}
-                />
-              </div>
-
-              {/* Email Field */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-secondary mb-2">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200"
-                  placeholder="john@example.com"
-                  disabled={status.submitting}
-                />
-              </div>
-
-              {/* Phone Field */}
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-secondary mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200"
-                  placeholder="+1 (555) 000-0000"
-                  disabled={status.submitting}
-                />
-              </div>
-
-              {/* Subject Field */}
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-secondary mb-2">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200"
-                  placeholder="How can we help you?"
-                  disabled={status.submitting}
-                />
-              </div>
-
-              {/* Message Field */}
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-secondary mb-2">
-                  Message <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows="5"
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 resize-none"
-                  placeholder="Please describe your query in detail..."
-                  disabled={status.submitting}
-                />
-              </div>
-
-              {/* Status Messages */}
-              {status.message && (
-                <div
-                  className={`p-4 rounded-lg flex items-center space-x-2 ${
-                    status.error
-                      ? 'bg-red-50 text-red-700 border border-red-200'
-                      : status.submitted
-                      ? 'bg-green-50 text-green-700 border border-green-200'
-                      : status.submitting
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : ''
-                  }`}
-                >
-                  {status.error ? (
-                    <AlertCircle className="w-5 h-5" />
-                  ) : status.submitted ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : status.submitting ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-700" />
-                  ) : null}
-                  <span>{status.message}</span>
+            {/* Right Side - Contact Form */}
+            <div className="p-8 lg:p-12">
+              {submitStatus && (
+                <div className={`mb-6 p-4 rounded-lg flex items-center space-x-3 ${
+                  submitStatus.type === 'success' 
+                    ? 'bg-green-50 border border-green-200 text-green-800'
+                    : 'bg-red-50 border border-red-200 text-red-800'
+                }`}>
+                  {submitStatus.type === 'success' ? (
+                    <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  )}
+                  <span className="text-sm">{submitStatus.message}</span>
                 </div>
               )}
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--secondary-color)' }}>
+                    Full Name *
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                        errors.name 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-2 focus:ring-opacity-50'
+                      }`}
+                      style={{ 
+                        borderColor: errors.name ? '#ef4444' : 'var(--accent-color)'
+                      }}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--secondary-color)' }}>
+                    Email Address *
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      onBlur={handleEmailBlur}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none transition-all ${
+                        errors.email 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-2 focus:ring-opacity-50'
+                      }`}
+                      style={{ 
+                        borderColor: errors.email ? '#ef4444' : 'var(--accent-color)'
+                      }}
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--secondary-color)' }}>
+                    Phone Number * 
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none transition-all ${
+                        errors.phone 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-2 focus:ring-opacity-50'
+                      }`}
+                      style={{ 
+                        borderColor: errors.phone ? '#ef4444' : 'var(--accent-color)'
+                      }}
+                      placeholder="Enter phone number "
+                      maxLength="11"
+                      inputMode="numeric"
+                    />
+                  </div>
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                  )}
+                  {formData.phone && formData.phone.length > 0 && formData.phone.length < 11 && (
+                    <p className="mt-1 text-sm text-orange-600">Need {11 - formData.phone.length} more digit(s)</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--secondary-color)' }}>
+                    Subject *
+                  </label>
+                  <div className="relative">
+                    <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--accent-color)' }} />
+                    <input
+                      type="text"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none transition-all ${
+                        errors.subject 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-2 focus:ring-opacity-50'
+                      }`}
+                      style={{ 
+                        borderColor: errors.subject ? '#ef4444' : 'var(--accent-color)'
+                      }}
+                      placeholder="Enter subject"
+                    />
+                  </div>
+                  {errors.subject && (
+                    <p className="mt-1 text-sm text-red-600">{errors.subject}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--secondary-color)' }}>
+                    Message *
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows="5"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-all resize-none ${
+                      errors.message 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-2 focus:ring-opacity-50'
+                    }`}
+                    style={{ 
+                      borderColor: errors.message ? '#ef4444' : 'var(--accent-color)'
+                    }}
+                    placeholder="Please describe your query or feedback in detail..."
+                  />
+                  {errors.message && (
+                    <p className="mt-1 text-sm text-red-600">{errors.message}</p>
+                  )}
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3 px-6 rounded-lg font-semibold text-white transition-all transform hover:scale-105 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  style={{ 
+                    backgroundColor: 'var(--primary-color)'
+                  }}
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Sending...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <Send className="w-5 h-5 mr-2" />
+                      Send Message
+                    </span>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={status.submitting}
-                className="w-full bg-primary text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-hover transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-2 group"
-              >
-                <span>{status.submitting ? 'Sending...' : 'Send Message'}</span>
-                {!status.submitting && <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
-              </button>
-
-              {/* Required Fields Note */}
-              <p className="text-xs text-gray-500 text-center mt-4">
-                <span className="text-red-500">*</span> Required fields
-              </p>
-            </form>
+        {/* FAQ Section */}
+        <div className="mt-12">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: 'var(--primary-color)' }}>
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: 'var(--secondary-color)' }}>
+              Find quick answers to common questions about our health services
+            </p>
           </div>
 
-          {/* FAQ Section */}
-          <div className="space-y-6">
-            <div className="bg-primary/5 rounded-2xl p-8 border border-bgLight/30">
-              <h2 className="text-3xl font-bold text-secondary mb-2">Frequently Asked Questions</h2>
-              <p className="text-gray-600 mb-8">
-                Quick answers to questions you may have. Can't find what you're looking for? Just send us a message!
-              </p>
-
-              <div className="space-y-4">
-                {faqData.map((faq) => (
-                  <div
-                    key={faq.id}
-                    className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-primary/30 transition-colors duration-200"
-                  >
-                    <button
-                      onClick={() => toggleFaq(faq.id)}
-                      className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
-                    >
-                      <span className="font-semibold text-secondary">{faq.question}</span>
-                      <svg
-                        className={`w-5 h-5 text-primary transform transition-transform duration-200 ${
-                          expandedFaq === faq.id ? 'rotate-180' : ''
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    
-                    {expandedFaq === faq.id && (
-                      <div className="px-6 pb-4 text-gray-600 border-t border-gray-100 pt-4">
-                        {faq.answer}
-                      </div>
+          <div className="max-w-4xl mx-auto space-y-4">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                  style={{ 
+                    backgroundColor: openFaqIndex === index ? 'var(--primary-color)' : 'white',
+                    color: openFaqIndex === index ? 'white' : 'var(--secondary-color)'
+                  }}
+                >
+                  <div className="flex items-center space-x-3 flex-1">
+                    <div className={`transition-colors ${openFaqIndex === index ? 'text-white' : ''}`} style={{ color: openFaqIndex === index ? 'white' : 'var(--primary-color)' }}>
+                      {faq.icon}
+                    </div>
+                    <span className="font-semibold text-lg">{faq.question}</span>
+                  </div>
+                  <div className="ml-4">
+                    {openFaqIndex === index ? (
+                      <ChevronUp className="w-5 h-5" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5" style={{ color: 'var(--primary-color)' }} />
                     )}
                   </div>
-                ))}
+                </button>
+                
+                <div
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    openFaqIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <div className="px-6 py-4 bg-gray-50 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
 
-              {/* Additional Help Section */}
-              <div className="mt-8 p-6 bg-accent/10 rounded-xl border border-accent/20">
-                <h3 className="text-lg font-semibold text-secondary mb-2">Still have questions?</h3>
-                <p className="text-gray-600 mb-4">
-                  Can't find the answer you're looking for? Our support team is ready to help.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <a
-                    href="tel:+15551234567"
-                    className="flex items-center justify-center space-x-2 bg-primary text-white px-6 py-3 rounded-lg hover:bg-hover transition-colors duration-200"
-                  >
-                    <Phone className="w-4 h-4" />
-                    <span>Call Us Now</span>
-                  </a>
-                  <a
-                    href="mailto:support@quickcure.com"
-                    className="flex items-center justify-center space-x-2 border-2 border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary/5 transition-colors duration-200"
-                  >
-                    <Mail className="w-4 h-4" />
-                    <span>Email Support</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Map or Additional Info */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-bgLight/30">
-              <h3 className="text-xl font-semibold text-secondary mb-4">Quick Response Guarantee</h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-100 rounded-full p-1">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <p className="text-gray-600">Average response time: &lt; 2 hours</p>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-100 rounded-full p-1">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <p className="text-gray-600">98% customer satisfaction rate</p>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-100 rounded-full p-1">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <p className="text-gray-600">24/7 emergency support available</p>
-                </div>
-              </div>
+          {/* Extra Help Section */}
+          <div className="mt-10 text-center">
+            <div className="inline-flex items-center space-x-2 px-6 py-3 bg-white rounded-full shadow-md">
+              <HelpCircle className="w-5 h-5" style={{ color: 'var(--primary-color)' }} />
+              <span style={{ color: 'var(--secondary-color)' }}>
+                Still have questions? 
+                <span className="font-semibold ml-1" style={{ color: 'var(--primary-color)' }}>
+                  Contact our support team
+                </span>
+              </span>
             </div>
           </div>
         </div>

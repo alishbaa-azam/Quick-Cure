@@ -1,4 +1,3 @@
-/* ======= General Hero Section ======= */
 .hero-section {
   width: 100%;
   height: 100vh;
@@ -10,11 +9,9 @@
   justify-content: center;
 }
 
-/* Overlay for dimming background */
 .overlay {
   width: 100%;
   height: 100%;
-  /* background-color: rgba(7, 70, 89, 0.55); */
    background: linear-gradient(
     87.25deg,
     #5c878f 0.1%,
@@ -26,7 +23,6 @@
   padding: 2rem;
 }
 
-/* Content inside hero section */
 .hero-content {
   color: white;
   max-width: 700px;
@@ -59,7 +55,6 @@
   color: var(--secondary-color);
 }
 
-/* ======= Search Bar ======= */
 .hero-content .search1 {
   display: flex;
   align-items: center;
@@ -102,11 +97,6 @@
   background: var(--primary-color);
 }
 
-/* section 1 */
-/* .card-section {
-  margin: 5%;
-} */
-
 .eco {
   margin-bottom: 3%;
   margin-right: 30%;
@@ -124,7 +114,6 @@
   display: grid;
   grid-template-columns: 1fr 3fr;
   align-items: center;
-  /* gap: 10px; */
   justify-content: space-between;
   border-radius: 25px;
   padding: 10px;
@@ -165,9 +154,7 @@
   border: none;
   margin: 20px ;
   transition: all 0.3s ease;
-
   grid-column: 1 / -1;
-  /* justify-self:left; */
 }
 
 .search1 button{
@@ -175,7 +162,6 @@
 }
 .why-choose button:hover {
   background-color: var(--hover-color);
-  /* transition: all 0.3s ease; */
     transform: translateY(-3px);
 
 }
@@ -184,7 +170,6 @@ button span {
   font-size: 18px;
 }
 
-/* ====== WHY CHOOSE SECTION ====== */
 .why-choose {
   margin: 5% 10% ;
 }
@@ -201,9 +186,7 @@ button span {
 .c1 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
-  /* grid-template-columns: repeat(3, 1fr); */
   gap: 20px;
-  /* min-width: 300px; */
 }
 
 .c {
@@ -222,17 +205,12 @@ button span {
 
 .c:nth-child(even) {
   background-color:var(--secondary-color);
-  /* color: #2c6774; */
-  /* border: 2px solid #2c6774; */
 }
 
 .c:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
-/* ======= Responsive Design ======= */
-
-/* Tablets */
 
 
 @media (max-width: 992px) {
@@ -257,11 +235,9 @@ button span {
  }
  .speciality img{
   padding: 12px 0px;
-  /* gap:5px; */
  }
 }
 
-/* Mobiles */
 @media (max-width: 600px) {
   .hero-section {
     height: auto;

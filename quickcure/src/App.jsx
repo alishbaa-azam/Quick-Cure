@@ -7,16 +7,15 @@ import {
 } from "react-router-dom";
 
 import { CartProvider } from './contexts/CartContext.jsx';
-import { PharmacyProvider } from './contexts/PharmacyContext.jsx'; // ✅ ADD THIS
+import { PharmacyProvider } from './contexts/PharmacyContext.jsx'; 
 
 import Header from "./components/Header/header";
 import Footer from "./components/footer";
 import Home from "./components/Home/home";
 import AboutUs from "./components/AboutUs";
+import Contact from './components/ContactPage.jsx';
+import TermsPolicyPage from './components/TermsPolicyPage.jsx';
 
-// import AboutContactPage from './components/AboutContactPage';
-// import Contact from './components/ContactPage.jsx';
-import MyOrders from './components/UserDashboard/MyOrders.jsx';
 
 //------------Doctor Module---------------------------------------//
 
@@ -27,9 +26,9 @@ import ViewProfile from "./components/Doctors/ViewProfile";
 import DoctorRegistration from "./components/Registration/doctor_registration";
 import AllReviews from './components/Doctors/AllReviews';
 
-// import LabDashboard from "./components/LabDashboards/LabDashboard";
 import DoctorDashboard from './components/DoctorDashboard/DoctorDashboard';
 import UserDashboard from './components/UserDashboard/UserDashboard';
+import MyOrders from './components/UserDashboard/MyOrders.jsx';
 
 //---------------------Lab Module----------------------------------//
 import LabDashboard from "./components/LabDashboards/LabDashboard";
@@ -76,6 +75,7 @@ import AdminSettingsPage from './components/AdminDashboard/SettingsPage';
 import RegistrationRequestsPage from './components/AdminDashboard/RegistrationRequestsPage';
 
 import ScrollToTop from "./ScrollToTop";
+import ContactPage from './components/ContactPage.jsx';
 
 function Layout() {
   const location = useLocation();
@@ -98,18 +98,20 @@ function Layout() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/termspolicies" element={<TermsPolicyPage />} />
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboardHome />} />
-          <Route path="dashboard" element={<AdminDashboardHome />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="registrations" element={<RegistrationRequestsPage />} />
-          <Route path="doctors" element={<AdminDoctorsPage />} />
-          <Route path="labs" element={<AdminLabsPage />} />
-          <Route path="pharmacies" element={<AdminPharmaciesPage />} />
-          <Route path="orders" element={<AdminOrdersPage />} />
-          <Route path="payments" element={<AdminPaymentsPage />} />
-          <Route path="reports" element={<AdminReportsPage />} />
-          <Route path="settings" element={<AdminSettingsPage />} />
+        <Route index element={<AdminDashboardHome />} />
+        <Route path="dashboard" element={<AdminDashboardHome />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="registrations" element={<RegistrationRequestsPage />} />
+        <Route path="doctors" element={<AdminDoctorsPage />} />
+        <Route path="labs" element={<AdminLabsPage />} />
+        <Route path="pharmacies" element={<AdminPharmaciesPage />} />
+        <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="payments" element={<AdminPaymentsPage />} />
+        <Route path="reports" element={<AdminReportsPage />} />
+        <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 {/* //-------------------------Doctor Module---------------------------------------// */}
 
@@ -134,11 +136,11 @@ function Layout() {
 {/* //-------------------------Pharmacy Module---------------------------------------// */}
 
        <Route path="/reg" element={<PharmacyRegistration />} />
-        <Route path="/pharmacies" element={<PharmacyPage />} />
-        <Route path="/pharmacies/:id" element={<PharmacyDetailPage />} />
-        <Route path="/medicines" element={<MedicinePage />} />
-        <Route path="/medicine/:id" element={<MedicineDetail />} />
-        <Route path="/booking" element={<MedicineBooking />} />
+       <Route path="/pharmacies" element={<PharmacyPage />} />
+       <Route path="/pharmacies/:id" element={<PharmacyDetailPage />} />
+       <Route path="/medicines" element={<MedicinePage />} />
+       <Route path="/medicine/:id" element={<MedicineDetail />} />
+       <Route path="/booking" element={<MedicineBooking />} />
 
         <Route path="/pharmacy/dashboard/:id" element={
           <PharmacyProvider>

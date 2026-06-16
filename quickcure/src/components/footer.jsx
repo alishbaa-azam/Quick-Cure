@@ -75,12 +75,12 @@ export default function Footer() {
 
       {/* ===== Quick Links ===== */}
       <div className="footer-links">
-        <a href="#">Book Appointment</a>
-        <a href="#">Order Medicines</a>
-        <a href="#">Book Lab Test</a>
-        <a href="#">About Us</a>
+        <Link to="/doctors">Book Appointment</Link>
+        <Link to="/medicines">Order Medicines</Link>
+        <Link to="/labs">Book Lab Test</Link>
+        <Link to="/about">About Us</Link>
         <Link to="/contact">Contact Us</Link>
-        <a href="#">Terms & Policies</a>
+        <Link to="/termspolicies">Terms & Policies</Link>
       </div>
 
       {/* ===== Copyright ===== */}
