@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { 
+import { isRoleRestricted, getRestrictionMessage } from '../../utils/roleRestrictions';
+import {
   Share2, 
   Clock, 
   Calendar, 
@@ -27,7 +28,8 @@ import {
   Check,
   Zap,
   Trash2,
-  Edit2
+  Edit2,
+  Ban
 } from "lucide-react";
 
 // Custom Popup Components
@@ -638,6 +640,16 @@ export default function ViewProfile() {
       });
       return;
     }
+
+    // Check if user role is restricted from booking
+    if (isRoleRestricted()) {
+      setInfoPopup({
+        isOpen: true,
+        message: getRestrictionMessage('book-appointment'),
+        title: "Action Restricted"
+      });
+      return;
+    }
     
     navigate(`/book-appointment/${doctor._id}`, {
       state: {
@@ -1001,6 +1013,16 @@ export default function ViewProfile() {
       });
       return;
     }
+
+    // Check if user role is restricted from giving reviews
+    if (isRoleRestricted()) {
+      setInfoPopup({
+        isOpen: true,
+        message: getRestrictionMessage('give-review'),
+        title: "Action Restricted"
+      });
+      return;
+    }
     setShowReviewForm(true);
   };
 
@@ -1012,6 +1034,16 @@ export default function ViewProfile() {
           message: "Please login to book an appointment",
           redirectTo: `/book-appointment/${doctor._id}`
         }
+      });
+      return;
+    }
+
+    // Check if user role is restricted from booking
+    if (isRoleRestricted()) {
+      setInfoPopup({
+        isOpen: true,
+        message: getRestrictionMessage('book-appointment'),
+        title: "Action Restricted"
       });
       return;
     }

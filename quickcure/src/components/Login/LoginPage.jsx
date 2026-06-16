@@ -253,18 +253,24 @@ export default function LoginPage({ onLogin }) {
       return;
     }
 
-    // Priority 4: Role-based redirect
+    // Priority 4: Role-based redirect using entity-specific IDs
     if (user?.role === "admin") {
       navigate("/admin/dashboard");
     } 
     else if (user?.role === "doctor") {
-      navigate(`/DoctorDashboard/dashboard/${user?.id || user?._id}`);
+      // Use doctorId if available, otherwise fall back to user ID
+      const entityId = user?.doctorId || user?.id || user?._id;
+      navigate(`/DoctorDashboard/dashboard/${entityId}`);
     } 
     else if (user?.role === "lab") {
-      navigate(`/lab/dashboard/${user?.id || user?._id}`);
+      // Use labId if available, otherwise fall back to user ID
+      const entityId = user?.labId || user?.id || user?._id;
+      navigate(`/lab/dashboard/${entityId}`);
     } 
     else if (user?.role === "pharmacy") {
-      navigate(`/pharmacy/dashboard/${user?.id || user?._id}`);
+      // Use pharmacyId if available, otherwise fall back to user ID
+      const entityId = user?.pharmacyId || user?.id || user?._id;
+      navigate(`/pharmacy/dashboard/${entityId}`);
     } 
     else {
       navigate("/");

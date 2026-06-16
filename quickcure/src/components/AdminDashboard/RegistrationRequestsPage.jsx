@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   FileText, Search, RefreshCw, CheckCircle, XCircle, Eye,
-  X, Stethoscope, Microscope, Pill, UserPlus, ExternalLink
+  X, Stethoscope, Microscope, Pill, User, Mail
 } from 'lucide-react';
-import { message, Modal, Button, Tooltip, Spin } from 'antd';
+import { message, Modal, Button, Tooltip } from 'antd';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -22,12 +22,13 @@ const getAuthHeaders = () => ({
 export default function RegistrationRequestsPage() {
   const [activeTab, setActiveTab] = useState('doctor');
   const [registrations, setRegistrations] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedReg, setSelectedReg] = useState(null);
   const [detailModal, setDetailModal] = useState(false);
-  const [creatingEntity, setCreatingEntity] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   const tabs = [
     { id: 'doctor', label: 'Doctor Registrations', icon: Stethoscope },
@@ -37,7 +38,23 @@ export default function RegistrationRequestsPage() {
 
   useEffect(() => {
     fetchRegistrations();
+    fetchUsers();
   }, [activeTab]);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/users`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success) setUsers(data.users || []);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  };
+
+  const getSubmittingUser = (reg) => {
+    const regEmail = (reg.email || '').toLowerCase();
+    return users.find(u => u.email?.toLowerCase() === regEmail) || null;
+  };
 
   const fetchRegistrations = async () => {
     try {
@@ -50,16 +67,18 @@ export default function RegistrationRequestsPage() {
       } else {
         endpoint = `${API_BASE}/pharmacy/all`;
       }
-
       const res = await fetch(endpoint, { headers: getAuthHeaders() });
       const data = await res.json();
-
       let list = [];
       if (activeTab === 'doctor') {
         list = data?.data || data?.registrations || [];
       } else {
         list = data?.data || [];
       }
+      list = list.map(r => ({
+        ...r,
+        status: r.status || r.registrationStatus || 'pending'
+      }));
       setRegistrations(list);
     } catch (err) {
       console.error('Error fetching registrations:', err);
@@ -69,8 +88,32 @@ export default function RegistrationRequestsPage() {
     }
   };
 
+  const getDocumentUrl = (doc) => {
+    if (!doc) return null;
+    if (typeof doc === 'string') {
+      if (doc.startsWith('http')) return doc;
+      if (doc.startsWith('/uploads')) return `http://localhost:5000${doc}`;
+      if (doc.startsWith('/')) return `http://localhost:5000${doc}`;
+      const filename = doc.split('\\').pop().split('/').pop();
+      return `http://localhost:5000/uploads/${filename}`;
+    }
+    if (typeof doc === 'object') {
+      if (doc.path) {
+        const filename = doc.path.replace(/\\/g, '/').split('/').pop();
+        if (filename) return `http://localhost:5000/uploads/${filename}`;
+      }
+      if (doc.filename) {
+        const filename = doc.filename.replace(/\\/g, '/').split('/').pop();
+        return `http://localhost:5000/uploads/${filename}`;
+      }
+    }
+    return null;
+  };
+
+  // Simple approve - just updates status, does NOT create entity records
   const handleStatusChange = async (regId, newStatus, notes = '') => {
     try {
+      setProcessing(true);
       let endpoint = '';
       let method = 'PATCH';
       if (activeTab === 'doctor') {
@@ -99,13 +142,15 @@ export default function RegistrationRequestsPage() {
       }
     } catch (err) {
       message.error('Failed to update registration status');
+    } finally {
+      setProcessing(false);
     }
   };
 
   const handleApprove = (reg) => {
     Modal.confirm({
-      title: 'Approve Registration',
-      content: `Approve this ${activeTab} registration?`,
+      title: `Approve ${activeTab === 'doctor' ? 'Doctor' : activeTab === 'lab' ? 'Lab' : 'Pharmacy'} Registration`,
+      content: `Approve this ${activeTab} registration request?`,
       okText: 'Approve',
       okType: 'primary',
       onOk: () => handleStatusChange(reg._id, 'approved'),
@@ -119,12 +164,8 @@ export default function RegistrationRequestsPage() {
       content: (
         <div>
           <p className="mb-2">Reject this registration?</p>
-          <textarea
-            className="w-full p-2 border rounded-lg text-sm"
-            placeholder="Enter rejection reason..."
-            rows={3}
-            onChange={(e) => { reason = e.target.value; }}
-          />
+          <textarea className="w-full p-2 border rounded-lg text-sm" placeholder="Enter rejection reason..." rows={3}
+            onChange={(e) => { reason = e.target.value; }} />
         </div>
       ),
       okText: 'Reject',
@@ -150,102 +191,27 @@ export default function RegistrationRequestsPage() {
             endpoint = `${API_BASE}/pharmacy/${reg._id}`;
           }
           const res = await fetch(endpoint, { method: 'DELETE', headers: getAuthHeaders() });
+          if (res.status === 404) {
+            message.error('Registration not found (may have been already deleted)');
+            fetchRegistrations();
+            return;
+          }
+          if (!res.ok) {
+            message.error('Failed to delete registration');
+            return;
+          }
           const data = await res.json();
           if (data.success) {
             message.success('Deleted successfully');
             fetchRegistrations();
+          } else {
+            message.error(data.message || 'Failed to delete');
           }
         } catch (err) {
-          message.error('Failed to delete');
+          message.error('Failed to delete: ' + (err.message || 'Server error'));
         }
       },
     });
-  };
-
-  // Create entity from registration data
-  const handleCreateEntity = async (reg) => {
-    setCreatingEntity(true);
-    try {
-      let endpoint = '';
-      let body = {};
-      
-      if (activeTab === 'pharmacy') {
-        endpoint = `${API_BASE}/pharmacies`;
-        body = {
-          pharmacyName: reg.pharmacyName,
-          ownerName: reg.ownerName,
-          email: reg.email,
-          phone: reg.phone,
-          address: reg.address,
-          city: reg.city,
-          licenseNumber: reg.licenseNumber,
-          pharmacyType: reg.pharmacyType,
-          yearEstablished: reg.yearEstablished,
-          status: 'approved',
-          open: true
-        };
-      } else if (activeTab === 'doctor') {
-        endpoint = `${API_BASE}/doctor-registration/registrations/${reg._id}/status`;
-        const res = await fetch(endpoint, {
-          method: 'PATCH',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ status: 'approved' }),
-        });
-        const result = await res.json();
-        if (result.success) {
-          message.success('Doctor registration approved successfully');
-          fetchRegistrations();
-          setDetailModal(false);
-        } else {
-          message.error(result.message || 'Failed to create doctor');
-        }
-        return; // Doctor registration is just approval
-      } else if (activeTab === 'lab') {
-        endpoint = `${API_BASE}/labreg/${reg._id}/status`;
-        // Lab uses status update same flow
-        const res = await fetch(endpoint, {
-          method: 'PUT',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ status: 'approved' }),
-        });
-        const result = await res.json();
-        if (result.success) {
-          message.success('Lab registration approved successfully');
-          fetchRegistrations();
-          setDetailModal(false);
-        } else {
-          message.error(result.message || 'Failed to create lab');
-        }
-        return;
-      }
-
-      // For pharmacy: create actual pharmacy record
-      if (activeTab === 'pharmacy') {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify(body),
-        });
-        const result = await res.json();
-        if (result.success) {
-          message.success('Pharmacy created and approved successfully!');
-          // Also update registration status
-          await fetch(`${API_BASE}/pharmacy/${reg._id}/status`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ status: 'approved' }),
-          });
-          fetchRegistrations();
-          setDetailModal(false);
-        } else {
-          message.error(result.message || 'Failed to create pharmacy');
-        }
-      }
-    } catch (err) {
-      message.error('Failed to create entity');
-    } finally {
-      setCreatingEntity(false);
-    }
   };
 
   const getName = (reg) => {
@@ -271,14 +237,12 @@ export default function RegistrationRequestsPage() {
     rejected: registrations.filter(r => getStatus(r) === 'rejected').length,
   };
 
-  // Get ALL detail fields based on registration type
   const getDetailFields = () => {
     if (!selectedReg) return [];
     const r = selectedReg;
 
     if (activeTab === 'doctor') {
-      const fields = [
-        // Personal Information
+      return [
         { section: 'Personal Information', fields: [
           { label: 'Full Name', value: r.fullName },
           { label: 'Email', value: r.email },
@@ -304,17 +268,16 @@ export default function RegistrationRequestsPage() {
           { label: 'Registration #', value: r.registrationNumber },
         ]},
         { section: 'Documents', fields: [
-          { label: 'Profile Picture', value: r.profilePicture, isImage: true },
-          { label: 'ID Card Front', value: r.idCardFront, isImage: true },
-          { label: 'ID Card Back', value: r.idCardBack, isImage: true },
-          { label: 'License', value: r.doctorLicense, isImage: true },
-          { label: 'MBBS Certificate', value: r.mbbsCertificate, isImage: true },
-          { label: 'House Job Cert', value: r.houseJobCertificate, isImage: true },
-          { label: 'Specialization Cert', value: r.specializationCertificate, isImage: true },
-          { label: 'FCPS Cert', value: r.fcpsCertificate, isImage: true },
-        ]},
+          { label: 'Profile Picture', value: getDocumentUrl(r.profilePicture), isImage: true },
+          { label: 'ID Card Front', value: getDocumentUrl(r.idCardFront), isImage: true },
+          { label: 'ID Card Back', value: getDocumentUrl(r.idCardBack), isImage: true },
+          { label: 'License', value: getDocumentUrl(r.doctorLicense), isImage: true },
+          { label: 'MBBS Certificate', value: getDocumentUrl(r.mbbsCertificate), isImage: true },
+          { label: 'House Job Cert', value: getDocumentUrl(r.houseJobCertificate), isImage: true },
+          { label: 'Specialization Cert', value: getDocumentUrl(r.specializationCertificate), isImage: true },
+          { label: 'FCPS Cert', value: getDocumentUrl(r.fcpsCertificate), isImage: true },
+        ].filter(f => f.value)},
       ];
-      return fields;
     }
 
     if (activeTab === 'lab') {
@@ -337,10 +300,10 @@ export default function RegistrationRequestsPage() {
           { label: 'Address', value: r.completeAddress },
         ]},
         { section: 'Documents', fields: [
-          { label: 'Registration Cert', value: r.registrationCertificate?.filename, isFile: true },
-          { label: 'CNIC Front', value: r.cnicFront?.filename, isFile: true },
-          { label: 'CNIC Back', value: r.cnicBack?.filename, isFile: true },
-        ]},
+          { label: 'Registration Cert', value: getDocumentUrl(r.registrationCertificate), isImage: true },
+          { label: 'CNIC Front', value: getDocumentUrl(r.cnicFront), isImage: true },
+          { label: 'CNIC Back', value: getDocumentUrl(r.cnicBack), isImage: true },
+        ].filter(f => f.value)},
       ];
     }
 
@@ -365,10 +328,10 @@ export default function RegistrationRequestsPage() {
         { label: 'Address', value: r.address },
       ]},
       { section: 'Documents', fields: [
-        { label: 'License File', value: r.licenseFile?.filename, isFile: true },
-        { label: 'Tax Certificate', value: r.taxCertificate?.filename, isFile: true },
-        { label: 'Owner ID Proof', value: r.ownerIdProof?.filename, isFile: true },
-      ]},
+        { label: 'License File', value: getDocumentUrl(r.licenseFile), isImage: true },
+        { label: 'Tax Certificate', value: getDocumentUrl(r.taxCertificate), isImage: true },
+        { label: 'Owner ID Proof', value: getDocumentUrl(r.ownerIdProof), isImage: true },
+      ].filter(f => f.value)},
     ];
   };
 
@@ -377,14 +340,16 @@ export default function RegistrationRequestsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Registration Requests</h1>
-          <p className="text-gray-600 mt-1">Review {activeTab} registration applications</p>
+          <p className="text-gray-600 mt-1">
+            Review and manage {activeTab} registration requests
+          </p>
         </div>
-        <button onClick={fetchRegistrations} className="px-4 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#1a3a3a] text-sm flex items-center gap-2">
+        <button onClick={fetchRegistrations}
+          className="px-4 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#1a3a3a] text-sm flex items-center gap-2">
           <RefreshCw size={16} /> Refresh
         </button>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm inline-flex gap-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -399,7 +364,6 @@ export default function RegistrationRequestsPage() {
         })}
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <p className="text-xs text-gray-500 font-medium">Total</p>
@@ -419,7 +383,6 @@ export default function RegistrationRequestsPage() {
         </div>
       </div>
 
-      {/* Search & Filter */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
@@ -437,12 +400,11 @@ export default function RegistrationRequestsPage() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="w-10 h-10 border-4 border-[#2c6774] border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="w-10 h-10 border-4 border-[#2c6774] border-t-transparent rounded-full animate-spin mx-auto" />
               <p className="mt-4 text-gray-500">Loading...</p>
             </div>
           </div>
@@ -455,66 +417,71 @@ export default function RegistrationRequestsPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Requested On</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filtered.map(reg => (
-                  <tr key={reg._id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                          getStatus(reg) === 'approved' ? 'bg-green-500' : getStatus(reg) === 'rejected' ? 'bg-red-500' : 'bg-amber-500'
-                        }`}>{getInitials(reg)}</div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{getName(reg)}</p>
-                          <p className="text-xs text-gray-400">{reg.registrationNumber || reg.licenseNumber || 'N/A'}</p>
+                {filtered.map(reg => {
+                  const submittingUser = getSubmittingUser(reg);
+                  return (
+                    <tr key={reg._id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium ${
+                            getStatus(reg) === 'approved' ? 'bg-green-500' : getStatus(reg) === 'rejected' ? 'bg-red-500' : 'bg-amber-500'
+                          }`}>{getInitials(reg)}</div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{getName(reg)}</p>
+                            <p className="text-xs text-gray-400">{reg.registrationNumber || reg.licenseNumber || 'N/A'}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{reg.email || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{reg.phone || reg.mobileNumber || 'N/A'}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 text-xs rounded-full font-medium capitalize border ${statusColors[getStatus(reg)] || 'bg-gray-100'}`}>
-                        {getStatus(reg)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {new Date(reg.createdAt || reg.submittedAt || reg.registrationDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Tooltip title="View Details">
-                          <button onClick={() => { setSelectedReg(reg); setDetailModal(true); }}
-                            className="p-1.5 text-[#2c6774] hover:bg-[#2c6774]/10 rounded-lg"><Eye size={16} /></button>
-                        </Tooltip>
-                        {(getStatus(reg) === 'pending' || getStatus(reg) === 'under_review') && (
-                          <>
-                            <Tooltip title="Approve">
-                              <button onClick={() => handleApprove(reg)}
-                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"><CheckCircle size={16} /></button>
-                            </Tooltip>
-                            <Tooltip title="Reject">
-                              <button onClick={() => handleReject(reg)}
-                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><XCircle size={16} /></button>
-                            </Tooltip>
-                          </>
-                        )}
-                        {getStatus(reg) !== 'pending' && getStatus(reg) !== 'under_review' && (
-                          <Tooltip title="Create Entity from Data">
-                            <button onClick={() => handleCreateEntity(reg)}
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><UserPlus size={16} /></button>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{reg.email || 'N/A'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{reg.phone || reg.mobileNumber || 'N/A'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2.5 py-1 text-xs rounded-full font-medium capitalize border ${statusColors[getStatus(reg)] || 'bg-gray-100'}`}>
+                          {getStatus(reg)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {new Date(reg.createdAt || reg.submittedAt || reg.registrationDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Tooltip title="View Details">
+                            <button onClick={() => { setSelectedReg(reg); setDetailModal(true); }}
+                              className="p-1.5 text-[#2c6774] hover:bg-[#2c6774]/10 rounded-lg"><Eye size={16} /></button>
                           </Tooltip>
-                        )}
-                        <Tooltip title="Delete">
-                          <button onClick={() => handleDelete(reg)}
-                            className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg"><X size={16} /></button>
-                        </Tooltip>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {(getStatus(reg) === 'pending' || getStatus(reg) === 'under_review') && (
+                            <>
+                              <Tooltip title="Approve">
+                                <button onClick={() => handleApprove(reg)} disabled={processing}
+                                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg">
+                                  <CheckCircle size={16} />
+                                </button>
+                              </Tooltip>
+                              <Tooltip title="Reject">
+                                <button onClick={() => handleReject(reg)}
+                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><XCircle size={16} /></button>
+                              </Tooltip>
+                            </>
+                          )}
+                          {getStatus(reg) === 'approved' && (
+                            <span className="px-2 py-0.5 text-[10px] bg-green-50 text-green-600 rounded font-medium">Approved</span>
+                          )}
+                          {getStatus(reg) === 'rejected' && (
+                            <span className="px-2 py-0.5 text-[10px] bg-red-50 text-red-600 rounded font-medium">Rejected</span>
+                          )}
+                          <Tooltip title="Delete">
+                            <button onClick={() => handleDelete(reg)}
+                              className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg"><X size={16} /></button>
+                          </Tooltip>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {filtered.length === 0 && (
                   <tr><td colSpan={6} className="text-center py-12 text-gray-500">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -532,22 +499,25 @@ export default function RegistrationRequestsPage() {
         <div className="flex items-center gap-2">
           {activeTab === 'doctor' ? <Stethoscope size={20} /> : activeTab === 'lab' ? <Microscope size={20} /> : <Pill size={20} />}
           <span>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Full Details</span>
+          {selectedReg && (
+            <span className={`ml-3 px-2 py-0.5 text-xs rounded-full font-medium capitalize border ${statusColors[getStatus(selectedReg)]}`}>
+              {getStatus(selectedReg)}
+            </span>
+          )}
         </div>
       }
         open={detailModal} onCancel={() => { setDetailModal(false); setSelectedReg(null); }} footer={null} width={800}>
         {selectedReg && (
           <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-            {/* Status Bar */}
             <div className="flex justify-between items-center sticky top-0 bg-white py-2 z-10 border-b">
-              <span className={`px-3 py-1.5 text-sm rounded-full font-medium capitalize border ${statusColors[getStatus(selectedReg)]}`}>
-                {getStatus(selectedReg)}
-              </span>
               <span className="text-xs text-gray-400">
-                Submitted: {new Date(selectedReg.createdAt || selectedReg.submittedAt).toLocaleString()}
+                Request submitted on: {new Date(selectedReg.createdAt || selectedReg.submittedAt).toLocaleString()}
+              </span>
+              <span className="text-xs text-gray-500">
+                Requested by: {selectedReg.email || 'Unknown'}
               </span>
             </div>
 
-            {/* Detail Sections */}
             {getDetailFields().map((section, si) => (
               <div key={si}>
                 <h4 className="text-sm font-bold text-[#2c6774] mb-3 pb-1 border-b border-gray-100">
@@ -560,14 +530,18 @@ export default function RegistrationRequestsPage() {
                       <div key={fi} className="bg-gray-50 p-3 rounded-lg">
                         <p className="text-xs text-gray-500 font-medium">{field.label}</p>
                         {field.isImage ? (
-                          <img src={field.value} alt={field.label} className="mt-1 max-h-20 rounded object-cover cursor-pointer"
-                            onClick={() => window.open(field.value, '_blank')} />
-                        ) : field.isFile ? (
-                          <p className="text-sm font-medium mt-1 text-blue-600">
-                            <a href={`${API_BASE.replace('/api', '')}/uploads/${field.value}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                              <ExternalLink size={14} /> {field.value}
-                            </a>
-                          </p>
+                          <div className="mt-1">
+                            <img src={field.value} alt={field.label}
+                              className="max-h-24 rounded object-cover cursor-pointer border border-gray-200"
+                              onClick={() => window.open(field.value, '_blank')}
+                              onError={(e) => {
+                                console.log('Image failed to load:', field.value);
+                                e.target.style.display = 'none';
+                              }} />
+                            <p className="text-[10px] text-blue-500 mt-1 truncate">
+                              <a href={field.value} target="_blank" rel="noopener noreferrer">Open file</a>
+                            </p>
+                          </div>
                         ) : (
                           <p className="text-sm font-medium mt-1">{field.value}</p>
                         )}
@@ -585,26 +559,22 @@ export default function RegistrationRequestsPage() {
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white py-3">
               {(getStatus(selectedReg) === 'pending' || getStatus(selectedReg) === 'under_review') && (
                 <>
-                  <Button danger onClick={() => handleReject(selectedReg)} disabled={creatingEntity}>
+                  <Button danger onClick={() => handleReject(selectedReg)} disabled={processing}>
                     <XCircle size={16} /> Reject
                   </Button>
                   <Button type="primary" onClick={() => handleApprove(selectedReg)}
-                    disabled={creatingEntity}
+                    loading={processing} icon={<CheckCircle size={16} />}
                     style={{ backgroundColor: '#2c6774', borderColor: '#2c6774' }}>
-                    <CheckCircle size={16} /> Approve
+                    Approve
                   </Button>
                 </>
               )}
               {getStatus(selectedReg) !== 'pending' && getStatus(selectedReg) !== 'under_review' && (
-                <Button type="primary" onClick={() => handleCreateEntity(selectedReg)}
-                  loading={creatingEntity}
-                  style={{ backgroundColor: '#2c6774', borderColor: '#2c6774' }}
-                  icon={<UserPlus size={16} />}>
-                  Create {activeTab === 'doctor' ? 'Doctor' : activeTab === 'lab' ? 'Lab' : 'Pharmacy'} Record
+                <Button disabled style={{ backgroundColor: '#e5e7eb', borderColor: '#e5e7eb', color: '#9ca3af' }}>
+                  {getStatus(selectedReg) === 'approved' ? '✓ Approved' : '✗ Rejected'}
                 </Button>
               )}
             </div>

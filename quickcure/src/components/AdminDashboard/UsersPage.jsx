@@ -348,9 +348,21 @@ export default function UsersPage() {
                 <option value="pharmacy">Pharmacy</option>
                 <option value="admin">Admin</option>
               </select>
-              {changeRoleModal.newRole === 'pharmacy' && (
+              {(changeRoleModal.newRole === 'pharmacy' || changeRoleModal.newRole === 'lab' || changeRoleModal.newRole === 'doctor') && (
                 <p className="text-xs text-amber-600 mt-2">
-                  A pharmacy profile will be auto-created for this user.
+                  {changeRoleModal.newRole === 'pharmacy' && 'A pharmacy profile will be auto-created for this user.'}
+                  {changeRoleModal.newRole === 'lab' && 'A lab profile will be auto-created for this user.'}
+                  {changeRoleModal.newRole === 'doctor' && 'A doctor profile will be auto-created for this user.'}
+                </p>
+              )}
+              {changeRoleModal.newRole === 'admin' && (
+                <p className="text-xs text-red-600 mt-2">
+                  Warning: Admin role has full system access. Only assign to trusted users.
+                </p>
+              )}
+              {changeRoleModal.newRole === 'user' && (
+                <p className="text-xs text-gray-600 mt-2">
+                  Setting role to "user" will remove their specialist profile access.
                 </p>
               )}
             </div>

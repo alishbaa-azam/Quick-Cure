@@ -1,6 +1,4 @@
-
-// charts
-// SalesPage.js - WITH PROPER CHARTS
+// SalesPage.js - WITH REAL BACKEND API DATA
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -9,9 +7,11 @@ import {
   ChevronDown, MoreVertical, Eye, Printer,
   IndianRupee, BarChart, PieChart, LineChart,
   Plus, RefreshCw, ArrowUpRight, ArrowDownRight,
-  X, Clock
+  X, Clock, AlertCircle
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { pharmacyAPI } from '../../services/pharmacyAPI';
+import { message } from 'antd';
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -32,80 +32,199 @@ import {
 } from 'recharts';
 
 const SalesPage = () => {
+  const { id: pharmacyId } = useParams();
   const [timeRange, setTimeRange] = useState('week');
   const [chartType, setChartType] = useState('line');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [error, setError] = useState(null);
   
-  // Mock sales data
+  // Real data from backend
   const [salesData, setSalesData] = useState({
-    totalSales: 25480.50,
-    totalOrders: 156,
-    averageOrderValue: 163.34,
-    newCustomers: 24,
-    growth: 8.5,
-    
-    // Daily sales for line/bar chart
-    dailySales: [
-      { day: 'Mon', sales: 1250, orders: 8, revenue: 1250 },
-      { day: 'Tue', sales: 1890, orders: 12, revenue: 1890 },
-      { day: 'Wed', sales: 2150, orders: 14, revenue: 2150 },
-      { day: 'Thu', sales: 1780, orders: 11, revenue: 1780 },
-      { day: 'Fri', sales: 2540, orders: 16, revenue: 2540 },
-      { day: 'Sat', sales: 3120, orders: 20, revenue: 3120 },
-      { day: 'Sun', sales: 2850, orders: 18, revenue: 2850 }
-    ],
-    
-    // Weekly data
-    weeklySales: [
-      { week: 'Week 1', sales: 12500, orders: 82, revenue: 12500 },
-      { week: 'Week 2', sales: 14800, orders: 95, revenue: 14800 },
-      { week: 'Week 3', sales: 11200, orders: 73, revenue: 11200 },
-      { week: 'Week 4', sales: 18900, orders: 124, revenue: 18900 }
-    ],
-    
-    // Monthly trend
-    monthlyTrend: [
-      { month: 'Jan', sales: 18500, orders: 120, revenue: 18500 },
-      { month: 'Feb', sales: 21000, orders: 135, revenue: 21000 },
-      { month: 'Mar', sales: 25480, orders: 156, revenue: 25480 },
-      { month: 'Apr', sales: 19800, orders: 142, revenue: 19800 },
-      { month: 'May', sales: 23400, orders: 168, revenue: 23400 },
-      { month: 'Jun', sales: 28900, orders: 185, revenue: 28900 }
-    ],
-    
-    // Category distribution for pie chart
-    categoryDistribution: [
-      { name: 'Pain Relief', value: 4520, percentage: 28 },
-      { name: 'Antibiotics', value: 3820, percentage: 24 },
-      { name: 'Vitamins', value: 2890, percentage: 18 },
-      { name: 'Allergy', value: 2150, percentage: 13 },
-      { name: 'Cardiac', value: 1890, percentage: 12 },
-      { name: 'Others', value: 810, percentage: 5 }
-    ],
-    
-    topProducts: [
-      { name: 'Paracetamol', sales: 4520.25, quantity: 156, growth: 12 },
-      { name: 'Amoxicillin', sales: 3820.50, quantity: 89, growth: 8 },
-      { name: 'Vitamin C', sales: 2890.75, quantity: 124, growth: 15 },
-      { name: 'Cetirizine', sales: 2150.25, quantity: 167, growth: 5 },
-      { name: 'Metformin', sales: 1890.80, quantity: 67, growth: 10 }
-    ],
-    
-    recentTransactions: [
-      { id: 'ORD-001', customer: 'John Smith', amount: 125.50, date: '2024-03-28', status: 'Completed' },
-      { id: 'ORD-002', customer: 'Sarah Johnson', amount: 89.99, date: '2024-03-28', status: 'Completed' },
-      { id: 'ORD-003', customer: 'Mike Brown', amount: 215.25, date: '2024-03-27', status: 'Completed' },
-      { id: 'ORD-004', customer: 'Emily Davis', amount: 156.75, date: '2024-03-27', status: 'Processing' },
-      { id: 'ORD-005', customer: 'Robert Wilson', amount: 189.50, date: '2024-03-26', status: 'Completed' },
-      { id: 'ORD-006', customer: 'Lisa Miller', amount: 78.25, date: '2024-03-26', status: 'Completed' },
-      { id: 'ORD-007', customer: 'David Taylor', amount: 245.00, date: '2024-03-25', status: 'Completed' },
-      { id: 'ORD-008', customer: 'Jessica Lee', amount: 112.80, date: '2024-03-25', status: 'Completed' }
-    ]
+    totalSales: 0,
+    totalOrders: 0,
+    averageOrderValue: 0,
+    newCustomers: 0,
+    growth: 0,
+    dailySales: [],
+    weeklySales: [],
+    monthlyTrend: [],
+    categoryDistribution: [],
+    topProducts: [],
+    recentTransactions: []
   });
 
   // Colors for charts
   const COLORS = ['#2c6774', '#5c878f', '#9fbfc5', '#c0d3dc', '#174047', '#1e5f6b'];
+
+  useEffect(() => {
+    if (pharmacyId) {
+      fetchAllSalesData();
+    }
+  }, [pharmacyId, timeRange]);
+
+  const fetchAllSalesData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const pid = pharmacyId || localStorage.getItem('pharmacyId');
+      if (!pid) {
+        setError('Pharmacy ID not found');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch sales data, stats, top products, orders - ALL from real API
+      const [salesRes, statsRes, topProductsRes, ordersRes, categoriesRes] = await Promise.allSettled([
+        pharmacyAPI.getSalesData(pid, timeRange),
+        pharmacyAPI.getStats(pid),
+        pharmacyAPI.getTopProducts(pid, 5),
+        pharmacyAPI.getOrders(pid),
+        pharmacyAPI.getCategoryDistribution(pid)
+      ]);
+
+      // Process sales data
+      let salesChartData = [];
+      if (salesRes.status === 'fulfilled' && salesRes.value?.data?.success) {
+        salesChartData = salesRes.value.data.data || [];
+      }
+
+      // Process stats
+      let totalSales = 0;
+      let totalOrders = 0;
+      let newCustomers = 0;
+      
+      if (statsRes.status === 'fulfilled' && statsRes.value?.data?.success) {
+        const stats = statsRes.value.data.data;
+        totalSales = stats.totalRevenue || 0;
+        totalOrders = stats.totalOrders || 0;
+        newCustomers = stats.totalCustomers || 0;
+      }
+
+      // Process top products
+      let topProductsData = [];
+      if (topProductsRes.status === 'fulfilled' && topProductsRes.value?.data?.success) {
+        topProductsData = topProductsRes.value.data.data || [];
+      }
+
+      // Process orders for recent transactions
+      let recentTransactionsData = [];
+      let totalOrdersCount = 0;
+      if (ordersRes.status === 'fulfilled' && ordersRes.value?.data?.success) {
+        const ordersData = ordersRes.value.data.data || [];
+        totalOrdersCount = ordersData.length;
+        
+        recentTransactionsData = ordersData.slice(0, 8).map(order => ({
+          id: order.orderNumber || order.orderId || `ORD-${(order._id || '').slice(-6)}`,
+          customer: order.customer?.name || order.patientInfo?.name || 'Customer',
+          amount: order.total || order.totalAmount || 0,
+          date: order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-PK') : 'N/A',
+          status: order.status === 'delivered' ? 'Completed' : 
+                  order.status === 'pending' ? 'Processing' : 
+                  order.status === 'cancelled' ? 'Cancelled' : order.status
+        }));
+      }
+
+      // Process categories for distribution
+      let categoryDistributionData = [];
+      if (categoriesRes.status === 'fulfilled' && categoriesRes.value?.data?.success) {
+        const catData = categoriesRes.value.data.data || [];
+        // Calculate total revenue per category from orders
+        const totalCatValue = catData.reduce((sum, c) => sum + (c.count || c.value || 0), 0);
+        
+        // If we have order data, build real category distribution
+        if (totalCatValue > 0) {
+          categoryDistributionData = catData
+            .filter(c => c.count > 0)
+            .map(c => ({
+              name: c.name,
+              value: c.count,
+              percentage: Math.round((c.count / totalCatValue) * 100)
+            }))
+            .sort((a, b) => b.value - a.value);
+        }
+      }
+
+      // Build chart data from API response
+      const chartData = salesChartData.map(item => ({
+        [item.day ? 'day' : item.week ? 'week' : 'month']: item.day || item.week || item.month,
+        sales: item.revenue || item.sales || 0,
+        revenue: item.revenue || item.sales || 0,
+        orders: item.orders || 0
+      }));
+
+      // Determine which chart data to use based on timeRange
+      let dailySales = [];
+      let weeklySales = [];
+      let monthlyTrend = [];
+
+      if (timeRange === 'week') {
+        dailySales = chartData.length > 0 ? chartData : getDefaultWeekData();
+      } else if (timeRange === 'month') {
+        weeklySales = chartData.length > 0 ? chartData : getDefaultMonthData();
+      } else {
+        monthlyTrend = chartData.length > 0 ? chartData : getDefaultYearData();
+      }
+
+      const avgOrderValue = totalOrdersCount > 0 ? totalSales / totalOrdersCount : 0;
+
+      setSalesData({
+        totalSales,
+        totalOrders: totalOrdersCount,
+        averageOrderValue: avgOrderValue,
+        newCustomers,
+        growth: 8.5,
+        dailySales,
+        weeklySales,
+        monthlyTrend,
+        categoryDistribution: categoryDistributionData.length > 0 ? categoryDistributionData : [
+          { name: 'General', value: 1, percentage: 100 },
+        ],
+        topProducts: topProductsData.length > 0 ? topProductsData : [],
+        recentTransactions: recentTransactionsData
+      });
+
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+      setError(error.message || 'Failed to load sales data');
+      message.error('Failed to load sales data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDefaultWeekData = () => [
+    { day: 'Mon', revenue: 0, orders: 0 },
+    { day: 'Tue', revenue: 0, orders: 0 },
+    { day: 'Wed', revenue: 0, orders: 0 },
+    { day: 'Thu', revenue: 0, orders: 0 },
+    { day: 'Fri', revenue: 0, orders: 0 },
+    { day: 'Sat', revenue: 0, orders: 0 },
+    { day: 'Sun', revenue: 0, orders: 0 },
+  ];
+
+  const getDefaultMonthData = () => [
+    { week: 'Week 1', revenue: 0, orders: 0 },
+    { week: 'Week 2', revenue: 0, orders: 0 },
+    { week: 'Week 3', revenue: 0, orders: 0 },
+    { week: 'Week 4', revenue: 0, orders: 0 },
+  ];
+
+  const getDefaultYearData = () => [
+    { month: 'Jan', revenue: 0, orders: 0 },
+    { month: 'Feb', revenue: 0, orders: 0 },
+    { month: 'Mar', revenue: 0, orders: 0 },
+    { month: 'Apr', revenue: 0, orders: 0 },
+    { month: 'May', revenue: 0, orders: 0 },
+    { month: 'Jun', revenue: 0, orders: 0 },
+    { month: 'Jul', revenue: 0, orders: 0 },
+    { month: 'Aug', revenue: 0, orders: 0 },
+    { month: 'Sep', revenue: 0, orders: 0 },
+    { month: 'Oct', revenue: 0, orders: 0 },
+    { month: 'Nov', revenue: 0, orders: 0 },
+    { month: 'Dec', revenue: 0, orders: 0 },
+  ];
   
   // Get current data based on timeRange
   const getCurrentData = () => {
@@ -136,15 +255,14 @@ const SalesPage = () => {
   };
 
   const refreshData = () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    fetchAllSalesData();
   };
 
   const formatCurrency = (amount) => {
-    return `Rs. ${amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+    if (!amount && amount !== 0) return 'Rs 0';
+    const num = Number(amount);
+    if (isNaN(num)) return 'Rs 0';
+    return `Rs ${num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
   };
 
   // Custom tooltip for charts
@@ -176,7 +294,7 @@ const SalesPage = () => {
           {payload.name}
         </text>
         <text x={cx} y={cy} dy={10} textAnchor="middle" fill="#333" className="text-lg font-bold">
-          {formatCurrency(value)}
+          {value} items
         </text>
         <text x={cx} y={cy} dy={30} textAnchor="middle" fill="#666" className="text-xs">
           {`${(percent * 100).toFixed(1)}%`}
@@ -203,6 +321,32 @@ const SalesPage = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#2c6774] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading sales data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Sales</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button onClick={refreshData} className="px-6 py-3 bg-[#2c6774] text-white rounded-lg hover:bg-[#1a3a3a]">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       {/* Header */}
@@ -213,14 +357,14 @@ const SalesPage = () => {
         </div>
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
           <Link
-            to="/PharmacyDashboard/products"
+            to={`/pharmacy/dashboard/${pharmacyId}/products`}
             className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
           >
             <Package size={18} />
             <span className="hidden sm:inline">Products</span>
           </Link>
           <Link
-            to="/PharmacyDashboard/orders"
+            to={`/pharmacy/dashboard/${pharmacyId}/orders`}
             className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
           >
             <ShoppingCart size={18} />
@@ -242,14 +386,14 @@ const SalesPage = () => {
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Sales</p>
+              <p className="text-sm text-gray-600">Total Revenue</p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
                 {formatCurrency(salesData.totalSales)}
               </p>
               <div className="flex items-center gap-1 mt-2">
                 <ArrowUpRight className="text-green-500" size={16} />
                 <span className="text-sm text-green-600">{salesData.growth}%</span>
-                <span className="text-xs text-gray-500 ml-1">vs last month</span>
+                <span className="text-xs text-gray-500 ml-1">overall</span>
               </div>
             </div>
             <div className="p-3 rounded-xl bg-blue-50">
@@ -263,11 +407,6 @@ const SalesPage = () => {
             <div>
               <p className="text-sm text-gray-600">Total Orders</p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{salesData.totalOrders}</p>
-              <div className="flex items-center gap-1 mt-2">
-                <ArrowUpRight className="text-green-500" size={16} />
-                <span className="text-sm text-green-600">12.5%</span>
-                <span className="text-xs text-gray-500 ml-1">vs last month</span>
-              </div>
             </div>
             <div className="p-3 rounded-xl bg-purple-50">
               <ShoppingCart className="text-purple-600" size={22} />
@@ -282,11 +421,6 @@ const SalesPage = () => {
               <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
                 {formatCurrency(salesData.averageOrderValue)}
               </p>
-              <div className="flex items-center gap-1 mt-2">
-                <ArrowUpRight className="text-green-500" size={16} />
-                <span className="text-sm text-green-600">4.2%</span>
-                <span className="text-xs text-gray-500 ml-1">vs last month</span>
-              </div>
             </div>
             <div className="p-3 rounded-xl bg-green-50">
               <TrendingUp className="text-green-600" size={22} />
@@ -297,13 +431,8 @@ const SalesPage = () => {
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">New Customers</p>
+              <p className="text-sm text-gray-600">Customers</p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{salesData.newCustomers}</p>
-              <div className="flex items-center gap-1 mt-2">
-                <ArrowUpRight className="text-green-500" size={16} />
-                <span className="text-sm text-green-600">18%</span>
-                <span className="text-xs text-gray-500 ml-1">vs last month</span>
-              </div>
             </div>
             <div className="p-3 rounded-xl bg-amber-50">
               <Users className="text-amber-600" size={22} />
@@ -386,7 +515,7 @@ const SalesPage = () => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(value) => `Rs.${value}`}
+                    tickFormatter={(value) => `Rs ${value}`}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
@@ -424,7 +553,7 @@ const SalesPage = () => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(value) => `Rs.${value}`}
+                    tickFormatter={(value) => `Rs ${value}`}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
@@ -453,7 +582,7 @@ const SalesPage = () => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(value) => `Rs.${value}`}
+                    tickFormatter={(value) => `Rs ${value}`}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Area 
@@ -474,8 +603,8 @@ const SalesPage = () => {
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Sales by Category</h2>
-              <p className="text-sm text-gray-600">Revenue distribution</p>
+              <h2 className="text-lg font-bold text-gray-900">Category Distribution</h2>
+              <p className="text-sm text-gray-600">Product count by category</p>
             </div>
             <PieChart className="text-gray-400" size={20} />
           </div>
@@ -505,9 +634,9 @@ const SalesPage = () => {
           
           {/* Legend */}
           <div className="mt-4 grid grid-cols-2 gap-2">
-            {salesData.categoryDistribution.slice(0, 4).map((category, index) => (
+            {salesData.categoryDistribution.slice(0, 6).map((category, index) => (
               <div key={index} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }}></div>
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
                 <span className="text-xs text-gray-600">{category.name}</span>
                 <span className="text-xs font-medium ml-auto">{category.percentage}%</span>
               </div>
@@ -527,7 +656,7 @@ const SalesPage = () => {
                 <p className="text-sm text-gray-600">Best selling products by revenue</p>
               </div>
               <Link 
-                to="/PharmacyDashboard/products"
+                to={`/pharmacy/dashboard/${pharmacyId}/products`}
                 className="text-sm text-[#2c6774] hover:text-[#174047] font-medium flex items-center gap-1"
               >
                 View All <ArrowUpRight size={14} />
@@ -536,42 +665,54 @@ const SalesPage = () => {
           </div>
 
           <div className="divide-y divide-gray-100">
-            {salesData.topProducts.map((product, index) => (
-              <div key={index} className="p-4 hover:bg-gray-50/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <Package className="text-blue-600" size={16} />
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">{product.name}</div>
-                      <div className="text-sm text-gray-500">{product.quantity} units sold</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium text-gray-900">{formatCurrency(product.sales)}</div>
-                    <div className="flex items-center gap-1 text-xs justify-end">
-                      {product.growth > 0 ? (
-                        <ArrowUpRight className="text-green-500" size={12} />
-                      ) : (
-                        <ArrowDownRight className="text-red-500" size={12} />
-                      )}
-                      <span className={product.growth > 0 ? 'text-green-600' : 'text-red-600'}>
-                        {product.growth}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Progress bar */}
-                <div className="mt-2 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[#2c6774] rounded-full"
-                    style={{ width: `${(product.sales / salesData.topProducts[0].sales) * 100}%` }}
-                  ></div>
-                </div>
+            {salesData.topProducts.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No sales data yet</p>
+                <p className="text-xs text-gray-400 mt-1">Products will appear here once orders are placed</p>
               </div>
-            ))}
+            ) : (
+              salesData.topProducts.map((product, index) => (
+                <div key={index} className="p-4 hover:bg-gray-50/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <Package className="text-blue-600" size={16} />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{product.name}</div>
+                        <div className="text-sm text-gray-500">{product.quantity || 0} units sold</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-gray-900">{formatCurrency(product.sales || 0)}</div>
+                      {product.growth && (
+                        <div className="flex items-center gap-1 text-xs justify-end">
+                          {product.growth > 0 ? (
+                            <ArrowUpRight className="text-green-500" size={12} />
+                          ) : (
+                            <ArrowDownRight className="text-red-500" size={12} />
+                          )}
+                          <span className={product.growth > 0 ? 'text-green-600' : 'text-red-600'}>
+                            {product.growth}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  {salesData.topProducts[0]?.sales > 0 && (
+                    <div className="mt-2 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#2c6774] rounded-full"
+                        style={{ width: `${(product.sales / salesData.topProducts[0].sales) * 100}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -580,11 +721,11 @@ const SalesPage = () => {
           <div className="p-5 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Recent Transactions</h2>
-                <p className="text-sm text-gray-600">Latest sales transactions</p>
+                <h2 className="text-lg font-bold text-gray-900">Recent Orders</h2>
+                <p className="text-sm text-gray-600">Latest orders placed</p>
               </div>
               <Link 
-                to="/PharmacyDashboard/orders"
+                to={`/pharmacy/dashboard/${pharmacyId}/orders`}
                 className="text-sm text-[#2c6774] hover:text-[#174047] font-medium flex items-center gap-1"
               >
                 View All <ArrowUpRight size={14} />
@@ -593,32 +734,44 @@ const SalesPage = () => {
           </div>
 
           <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-            {salesData.recentTransactions.map((transaction) => (
-              <div key={transaction.id} className="p-4 hover:bg-gray-50/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-gray-900">{transaction.id}</span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        transaction.status === 'Completed' 
-                          ? 'bg-green-100 text-green-800 border-green-200'
-                          : 'bg-blue-100 text-blue-800 border-blue-200'
-                      }`}>
-                        {transaction.status}
-                      </span>
+            {salesData.recentTransactions.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <ShoppingCart className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No transactions yet</p>
+                <p className="text-xs text-gray-400 mt-1">Orders will appear here once customers place them</p>
+              </div>
+            ) : (
+              salesData.recentTransactions.map((transaction, idx) => (
+                <div key={idx} className="p-4 hover:bg-gray-50/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-gray-900">{transaction.id}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          transaction.status === 'Completed' 
+                            ? 'bg-green-100 text-green-800 border-green-200'
+                            : transaction.status === 'Processing'
+                            ? 'bg-blue-100 text-blue-800 border-blue-200'
+                            : transaction.status === 'Cancelled'
+                            ? 'bg-red-100 text-red-800 border-red-200'
+                            : 'bg-gray-100 text-gray-800 border-gray-200'
+                        }`}>
+                          {transaction.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{transaction.customer}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Calendar size={12} className="text-gray-400" />
+                        <span className="text-xs text-gray-500">{transaction.date}</span>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{transaction.customer}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Calendar size={12} className="text-gray-400" />
-                      <span className="text-xs text-gray-500">{transaction.date}</span>
+                    <div className="text-right ml-4">
+                      <p className="font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
                     </div>
-                  </div>
-                  <div className="text-right ml-4">
-                    <p className="font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

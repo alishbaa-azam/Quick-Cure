@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { 
   FaStore, 
@@ -17,7 +17,10 @@ import {
   FaPhone,
   FaIdCard,
   FaSpinner,
-  FaCertificate
+  FaCertificate,
+  FaCrosshairs,
+  FaGlobeAsia,
+  FaInfoCircle
 } from 'react-icons/fa';
 
 // API Base URL
@@ -438,9 +441,15 @@ const Step2ContactInformation = ({ register, errors, isCheckingEmail, setError, 
   );
 };
 
-// Step 3 Component - Location
+// Step 3 Component - Location with map coordinates
 const Step3Location = ({ register, errors, formValues, setValue }) => {
   const [cities, setCities] = useState([]);
+  const [locating, setLocating] = useState(false);
+  const [coords, setCoords] = useState({
+    lat: formValues?.latitude || '',
+    lng: formValues?.longitude || ''
+  });
+  const [locationError, setLocationError] = useState('');
 
   useEffect(() => {
     if (formValues.province) {
@@ -458,67 +467,172 @@ const Step3Location = ({ register, errors, formValues, setValue }) => {
     return errors[fieldName] ? 'border-red-500' : 'border-[#c0d3dc]';
   };
 
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser');
+      return;
+    }
+    
+    setLocating(true);
+    setLocationError('');
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toFixed(6);
+        const lng = position.coords.longitude.toFixed(6);
+        setCoords({ lat, lng });
+        setValue('latitude', parseFloat(lat));
+        setValue('longitude', parseFloat(lng));
+        setLocating(false);
+      },
+      (error) => {
+        setLocating(false);
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationError('Location access denied. Please allow location access or enter coordinates manually.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setLocationError('Location information unavailable. Please enter coordinates manually.');
+            break;
+          case error.TIMEOUT:
+            setLocationError('Location request timed out. Please try again or enter coordinates manually.');
+            break;
+          default:
+            setLocationError('An error occurred getting your location. Please enter coordinates manually.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleLatChange = (e) => {
+    const val = e.target.value;
+    setCoords(prev => ({ ...prev, lat: val }));
+    setValue('latitude', val ? parseFloat(val) : '');
+  };
+
+  const handleLngChange = (e) => {
+    const val = e.target.value;
+    setCoords(prev => ({ ...prev, lng: val }));
+    setValue('longitude', val ? parseFloat(val) : '');
+  };
+
+  const getCityCoords = (cityName) => {
+    const cityCoords = {
+      'Karachi': { lat: 24.8607, lng: 67.0011 },
+      'Lahore': { lat: 31.5204, lng: 74.3587 },
+      'Faisalabad': { lat: 31.4504, lng: 73.1350 },
+      'Rawalpindi': { lat: 33.5651, lng: 73.0169 },
+      'Islamabad': { lat: 33.6844, lng: 73.0479 },
+      'Multan': { lat: 30.1575, lng: 71.5249 },
+      'Hyderabad': { lat: 25.3960, lng: 68.3578 },
+      'Gujranwala': { lat: 32.1877, lng: 74.1945 },
+      'Peshawar': { lat: 34.0150, lng: 71.5249 },
+      'Quetta': { lat: 30.1798, lng: 66.9750 },
+      'Sialkot': { lat: 32.4927, lng: 74.5319 },
+      'Bahawalpur': { lat: 29.3544, lng: 71.6911 },
+      'Sargodha': { lat: 32.0836, lng: 72.6711 },
+      'Sukkur': { lat: 27.7080, lng: 68.8410 },
+      'Larkana': { lat: 27.5644, lng: 68.2055 },
+      'Abbottabad': { lat: 34.1558, lng: 73.2126 },
+      'Mirpur Khas': { lat: 25.5249, lng: 69.0161 },
+      'Swat': { lat: 34.7782, lng: 72.3479 },
+      'Gilgit': { lat: 35.9208, lng: 74.3145 },
+    };
+    return cityCoords[cityName] || null;
+  };
+
+  const setLocationFromCity = () => {
+    if (formValues.city) {
+      const cityCoord = getCityCoords(formValues.city);
+      if (cityCoord) {
+        setCoords({ lat: cityCoord.lat.toString(), lng: cityCoord.lng.toString() });
+        setValue('latitude', cityCoord.lat);
+        setValue('longitude', cityCoord.lng);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col">
-        <label className="font-medium text-[#174047] mb-1">
-          Province <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <select
-            {...register('province', { 
-              required: 'Province is required'
-            })}
-            defaultValue={formValues?.province || ''}
-            className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] appearance-none ${getFieldErrorStyle('province')}`}
-          >
-            <option value="">Select Province</option>
-            {PAKISTAN_DATA.provinces.map(province => (
-              <option key={province.id} value={province.id}>
-                {province.name}
-              </option>
-            ))}
-          </select>
-          <div className="absolute left-3 top-3 text-gray-400">
-            <FaMapMarkerAlt />
-          </div>
+      {/* Map location info banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+        <FaGlobeAsia className="text-blue-500 mt-1 shrink-0" size={20} />
+        <div>
+          <p className="text-sm font-medium text-blue-800">Location Coordinates Required</p>
+          <p className="text-xs text-blue-600 mt-1">
+            We need your pharmacy's map location so customers can find you easily. Use the "Detect My Location" button or select a city to auto-fill coordinates.
+          </p>
         </div>
-        {errors.province && (
-          <span className="text-red-500 text-sm mt-1">{errors.province.message}</span>
-        )}
       </div>
 
-      <div className="flex flex-col">
-        <label className="font-medium text-[#174047] mb-1">
-          City <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <select
-            {...register('city', { 
-              required: 'City is required',
-              disabled: !formValues.province,
-              validate: value => {
-                if (!formValues.province) return true;
-                return value !== '' || 'Please select a city';
-              }
-            })}
-            defaultValue={formValues?.city || ''}
-            className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] appearance-none ${getFieldErrorStyle('city')} ${!formValues.province ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <option value="">
-              {formValues.province ? 'Select City' : 'First select province'}
-            </option>
-            {cities.map(city => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
-          <div className="absolute left-3 top-3 text-gray-400">
-            <FaCity />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            Province <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <select
+              {...register('province', { 
+                required: 'Province is required'
+              })}
+              defaultValue={formValues?.province || ''}
+              className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] appearance-none ${getFieldErrorStyle('province')}`}
+            >
+              <option value="">Select Province</option>
+              {PAKISTAN_DATA.provinces.map(province => (
+                <option key={province.id} value={province.id}>
+                  {province.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute left-3 top-3 text-gray-400">
+              <FaMapMarkerAlt />
+            </div>
           </div>
+          {errors.province && (
+            <span className="text-red-500 text-sm mt-1">{errors.province.message}</span>
+          )}
         </div>
-        {errors.city && (
-          <span className="text-red-500 text-sm mt-1">{errors.city.message}</span>
-        )}
+
+        <div className="flex flex-col">
+          <label className="font-medium text-[#174047] mb-1">
+            City <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <select
+              {...register('city', { 
+                required: 'City is required',
+                disabled: !formValues.province,
+                validate: value => {
+                  if (!formValues.province) return true;
+                  return value !== '' || 'Please select a city';
+                }
+              })}
+              defaultValue={formValues?.city || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setValue('city', val);
+                // Auto-fill coordinates from city
+                setTimeout(() => setLocationFromCity(), 100);
+              }}
+              className={`w-full px-3 py-2 pl-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] focus:border-transparent bg-[#f8f9fa] appearance-none ${getFieldErrorStyle('city')} ${!formValues.province ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <option value="">
+                {formValues.province ? 'Select City' : 'First select province'}
+              </option>
+              {cities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+            <div className="absolute left-3 top-3 text-gray-400">
+              <FaCity />
+            </div>
+          </div>
+          {errors.city && (
+            <span className="text-red-500 text-sm mt-1">{errors.city.message}</span>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col">
@@ -548,6 +662,94 @@ const Step3Location = ({ register, errors, formValues, setValue }) => {
         {errors.address && (
           <span className="text-red-500 text-sm mt-1">{errors.address.message}</span>
         )}
+      </div>
+
+      {/* Location Coordinates with Detect button */}
+      <div className="border border-[#c0d3dc] rounded-lg p-4 bg-[#f8f9fa]">
+        <div className="flex items-center justify-between mb-3">
+          <label className="font-medium text-[#174047]">
+            Map Location <span className="text-red-500">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={detectLocation}
+            disabled={locating}
+            className="flex items-center gap-2 px-4 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#1e4e56] transition-colors text-sm disabled:opacity-50"
+          >
+            {locating ? (
+              <FaSpinner className="animate-spin" />
+            ) : (
+              <FaCrosshairs />
+            )}
+            {locating ? 'Detecting...' : 'Detect My Location'}
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col">
+            <label className="text-xs text-gray-500 mb-1">Latitude</label>
+            <input
+              type="number"
+              step="0.000001"
+              placeholder="e.g. 24.8607"
+              value={coords.lat}
+              onChange={handleLatChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] bg-white text-sm ${coords.lat && (parseFloat(coords.lat) < -90 || parseFloat(coords.lat) > 90) ? 'border-red-500' : 'border-gray-300'}`}
+            />
+            {coords.lat && (parseFloat(coords.lat) < -90 || parseFloat(coords.lat) > 90) && (
+              <span className="text-red-500 text-xs mt-1">Invalid latitude (-90 to 90)</span>
+            )}
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-gray-500 mb-1">Longitude</label>
+            <input
+              type="number"
+              step="0.000001"
+              placeholder="e.g. 67.0011"
+              value={coords.lng}
+              onChange={handleLngChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2c6774] bg-white text-sm ${coords.lng && (parseFloat(coords.lng) < -180 || parseFloat(coords.lng) > 180) ? 'border-red-500' : 'border-gray-300'}`}
+            />
+            {coords.lng && (parseFloat(coords.lng) < -180 || parseFloat(coords.lng) > 180) && (
+              <span className="text-red-500 text-xs mt-1">Invalid longitude (-180 to 180)</span>
+            )}
+          </div>
+        </div>
+        
+        {locationError && (
+          <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+            {locationError}
+          </div>
+        )}
+        
+        {coords.lat && coords.lng && !locationError && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-green-600">
+            <FaCheck className="text-green-500" />
+            Location set to: {parseFloat(coords.lat).toFixed(4)}, {parseFloat(coords.lng).toFixed(4)}
+          </div>
+        )}
+
+        <input type="hidden" {...register('latitude', { 
+          validate: value => {
+            if (!value && !coords.lat) return 'Location coordinates are required';
+            const lat = parseFloat(value || coords.lat);
+            if (isNaN(lat) || lat < -90 || lat > 90) return 'Invalid latitude';
+            return true;
+          }
+        })} />
+        <input type="hidden" {...register('longitude', { 
+          validate: value => {
+            if (!value && !coords.lng) return 'Location coordinates are required';
+            const lng = parseFloat(value || coords.lng);
+            if (isNaN(lng) || lng < -180 || lng > 180) return 'Invalid longitude';
+            return true;
+          }
+        })} />
+        
+        <p className="text-xs text-gray-400 mt-2">
+          <FaInfoCircle className="inline mr-1" />
+          These coordinates help customers find your pharmacy on the map. You can use auto-detect or enter manually.
+        </p>
       </div>
     </div>
   );
@@ -997,6 +1199,8 @@ const PharmacyRegistration = () => {
       formData.append('province', data.province);
       formData.append('city', data.city);
       formData.append('address', data.address);
+      formData.append('latitude', data.latitude || '');
+      formData.append('longitude', data.longitude || '');
       formData.append('termsAccepted', data.termsAccepted);
       formData.append('commissionAgreed', data.commissionAgreed);
       

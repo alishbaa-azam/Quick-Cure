@@ -52,7 +52,6 @@ export const getUserAppointments = async () => {
     
     // Get user's phone number or email from user object
     const userPhone = user.phone || user.mobile;
-    const userEmail = user.email;
     
     // Fetch appointments by phone number (primary identifier)
     const response = await api.get(`/appointments/phone/${userPhone}`);

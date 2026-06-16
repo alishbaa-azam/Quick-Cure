@@ -87,17 +87,6 @@ export default function Footer() {
       <div className="footer-bottom">
         <p>© {currentYear} QuickCure. All rights reserved. | Since 2025</p>
       </div>
-
-      {/* ===== WhatsApp Float Button ===== */}
-      {/* <a 
-        href="https://wa.me/1234567890" 
-        className="whatsapp-btn" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        aria-label="Contact us on WhatsApp"
-      >
-        <FaWhatsapp />
-      </a> */}
     </footer>
   );
 }

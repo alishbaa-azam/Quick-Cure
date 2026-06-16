@@ -60,6 +60,7 @@ import AddMedicinePage from './components/Dashboard/AddMedicinePage';
 import EditMedicinePage from './components/Dashboard/EditMedicinePage';
 import ViewMedicinePage from './components/Dashboard/ViewMedicinePage.jsx';
 import AboutPage from './components/AboutUs.jsx';
+import PaymentPage from './components/Payment/PaymentPage';
 
 // Admin Dashboard
 import AdminLayout from './components/AdminDashboard/AdminLayout';
@@ -142,6 +143,8 @@ function Layout() {
        <Route path="/medicine/:id" element={<MedicineDetail />} />
        <Route path="/booking" element={<MedicineBooking />} />
 
+        <Route path="/payment" element={<PaymentPage />} />
+
         <Route path="/pharmacy/dashboard/:id" element={
           <PharmacyProvider>
             <PharmacyDashboardLayout />
@@ -173,7 +176,7 @@ const App = () => {
      <CartProvider>
              <ScrollToTop />
              <Layout />
-           </CartProvider>
+    </CartProvider>
     </Router>
   );
 };

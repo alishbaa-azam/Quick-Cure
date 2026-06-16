@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { FaMinus, FaPlus, FaBox, FaFlask } from 'react-icons/fa';
+import { isRoleRestricted, getRestrictionMessage } from '../../utils/roleRestrictions';
 
 const MedicineCard = ({ medicine, context = 'all-medicines' }) => {
   const navigate = useNavigate();
@@ -98,7 +99,9 @@ const MedicineCard = ({ medicine, context = 'all-medicines' }) => {
         if (userStr) {
           const user = JSON.parse(userStr);
           setIsLoggedIn(true);
-          setIsPharmacy(user.role === 'pharmacy');
+          // Mark as restricted if user is pharmacy, doctor, lab, or admin
+          const restrictedRoles = ['pharmacy', 'doctor', 'lab', 'admin'];
+          setIsPharmacy(restrictedRoles.includes(user.role));
         } else {
           setIsLoggedIn(false);
           setIsPharmacy(false);

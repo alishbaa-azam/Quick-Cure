@@ -167,7 +167,7 @@ export const PharmacyProvider = ({ children }) => {
         pharmacyAPI.getStats(pharmacyId),
         pharmacyAPI.getOrders(pharmacyId),
         pharmacyAPI.getInventory(pharmacyId),
-        pharmacyAPI.getCategories(pharmacyId)
+        pharmacyAPI.getCategoryDistribution(pharmacyId)
       ]);
 
       // Process stats
