@@ -1,6 +1,6 @@
 // ProductsPage.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useOutletContext } from 'react-router-dom';
 import {
   Plus, Edit, Trash2, Search, Package, Eye,
   AlertCircle, X, RefreshCw, Filter, ChevronLeft, ChevronRight,
@@ -48,7 +48,8 @@ const ProductsPage = () => {
     categories: ['All'],
     brands: ['All']
   });
-  const [pharmacyId, setPharmacyId] = useState(null);
+  const outletContext = useOutletContext();
+  const [pharmacyId, setPharmacyId] = useState(outletContext?.pharmacyId || localStorage.getItem('pharmacyId'));
   const [dataLoaded, setDataLoaded] = useState(false);
 
   // Chart states
@@ -64,13 +65,16 @@ const ProductsPage = () => {
   // Medicine forms list
   const medicineForms = ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Powder', 'Spray'];
 
-  // Get pharmacy ID from localStorage
+  // Sync pharmacyId from outlet context if available
   useEffect(() => {
-    const storedPharmacyId = localStorage.getItem('pharmacyId');
-    if (storedPharmacyId) {
-      setPharmacyId(storedPharmacyId);
+    if (outletContext?.pharmacyId) {
+      setPharmacyId(outletContext.pharmacyId);
+      localStorage.setItem('pharmacyId', outletContext.pharmacyId);
+    } else {
+      const stored = localStorage.getItem('pharmacyId');
+      if (stored) setPharmacyId(stored);
     }
-  }, []);
+  }, [outletContext?.pharmacyId]);
 
   // Calculate status based on stock
   const calculateStatus = (stock, reorderLevel = 10) => {
@@ -98,6 +102,7 @@ const ProductsPage = () => {
         // Transform data for display
         const transformedMedicines = medicinesData.map(med => ({
           id: med._id,
+          _id: med._id,
           name: med.name,
           genericName: med.genericName || '',
           category: med.category || 'Other',
@@ -269,7 +274,7 @@ const ProductsPage = () => {
     if (!selectedMedicine || !pharmacyId) return;
 
     try {
-      await pharmacyAPI.deleteMedicine(pharmacyId, selectedMedicine.id);
+      await pharmacyAPI.deleteMedicine(pharmacyId, selectedMedicine._id || selectedMedicine.id);
       message.success('Medicine deleted successfully');
       setShowDeleteModal(false);
       setSelectedMedicine(null);

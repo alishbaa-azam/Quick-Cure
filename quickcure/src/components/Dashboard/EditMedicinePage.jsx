@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, useOutletContext } from 'react-router-dom';
 import { 
   Save, X, Upload, Image as ImageIcon, 
   ArrowLeft, AlertCircle, CheckCircle, Package, Edit
@@ -11,11 +11,12 @@ const EditMedicinePage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const outletContext = useOutletContext();
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState(null);
   const [activeTab, setActiveTab] = useState('basic');
-  const [pharmacyId, setPharmacyId] = useState(null);
+  const [pharmacyId, setPharmacyId] = useState(outletContext?.pharmacyId || localStorage.getItem('pharmacyId'));
   
   // Medicine forms
   const medicineForms = ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Powder', 'Spray'];
@@ -52,13 +53,16 @@ const EditMedicinePage = () => {
   // Form validation errors
   const [errors, setErrors] = useState({});
 
-  // Get pharmacyId on component mount
+  // Sync pharmacyId from outlet context
   useEffect(() => {
-    const pid = localStorage.getItem('pharmacyId');
-    if (pid) {
-      setPharmacyId(pid);
+    if (outletContext?.pharmacyId) {
+      setPharmacyId(outletContext.pharmacyId);
+      localStorage.setItem('pharmacyId', outletContext.pharmacyId);
+    } else {
+      const stored = localStorage.getItem('pharmacyId');
+      if (stored) setPharmacyId(stored);
     }
-  }, []);
+  }, [outletContext?.pharmacyId]);
 
   // Check if current form is tablet/capsule type
   const isTabletOrCapsule = () => {
@@ -271,47 +275,16 @@ const EditMedicinePage = () => {
     }
   };
 
-  // Validate form
+  // Simplified validation - only name, price, stock required
   const validateForm = () => {
     const newErrors = {};
-
     if (!medicineForm.name?.trim()) newErrors.name = 'Product name is required';
-    if (!medicineForm.genericName?.trim()) newErrors.genericName = 'Generic name is required';
-    if (!medicineForm.manufacturer?.trim()) newErrors.manufacturer = 'Manufacturer is required';
-    if (!medicineForm.form?.trim()) newErrors.form = 'Form is required';
-    if (!medicineForm.strength?.trim()) newErrors.strength = 'Strength is required';
-    if (!medicineForm.image) newErrors.image = 'Product image is required';
-    if (!medicineForm.description?.trim()) newErrors.description = 'Description is required';
-
     if (!medicineForm.price || parseFloat(medicineForm.price) <= 0) {
       newErrors.price = 'Valid price is required';
     }
     if (!medicineForm.stockQuantity && medicineForm.stockQuantity !== 0) {
       newErrors.stockQuantity = 'Stock quantity is required';
     }
-    
-    if (isTabletOrCapsule()) {
-      const val = parseInt(medicineForm.tabletsPerUnit);
-      if (!medicineForm.tabletsPerUnit || val < 1 || val > 30) {
-        newErrors.tabletsPerUnit = 'Tablets per unit must be between 1 and 30';
-      }
-    }
-    
-    if (isSyrupOrLiquid()) {
-      if (!medicineForm.volume?.trim()) newErrors.volume = 'Volume is required';
-    }
-
-    if (isCreamOrOintment() || isPowder()) {
-      if (!medicineForm.weight?.trim()) newErrors.weight = 'Weight is required';
-    }
-
-    if (!medicineForm.dosage?.trim()) newErrors.dosage = 'Dosage is required';
-    if (!medicineForm.uses?.trim()) newErrors.uses = 'Uses are required';
-    if (!medicineForm.sideEffects?.trim()) newErrors.sideEffects = 'Side effects are required';
-    if (!medicineForm.precautions?.trim()) newErrors.precautions = 'Precautions are required';
-    if (!medicineForm.instructions?.trim()) newErrors.instructions = 'Instructions are required';
-    if (!medicineForm.storageInstructions?.trim()) newErrors.storageInstructions = 'Storage instructions are required';
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

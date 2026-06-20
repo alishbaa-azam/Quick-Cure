@@ -1,6 +1,6 @@
 // ViewMedicinePage.jsx
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import { 
   ArrowLeft, Package, Info, Pill, Building2, Beaker, 
   CheckCircle, AlertCircle, Syringe, Shield, 
@@ -11,8 +11,9 @@ import { message } from 'antd';
 const ViewMedicinePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const outletContext = useOutletContext();
   const medicine = location.state?.medicine;
-  const pharmacyId = localStorage.getItem('pharmacyId');
+  const pharmacyId = outletContext?.pharmacyId || localStorage.getItem('pharmacyId');
 
   if (!medicine) {
     message.error('Medicine details not found');

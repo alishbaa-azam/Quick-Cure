@@ -83,7 +83,7 @@ const roleSpecificOptions = () => {
         {
           label: "Pharmacy Dashboard",
           icon: FaBookMedical,
-          path: `/pharmacy/dashboard/${user?.id || user?._id}`,
+          path: `/pharmacy/dashboard/${user?.pharmacyId || user?.id || user?._id}`,
           color: "text-pink-600",
         },
       ];
