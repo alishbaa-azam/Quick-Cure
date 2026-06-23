@@ -148,26 +148,49 @@ export const PharmacyProvider = ({ children }) => {
 
   // Fetch all dashboard data
   const fetchAllData = useCallback(async () => {
-    if (!pharmacyId) return;
-
+    // Always try to get pharmacy ID - first from stored, then from API
+    let currentPharmacyId = pharmacyId;
+    
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch pharmacy details first
+      // Step 1: Fetch pharmacy details to ensure we have the correct pharmacyId
       const pharmacyRes = await pharmacyAPI.getMyPharmacy();
       if (pharmacyRes.success) {
-        setPharmacy(pharmacyRes.data);
-        localStorage.setItem('pharmacyId', pharmacyRes.data._id);
-        setPharmacyId(pharmacyRes.data._id);
+        const pharmacyData = pharmacyRes.data;
+        setPharmacy(pharmacyData);
+        const resolvedPharmacyId = pharmacyData._id;
+        localStorage.setItem('pharmacyId', resolvedPharmacyId);
+        setPharmacyId(resolvedPharmacyId);
+        currentPharmacyId = resolvedPharmacyId; // Use resolved ID immediately
+      } else {
+        // If getMyPharmacy fails but we have a stored ID, try using it
+        if (!currentPharmacyId) {
+          const storedId = localStorage.getItem('pharmacyId');
+          if (storedId) {
+            currentPharmacyId = storedId;
+          } else {
+            setError('Pharmacy not registered');
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      // Step 2: Use the resolved pharmacyId for all parallel fetches
+      if (!currentPharmacyId) {
+        setError('Pharmacy ID not found');
+        setLoading(false);
+        return;
       }
 
       // Parallel fetch all data
       const [statsRes, ordersRes, inventoryRes, categoriesRes] = await Promise.allSettled([
-        pharmacyAPI.getStats(pharmacyId),
-        pharmacyAPI.getOrders(pharmacyId),
-        pharmacyAPI.getInventory(pharmacyId),
-        pharmacyAPI.getCategoryDistribution(pharmacyId)
+        pharmacyAPI.getStats(currentPharmacyId),
+        pharmacyAPI.getOrders(currentPharmacyId),
+        pharmacyAPI.getInventory(currentPharmacyId),
+        pharmacyAPI.getCategoryDistribution(currentPharmacyId)
       ]);
 
       // Process stats
@@ -205,8 +228,10 @@ export const PharmacyProvider = ({ children }) => {
                           item.form?.toLowerCase().includes('capsule') ||
                           item.type?.toLowerCase().includes('tablet');
           
+          // Fix: Use stockQuantity first (backend field), fallback to stock
+          const rawStock = item.stockQuantity !== undefined ? item.stockQuantity : item.stock;
           const tabletsPerUnit = item.tabletsPerUnit || item.packSize || 10;
-          const stockQuantity = Number(item.stock) || 0;
+          const stockQuantity = Number(rawStock) || 0;
           const pricePerUnit = Number(item.price) || 0;
           
           return {
@@ -229,19 +254,22 @@ export const PharmacyProvider = ({ children }) => {
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setError(error.message);
-      message.error('Failed to load dashboard data');
+      setError(error.message || 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
-  }, [pharmacyId]);
+  }, [pharmacyId]); // Keep pharmacyId dependency for re-fetch on change
 
   // Fetch sales data separately (can be called with different time ranges)
   const fetchSalesData = useCallback(async (period = 'week') => {
-    if (!pharmacyId) return [];
+    let currentPharmacyId = pharmacyId;
+    if (!currentPharmacyId) {
+      currentPharmacyId = localStorage.getItem('pharmacyId');
+    }
+    if (!currentPharmacyId) return [];
     
     try {
-      const response = await pharmacyAPI.getSalesData(pharmacyId, period);
+      const response = await pharmacyAPI.getSalesData(currentPharmacyId, period);
       if (response.data?.success) {
         return response.data.data || [];
       }
@@ -254,9 +282,13 @@ export const PharmacyProvider = ({ children }) => {
 
   // Refresh orders
   const refreshOrders = useCallback(async () => {
-    if (!pharmacyId) return;
+    let currentPharmacyId = pharmacyId;
+    if (!currentPharmacyId) {
+      currentPharmacyId = localStorage.getItem('pharmacyId');
+    }
+    if (!currentPharmacyId) return;
     try {
-      const response = await pharmacyAPI.getOrders(pharmacyId);
+      const response = await pharmacyAPI.getOrders(currentPharmacyId);
       if (response.data?.success) {
         const ordersData = response.data.data || [];
         const transformedOrders = transformOrders(ordersData);
@@ -270,9 +302,13 @@ export const PharmacyProvider = ({ children }) => {
 
   // Refresh stats
   const refreshStats = useCallback(async () => {
-    if (!pharmacyId) return;
+    let currentPharmacyId = pharmacyId;
+    if (!currentPharmacyId) {
+      currentPharmacyId = localStorage.getItem('pharmacyId');
+    }
+    if (!currentPharmacyId) return;
     try {
-      const response = await pharmacyAPI.getStats(pharmacyId);
+      const response = await pharmacyAPI.getStats(currentPharmacyId);
       if (response.data?.success) {
         const statsData = response.data.data;
         setStats({
@@ -292,13 +328,17 @@ export const PharmacyProvider = ({ children }) => {
 
   // Update order status
   const updateOrderStatus = useCallback(async (orderId, newStatus) => {
-    if (!pharmacyId) {
+    let currentPharmacyId = pharmacyId;
+    if (!currentPharmacyId) {
+      currentPharmacyId = localStorage.getItem('pharmacyId');
+    }
+    if (!currentPharmacyId) {
       message.error('Pharmacy ID not found');
       return false;
     }
     
     try {
-      const response = await pharmacyAPI.updateOrderStatus(pharmacyId, orderId, newStatus);
+      const response = await pharmacyAPI.updateOrderStatus(currentPharmacyId, orderId, newStatus);
       if (response.data?.success) {
         message.success(`Order status updated to ${newStatus}`);
         await refreshOrders();

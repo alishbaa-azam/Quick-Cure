@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Calendar, Clock, FileText, TrendingUp, UserCheck, ArrowRight, Sparkles, Activity, ChevronRight, Stethoscope, DollarSign } from 'lucide-react';
 import { getDoctorAppointments } from '../../api/doctorApi';
 
+const API_URL = 'http://localhost:5000';
+
 const Dashboard = ({ doctorId, doctorData }) => {
   const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({
@@ -136,9 +138,20 @@ const Dashboard = ({ doctorId, doctorData }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
               <div className="relative flex-shrink-0">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold backdrop-blur-sm border-2 border-white/20 shadow-lg">
-                  {doctorData?.name?.charAt(0) || doctorData?.fullName?.charAt(0) || 'D'}
-                </div>
+                {doctorData?.image ? (
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/20 shadow-lg">
+                    <img 
+                      src={`${API_URL}${doctorData.image}`} 
+                      alt={doctorData.name || 'Doctor'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.className = 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold backdrop-blur-sm border-2 border-white/20 shadow-lg'; e.target.parentElement.innerHTML = (doctorData?.name?.charAt(0) || doctorData?.fullName?.charAt(0) || 'D'); }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold backdrop-blur-sm border-2 border-white/20 shadow-lg">
+                    {doctorData?.name?.charAt(0) || doctorData?.fullName?.charAt(0) || 'D'}
+                  </div>
+                )}
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-emerald-400 rounded-full border-2 border-[#174047] shadow-lg"></div>
               </div>
               <div className="min-w-0 flex-1">
@@ -237,21 +250,7 @@ const Dashboard = ({ doctorId, doctorData }) => {
       )}
 
       {/* Quick Actions */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-800 flex items-center gap-2 text-base">
-            <Sparkles size={18} className="text-[#2c6774]" />
-            Quick Actions
-          </h3>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <QuickActionButton icon={Calendar} label="Appointments" gradient="from-blue-500 to-blue-600" />
-          <QuickActionButton icon={Users} label="Patients" gradient="from-violet-500 to-violet-600" />
-          <QuickActionButton icon={FileText} label="Prescriptions" gradient="from-emerald-500 to-emerald-600" />
-          <QuickActionButton icon={Stethoscope} label="Consultations" gradient="from-amber-500 to-amber-600" />
-        </div>
-      </div>
-
+      
       {/* Recent Appointments */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border-b border-gray-100 gap-2">

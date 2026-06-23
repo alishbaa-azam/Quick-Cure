@@ -1,12 +1,12 @@
 import React from 'react';
-import { LayoutDashboard, Calendar, Users, FileText, Star, Settings, History } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, FileText, Star, Settings } from 'lucide-react';
+import logo from '../../images/logo.png';
 
 const Sidebar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
-  const menuItems = [
+const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Overview & stats' },
     { id: 'appointments', label: 'Appointments', icon: Calendar, description: 'Manage bookings' },
     { id: 'patients', label: 'Patients', icon: Users, description: 'Patient records' },
-    { id: 'patient-history', label: 'Patient History', icon: History, description: 'Medical history' },
     { id: 'reviews', label: 'Reviews', icon: Star, description: 'Patient feedback' },
     { id: 'settings', label: 'Settings', icon: Settings, description: 'Profile settings' },
   ];
@@ -33,8 +33,8 @@ const Sidebar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
           {/* Logo */}
           <div className="p-5 border-b border-white/10 flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center border border-white/10 flex-shrink-0">
-                <span className="text-white font-bold text-xs">QC</span>
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 flex-shrink-0 overflow-hidden">
+                <img src={logo} alt="QuickCure" className="w-full h-full object-contain" />
               </div>
               <div className="min-w-0">
                 <span className="font-bold text-white text-sm truncate block">QuickCure</span>
@@ -81,8 +81,8 @@ const Sidebar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
       {/* Logo Area */}
       <div className="p-5 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg flex-shrink-0">
-            <span className="text-white font-bold text-xs">QC</span>
+          <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg flex-shrink-0 overflow-hidden">
+            <img src={logo} alt="QuickCure" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
             <span className="font-bold text-white text-sm truncate block">QuickCure</span>

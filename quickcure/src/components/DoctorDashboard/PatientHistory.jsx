@@ -162,34 +162,103 @@ const PatientHistory = ({ selectedPatient, setActiveTab, doctorId }) => {
     setShowViewPrescription(true);
   };
 
-  const handleDownloadPrescription = (p) => {
-    const medicinesText = p.medicines?.map(m => 
-      `${m.name}${m.dosage ? ` (${m.dosage})` : ''}${m.frequency ? ` - ${m.frequency}` : ''}${m.instructions ? ` - ${m.instructions}` : ''}`
-    ).join('\n') || 'No medicines';
+  const handleDownloadPrescription = async (p) => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const doctorName = user.name || 'Doctor';
+    const dateStr = formatDate(p.prescribedDate || p.createdAt);
+    const followUpStr = p.followUpDate ? formatDate(p.followUpDate) : 'Not scheduled';
 
-    const text = `QuickCure Digital Prescription
-==============================
-Patient: ${p.patientName}
-Diagnosis: ${p.diagnosis || 'General Consultation'}
-Date: ${formatDate(p.prescribedDate || p.createdAt)}
+    const medicinesHtml = p.medicines?.map((m, i) => `
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 8px 12px; font-size: 14px; color: #374151;">${i + 1}</td>
+        <td style="padding: 8px 12px; font-size: 14px; color: #111827; font-weight: 500;">${m.name}</td>
+        <td style="padding: 8px 12px; font-size: 14px; color: #6b7280;">${m.dosage || '-'}</td>
+        <td style="padding: 8px 12px; font-size: 14px; color: #6b7280;">${m.frequency || '-'}</td>
+        <td style="padding: 8px 12px; font-size: 14px; color: #6b7280;">${m.instructions || '-'}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #9ca3af; font-size: 14px;">No medicines prescribed</td></tr>';
 
-Medicines:
-${medicinesText}
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (!printWindow) { alert('Please allow popups to download the prescription.'); return; }
 
-Notes: ${p.notes || 'N/A'}
-Follow-up: ${p.followUpDate ? formatDate(p.followUpDate) : 'Not scheduled'}
-==============================
-Generated via QuickCure`;
-
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `prescription_${p.patientName.replace(/\s+/g, '_')}_${new Date(p.prescribedDate || p.createdAt).toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QuickCure Prescription - ${p.patientName}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 0; background: #fff; }
+    .header {
+      background: linear-gradient(135deg, #0f2c33 0%, #174047 50%, #2c6774 100%);
+      padding: 30px 35px; color: white; display: flex; align-items: center; gap: 20px;
+    }
+    .header-logo { width: 60px; height: 60px; background: rgba(255,255,255,0.15); border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
+    .header-logo span { font-size: 22px; font-weight: 800; }
+    .header-info h1 { font-size: 22px; font-weight: 700; }
+    .header-info p { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+    .badge-green { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; background: rgba(52, 211, 153, 0.2); color: #6ee7b7; }
+    .body { padding: 30px 35px; }
+    .prescription-title { font-size: 18px; font-weight: 700; color: #111827; padding-bottom: 15px; border-bottom: 2px solid #0f2c33; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+    .prescription-title span { font-size: 13px; font-weight: 400; color: #6b7280; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+    .info-item { padding: 12px 16px; background: #f9fafb; border-radius: 10px; border-left: 4px solid #2c6774; }
+    .info-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; font-weight: 600; margin-bottom: 4px; }
+    .info-item .value { font-size: 15px; font-weight: 600; color: #111827; }
+    .diagnosis-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px 18px; margin-bottom: 25px; }
+    .diagnosis-box .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #16a34a; font-weight: 600; }
+    .diagnosis-box .value { font-size: 16px; font-weight: 600; color: #15803d; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+    thead th { background: #0f2c33; color: white; padding: 10px 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child { border-radius: 0 8px 0 0; }
+    .notes-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 18px; margin-bottom: 25px; }
+    .notes-box .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #d97706; font-weight: 600; margin-bottom: 4px; }
+    .notes-box .value { font-size: 14px; color: #92400e; line-height: 1.5; }
+    .follow-up { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 14px 18px; margin-bottom: 25px; }
+    .follow-up .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #0284c7; font-weight: 600; }
+    .follow-up .value { font-size: 15px; font-weight: 600; color: #0369a1; }
+    .footer { border-top: 1px solid #e5e7eb; padding: 20px 35px; text-align: center; font-size: 11px; color: #9ca3af; }
+    .footer strong { color: #6b7280; }
+    @media print { body { background: white; } }
+  </style>
+</head>
+<body>
+  <div style="max-width: 800px; margin: 0 auto; background: #fff;">
+    <div class="header">
+      <div class="header-logo"><span>QC</span></div>
+      <div class="header-info">
+        <h1>QuickCure Digital Prescription</h1>
+        <p>Doctor Dashboard &bull; ${dateStr}</p>
+      </div>
+      <div style="margin-left: auto; text-align: right;">
+        <span class="badge-green">&#10003; Verified</span>
+      </div>
+    </div>
+    <div class="body">
+      <div class="prescription-title">Medical Prescription <span>Rx #${p._id ? p._id.slice(-6).toUpperCase() : 'N/A'}</span></div>
+      <div class="info-grid">
+        <div class="info-item"><div class="label">Patient Name</div><div class="value">${p.patientName}</div></div>
+        <div class="info-item"><div class="label">Doctor</div><div class="value">Dr. ${doctorName}</div></div>
+        <div class="info-item"><div class="label">Age / Gender</div><div class="value">${p.patientAge || 'N/A'} / ${p.patientGender || 'N/A'}</div></div>
+        <div class="info-item"><div class="label">Date</div><div class="value">${dateStr}</div></div>
+      </div>
+      <div class="diagnosis-box"><div class="label">Diagnosis</div><div class="value">${p.diagnosis || 'General Consultation'}</div></div>
+      <table>
+        <thead><tr><th>#</th><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Instructions</th></tr></thead>
+        <tbody>${medicinesHtml}</tbody>
+      </table>
+      ${p.notes ? `<div class="notes-box"><div class="label">Additional Notes</div><div class="value">${p.notes}</div></div>` : ''}
+      <div class="follow-up"><div class="label">Follow-up Date</div><div class="value">${followUpStr}</div></div>
+    </div>
+    <div class="footer">Generated via <strong>QuickCure</strong> Digital Healthcare Platform &bull; This is a computer-generated prescription</div>
+  </div>
+  <script>
+    window.onload = function() { window.print(); window.close(); };
+  <\/script>
+</body>
+</html>`);
+    printWindow.document.close();
   };
 
   const handleSendToPatient = async (p) => {

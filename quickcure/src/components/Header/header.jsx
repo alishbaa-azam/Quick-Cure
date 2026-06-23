@@ -155,7 +155,12 @@ export default function Header() {
     } else if (user?.role === 'lab') {
       navigate("/lab/dashboard/:id");
     } else if (user?.role === 'pharmacy') {
-      navigate("/pharmacy/dashboard/:id");
+      const entityId = user?.pharmacyId || user?.id || user?._id;
+      if (entityId) {
+        navigate(`/pharmacy/dashboard/${entityId}`);
+      } else {
+        navigate('/pharmacies');
+      }
     } else if (user?.role === 'admin') {
       navigate("/admin/dashboard/:id");
     }else {
