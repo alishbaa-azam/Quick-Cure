@@ -141,7 +141,6 @@ const UserDashboard = () => {
         appointments: totalAppointments
       }));
 
-      // Get monthly data for appointments
       const monthlyAppointments = getMonthlyData(appointments, 'appointments');
       updateChartData(monthlyAppointments, 'appointments');
     } catch (error) {
@@ -159,8 +158,63 @@ const UserDashboard = () => {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const userKey = user?._id || user?.id || 'guest';
       
+      // Check both possible keys (id vs _id based)
       const ordersKey = `medicineOrders_${userKey}`;
-      const orders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+      let orders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+      
+      // Also try with the other id format in case of mismatch
+      if (orders.length === 0) {
+        const altKey = user?.id ? `medicineOrders_${user._id}` : `medicineOrders_${user.id}`;
+        if (altKey !== ordersKey) {
+          orders = JSON.parse(localStorage.getItem(altKey) || '[]');
+        }
+      }
+
+      // Also try fetching from API to get latest count
+      try {
+        const token = localStorage.getItem('token');
+        const userId = user?.id || user?._id;
+        if (token && userId) {
+          const response = await fetch(`http://localhost:5000/api/medicine-orders?userId=${userId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            let apiOrders = data.orders || data.data || (Array.isArray(data) ? data : []);
+            
+            if (apiOrders.length > 0) {
+              // Merge with local orders
+              const mergedMap = new Map();
+              orders.forEach(order => {
+                const key = order.orderNumber || order._id || order.orderId;
+                if (key) mergedMap.set(key, order);
+              });
+              apiOrders.forEach(order => {
+                const key = order.orderNumber || order._id || order.orderId;
+                if (key) {
+                  const existing = mergedMap.get(key);
+                  if (existing) {
+                    mergedMap.set(key, { ...existing, ...order, cart: existing.cart || existing.items || order.cart || order.items || [] });
+                  } else {
+                    mergedMap.set(key, order);
+                  }
+                }
+              });
+              orders = Array.from(mergedMap.values());
+              // Save merged orders back to localStorage
+              localStorage.setItem(ordersKey, JSON.stringify(orders));
+            }
+          }
+        }
+      } catch (apiErr) {
+        console.log('API orders fetch failed, using localStorage:', apiErr.message);
+      }
+
       const orderCount = orders.length;
 
       setStats(prev => ({
@@ -168,7 +222,6 @@ const UserDashboard = () => {
         orders: orderCount
       }));
 
-      // Get monthly data for orders
       const monthlyOrders = getMonthlyData(orders, 'orders');
       updateChartData(monthlyOrders, 'orders');
     } catch (error) {
@@ -195,7 +248,6 @@ const UserDashboard = () => {
         labTests: labTestCount
       }));
 
-      // Get monthly data for lab tests
       const monthlyLabTests = getMonthlyData(labTests, 'labTests');
       updateChartData(monthlyLabTests, 'labTests');
     } catch (error) {
@@ -231,7 +283,6 @@ const UserDashboard = () => {
         prescriptions: prescriptionCount
       }));
 
-      // Get monthly data for prescriptions
       const monthlyPrescriptions = getMonthlyData(prescriptionsData, 'prescriptions');
       updateChartData(monthlyPrescriptions, 'prescriptions');
     } catch (error) {
@@ -241,25 +292,21 @@ const UserDashboard = () => {
     }
   }, []);
 
-  // Helper function to get monthly data from items
   const getMonthlyData = (items, type) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyCounts = {};
     
-    // Initialize all months with 0
     months.forEach(month => {
       monthlyCounts[month] = 0;
     });
 
-    // Count items by month
     items.forEach(item => {
       let date = null;
       
-      // Extract date based on item type
       if (type === 'appointments') {
         date = item.date;
       } else if (type === 'orders') {
-        date = item.createdAt || item.orderDate;
+        date = item.createdAt || item.orderDate || item.date || item.timestamp;
       } else if (type === 'labTests') {
         date = item.appointmentDetails?.preferredDate || item.date || item.createdAt;
       } else if (type === 'prescriptions') {
@@ -276,13 +323,10 @@ const UserDashboard = () => {
               monthlyCounts[monthName] = (monthlyCounts[monthName] || 0) + 1;
             }
           }
-        } catch (e) {
-          // Ignore invalid dates
-        }
+        } catch (e) {}
       }
     });
 
-    // Return array of months with counts
     return months.map(month => ({
       month,
       count: monthlyCounts[month] || 0
@@ -293,12 +337,9 @@ const UserDashboard = () => {
     if (!monthlyDataForType || monthlyDataForType.length === 0) return;
 
     setMonthlyData(prevData => {
-      // Create a new array with proper structure
       const newData = [...prevData];
       
-      // Ensure we have data for all 12 months
       if (newData.length === 0) {
-        // Initialize with 12 months of data
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         months.forEach(month => {
           newData.push({
@@ -311,13 +352,10 @@ const UserDashboard = () => {
         });
       }
 
-      // Update the data for the specific type
       monthlyDataForType.forEach((item, index) => {
         if (newData[index]) {
-          // Create a new object with updated values
           const updatedItem = { ...newData[index] };
           
-          // Update the specific type
           if (type === 'appointments') {
             updatedItem.appointments = item.count;
           } else if (type === 'orders') {
@@ -328,7 +366,6 @@ const UserDashboard = () => {
             updatedItem.prescriptions = item.count;
           }
           
-          // Ensure month is set
           if (!updatedItem.month) {
             updatedItem.month = item.month;
           }
@@ -337,7 +374,6 @@ const UserDashboard = () => {
         }
       });
       
-      // Filter to show only last 6 months
       const currentMonth = new Date().getMonth();
       const last6Months = [];
       for (let i = 5; i >= 0; i--) {
@@ -353,7 +389,6 @@ const UserDashboard = () => {
 
   const updateAppointmentStats = useCallback((count) => {
     setStats(prev => ({ ...prev, appointments: count }));
-    // Reload all stats to update charts
     loadAllStats();
   }, [loadAllStats]);
 
@@ -392,6 +427,67 @@ const UserDashboard = () => {
     { id: 'book-labtest', label: 'Book Lab Test', icon: FaNotesMedical, path: '/labs', color: 'var(--accent-color)' },
   ];
 
+  const SidebarContent = ({ onItemClick }) => (
+    <>
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-6 px-4">
+        <div className="space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (onItemClick) onItemClick();
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                  isActive 
+                    ? 'bg-white/20 text-white shadow-lg' 
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all flex-shrink-0 ${
+                  isActive ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'
+                }`}>
+                  <Icon className={`text-lg ${isActive ? 'text-white' : 'text-white/70'}`} />
+                </div>
+                {sidebarOpen && (
+                  <>
+                    <span className="flex-1 text-left font-medium text-sm truncate">{item.label}</span>
+                    {item.badge > 0 && (
+                      <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-white/20 text-white flex-shrink-0">
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 pt-8 border-t border-white/10">
+          <button
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all"
+            onClick={() => {
+              localStorage.removeItem('user');
+              localStorage.removeItem('token');
+              window.dispatchEvent(new CustomEvent('userChanged'));
+              navigate('/login');
+            }}
+          >
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 flex-shrink-0">
+              <FaSignOutAlt className="text-lg" />
+            </div>
+            {sidebarOpen && <span className="font-medium text-sm truncate">Logout</span>}
+          </button>
+        </div>
+      </nav>
+    </>
+  );
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f8f9fa' }}>
@@ -404,15 +500,11 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="flex min-h-screen w-full overflow-x-hidden bg-[#f8f9fa]">
+    <div className="dashboard-root">
       
-      {/* Desktop Sidebar - Full height */}
+      {/* ===== DESKTOP SIDEBAR ===== */}
       <aside 
-        className={`
-          hidden lg:flex flex-col flex-shrink-0 h-screen sticky top-0
-          transition-all duration-300 ease-in-out
-          ${sidebarOpen ? 'w-72' : 'w-20'}
-        `} 
+        className={`desktop-sidebar ${sidebarOpen ? 'sidebar-wide' : 'sidebar-narrow'}`}
         style={{ backgroundColor: 'var(--secondary-color)' }}
       >
         {/* Brand */}
@@ -437,64 +529,11 @@ const UserDashboard = () => {
           </button>
         </div>
 
-        {/* Navigation - Scrollable */}
-        <nav className="flex-1 overflow-y-auto py-6 px-4">
-          <div className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                    isActive 
-                      ? 'bg-white/20 text-white shadow-lg' 
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all flex-shrink-0 ${
-                    isActive ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'
-                  }`}>
-                    <Icon className={`text-lg ${isActive ? 'text-white' : 'text-white/70'}`} />
-                  </div>
-                  {sidebarOpen && (
-                    <>
-                      <span className="flex-1 text-left font-medium text-sm truncate">{item.label}</span>
-                      {item.badge > 0 && (
-                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-white/20 text-white flex-shrink-0">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Bottom section */}
-          <div className="mt-8 pt-8 border-t border-white/10">
-            <button
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all"
-              onClick={() => {
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
-                window.dispatchEvent(new CustomEvent('userChanged'));
-                navigate('/login');
-              }}
-            >
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 flex-shrink-0">
-                <FaSignOutAlt className="text-lg" />
-              </div>
-              {sidebarOpen && <span className="font-medium text-sm truncate">Logout</span>}
-            </button>
-          </div>
-        </nav>
+        <SidebarContent />
       </aside>
 
-      {/* Right Side - flex-1 with full height */}
-      <div className="flex flex-col flex-1 min-w-0 h-screen overflow-hidden">
+      {/* ===== RIGHT COLUMN (Header + Content) ===== */}
+      <div className={`dashboard-right ${sidebarOpen ? 'right-wide' : 'right-narrow'}`}>
         
         {/* Mobile Sidebar Overlay */}
         {mobileSidebarOpen && (
@@ -505,10 +544,8 @@ const UserDashboard = () => {
         )}
 
         {/* Mobile Sidebar */}
-        <aside className={`lg:hidden fixed left-0 top-0 h-full z-50 w-72 transition-transform duration-300 shadow-2xl ${
-          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`} style={{ backgroundColor: 'var(--secondary-color)' }}>
-          <div className="flex items-center justify-between h-20 px-6 border-b border-white/10">
+        <aside className={`mobile-sidebar ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{ backgroundColor: 'var(--secondary-color)' }}>
+          <div className="flex items-center justify-between h-20 px-6 border-b border-white/10 flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--primary-color)' }}>
                 <span className="text-white font-bold text-lg">QC</span>
@@ -527,6 +564,7 @@ const UserDashboard = () => {
             </button>
           </div>
 
+          {/* Mobile nav items */}
           <nav className="flex-1 overflow-y-auto py-6 px-4">
             <div className="space-y-2">
               {menuItems.map((item) => {
@@ -580,17 +618,17 @@ const UserDashboard = () => {
           </nav>
         </aside>
 
-        {/* Header - Sticky */}
-        <div className="flex-shrink-0 sticky top-0 z-30">
+        {/* ===== STICKY HEADER ===== */}
+        <header className="dashboard-header">
           <DashboardHeader 
             user={user} 
             onStatsRefresh={refreshStats}
             onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           />
-        </div>
+        </header>
 
-        {/* Main Content - Scrollable */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        {/* ===== SCROLLABLE MAIN CONTENT ===== */}
+        <main className="dashboard-main">
           {activeTab === 'dashboard' ? (
             <div className="max-w-7xl mx-auto space-y-6">
               {/* Welcome Section */}
@@ -621,61 +659,26 @@ const UserDashboard = () => {
 
               {/* Stats Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-                <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0">
-                      <p className="text-gray-500 text-xs md:text-sm font-medium mb-1 truncate">Appointments</p>
-                      <p className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--primary-color)' }}>
-                        {stats.appointments}
-                      </p>
-                    </div>
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(44, 103, 116, 0.1)' }}>
-                      <FaCalendarCheck className="text-lg md:text-xl" style={{ color: 'var(--primary-color)' }} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0">
-                      <p className="text-gray-500 text-xs md:text-sm font-medium mb-1 truncate">Orders</p>
-                      <p className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--secondary-color)' }}>
-                        {stats.orders}
-                      </p>
-                    </div>
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(23, 64, 71, 0.1)' }}>
-                      <FaPills className="text-lg md:text-xl" style={{ color: 'var(--secondary-color)' }} />
+                {[
+                  { label: 'Appointments', value: stats.appointments, icon: FaCalendarCheck, color: 'var(--primary-color)', bg: 'rgba(44, 103, 116, 0.1)' },
+                  { label: 'Orders', value: stats.orders, icon: FaPills, color: 'var(--secondary-color)', bg: 'rgba(23, 64, 71, 0.1)' },
+                  { label: 'Lab Tests', value: stats.labTests, icon: FaFlask, color: 'var(--accent-color)', bg: 'rgba(92, 135, 143, 0.1)' },
+                  { label: 'Prescriptions', value: stats.prescriptions, icon: FaFilePrescription, color: '#2c6774', bg: 'rgba(44, 103, 116, 0.1)' },
+                ].map(({ label, value, icon: Icon, color, bg }) => (
+                  <div key={label} className="bg-white rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0">
+                        <p className="text-gray-500 text-xs md:text-sm font-medium mb-1 truncate">{label}</p>
+                        <p className="text-2xl md:text-3xl font-bold" style={{ color }}>
+                          {value}
+                        </p>
+                      </div>
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: bg }}>
+                        <Icon className="text-lg md:text-xl" style={{ color }} />
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0">
-                      <p className="text-gray-500 text-xs md:text-sm font-medium mb-1 truncate">Lab Tests</p>
-                      <p className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--accent-color)' }}>
-                        {stats.labTests}
-                      </p>
-                    </div>
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(92, 135, 143, 0.1)' }}>
-                      <FaFlask className="text-lg md:text-xl" style={{ color: 'var(--accent-color)' }} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0">
-                      <p className="text-gray-500 text-xs md:text-sm font-medium mb-1 truncate">Prescriptions</p>
-                      <p className="text-2xl md:text-3xl font-bold" style={{ color: '#2c6774' }}>
-                        {stats.prescriptions}
-                      </p>
-                    </div>
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(44, 103, 116, 0.1)' }}>
-                      <FaFilePrescription className="text-lg md:text-xl" style={{ color: '#2c6774' }} />
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Charts Section */}
@@ -687,22 +690,10 @@ const UserDashboard = () => {
                       <p className="text-xs text-gray-400">Last 6 months</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-[10px] md:text-xs">
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--primary-color)' }}></span>
-                        Appt
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--secondary-color)' }}></span>
-                        Orders
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--accent-color)' }}></span>
-                        Lab
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#2c6774' }}></span>
-                        Presc
-                      </span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--primary-color)' }}></span>Appt</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--secondary-color)' }}></span>Orders</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--accent-color)' }}></span>Lab</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#2c6774' }}></span>Presc</span>
                     </div>
                   </div>
                   <div className="w-full h-56 md:h-64">
@@ -712,15 +703,7 @@ const UserDashboard = () => {
                           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                           <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#9ca3af' }} />
                           <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                          <Tooltip 
-                            contentStyle={{ 
-                              borderRadius: '12px', 
-                              border: 'none', 
-                              boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                              padding: '12px',
-                              fontSize: '12px'
-                            }}
-                          />
+                          <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px', fontSize: '12px' }} />
                           <Bar dataKey="appointments" fill="var(--primary-color)" radius={[4, 4, 0, 0]} />
                           <Bar dataKey="orders" fill="var(--secondary-color)" radius={[4, 4, 0, 0]} />
                           <Bar dataKey="labTests" fill="var(--accent-color)" radius={[4, 4, 0, 0]} />
@@ -750,34 +733,15 @@ const UserDashboard = () => {
                             { name: 'Lab Tests', value: Math.max(stats.labTests, 1) },
                             { name: 'Prescriptions', value: Math.max(stats.prescriptions, 1) },
                           ]}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={70}
-                          paddingAngle={4}
-                          dataKey="value"
+                          cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={4} dataKey="value"
                         >
                           <Cell fill="var(--primary-color)" />
                           <Cell fill="var(--secondary-color)" />
                           <Cell fill="var(--accent-color)" />
                           <Cell fill="#2c6774" />
                         </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            borderRadius: '12px', 
-                            border: 'none', 
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                            padding: '12px',
-                            fontSize: '12px'
-                          }}
-                        />
-                        <Legend 
-                          verticalAlign="bottom" 
-                          height={36}
-                          iconType="circle"
-                          iconSize={8}
-                          formatter={(value) => <span className="text-[10px] md:text-xs text-gray-600">{value}</span>}
-                        />
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px', fontSize: '12px' }} />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} formatter={(value) => <span style={{ fontSize: '10px', color: '#6b7280' }}>{value}</span>} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -815,27 +779,16 @@ const UserDashboard = () => {
           ) : (
             <div className="max-w-7xl mx-auto">
               {activeTab === 'appointments' && (
-                <MyAppointments 
-                  refreshTrigger={refreshTrigger} 
-                  onStatsUpdate={updateAppointmentStats}
-                />
+                <MyAppointments refreshTrigger={refreshTrigger} onStatsUpdate={updateAppointmentStats} />
               )}
               {activeTab === 'orders' && (
-                <MyOrders 
-                  refreshTrigger={refreshTrigger}
-                  onStatsUpdate={updateOrderStats}
-                />
+                <MyOrders refreshTrigger={refreshTrigger} onStatsUpdate={updateOrderStats} />
               )}
               {activeTab === 'labtests' && (
-                <MyLabTests 
-                  refreshTrigger={refreshTrigger}
-                  onStatsUpdate={updateLabTestStats}
-                />
+                <MyLabTests refreshTrigger={refreshTrigger} onStatsUpdate={updateLabTestStats} />
               )}
               {activeTab === 'prescriptions' && (
-                <MyPrescriptions 
-                  refreshTrigger={refreshTrigger}
-                />
+                <MyPrescriptions refreshTrigger={refreshTrigger} />
               )}
             </div>
           )}
@@ -853,43 +806,97 @@ const UserDashboard = () => {
           --white: #ffffff;
         }
 
-        .min-w-0 {
-          min-width: 0;
+        /* ===== CORE LAYOUT FIX ===== */
+        /* The trick: both sidebar and right column use position:fixed/sticky 
+           independently, sharing the full viewport height */
+
+        .dashboard-root {
+          display: flex;
+          height: 100vh;
+          width: 100vw;
+          overflow: hidden;
+          background-color: #f8f9fa;
         }
 
-        /* Smooth transitions */
-        .sidebar-transition {
+        /* Desktop Sidebar — fixed, full height */
+        .desktop-sidebar {
+          display: none;
+          flex-direction: column;
+          flex-shrink: 0;
+          height: 100vh;
+          overflow: hidden;
           transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-          width: 4px;
-          height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: var(--primary-color);
-          border-radius: 10px;
-          opacity: 0.5;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          opacity: 1;
-        }
-
-        * {
-          transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-        }
-
-        /* Mobile fixes */
-        @media (max-width: 640px) {
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+        @media (min-width: 1024px) {
+          .desktop-sidebar {
+            display: flex;
           }
         }
+
+        .sidebar-wide  { width: 18rem; }  /* 288px */
+        .sidebar-narrow { width: 5rem; }  /* 80px */
+
+        /* Right column — flex column, full height, scrollable main */
+        .dashboard-right {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-width: 0;
+          height: 100vh;
+          overflow: hidden;
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Header — never scrolls */
+        .dashboard-header {
+          flex-shrink: 0;
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          width: 100%;
+        }
+
+        /* Main — only this scrolls */
+        .dashboard-main {
+          flex: 1;
+          overflow-y: auto;
+          padding: 1rem;
+        }
+
+        @media (min-width: 768px) {
+          .dashboard-main { padding: 1.5rem; }
+        }
+
+        @media (min-width: 1024px) {
+          .dashboard-main { padding: 2rem; }
+        }
+
+        /* Mobile Sidebar */
+        .mobile-sidebar {
+          display: flex;
+          flex-direction: column;
+          position: fixed;
+          left: 0;
+          top: 0;
+          height: 100%;
+          z-index: 50;
+          width: 18rem;
+          transition: transform 0.3s ease;
+          box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        @media (min-width: 1024px) {
+          .mobile-sidebar { display: none; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; opacity: 0.5; }
+        ::-webkit-scrollbar-thumb:hover { opacity: 1; }
+
+        .min-w-0 { min-width: 0; }
       `}</style>
     </div>
   );

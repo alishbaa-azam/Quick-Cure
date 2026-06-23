@@ -15,15 +15,20 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     fetchOrders();
   }, [refreshTrigger]);
 
+  // Get the storage key — always use the same key format
+  const getOrdersKey = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user?.id || user?._id;
+    return userId ? `medicineOrders_${userId}` : null;
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
     
-    // First, always load local orders as backup
     const localOrders = getLocalOrders();
     
     try {
-      // Get current logged-in user
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const userId = user?.id || user?._id;
       
@@ -40,7 +45,6 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
       
       const token = localStorage.getItem('token');
       
-      // Fetch orders from API
       const response = await fetch(`${API_BASE_URL}/medicine-orders?userId=${userId}`, {
         method: 'GET',
         headers: {
@@ -52,7 +56,6 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
       const data = await response.json();
       
       if (response.ok) {
-        // Handle different response structures
         let apiOrders = [];
         if (data.orders) {
           apiOrders = data.orders;
@@ -62,17 +65,21 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
           apiOrders = data;
         }
         
-        // Merge API orders with local orders (local has more detail sometimes)
         const mergedOrders = mergeOrders(apiOrders, localOrders);
+        
+        // ✅ KEY FIX: Save merged orders back to localStorage so stats can read them
+        saveOrdersToLocal(mergedOrders);
         
         setOrders(mergedOrders);
         
-        // Update stats
         if (onStatsUpdate) {
           onStatsUpdate(mergedOrders.length);
         }
+        
+        // Dispatch event so dashboard stats update
+        window.dispatchEvent(new CustomEvent('ordersUpdated'));
+        
       } else {
-        // Fallback to local orders if API fails
         if (localOrders.length > 0) {
           setOrders(localOrders);
           if (onStatsUpdate) onStatsUpdate(localOrders.length);
@@ -82,7 +89,6 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
       }
     } catch (err) {
       console.error('Error fetching orders:', err);
-      // Fallback to local orders on network error
       if (localOrders.length > 0) {
         setOrders(localOrders);
         if (onStatsUpdate) onStatsUpdate(localOrders.length);
@@ -94,15 +100,11 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     }
   };
 
-  // Load orders from localStorage
   const getLocalOrders = () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = user?.id || user?._id;
-      if (!userId) return [];
-      
-      const ordersKey = `medicineOrders_${userId}`;
-      const savedOrders = localStorage.getItem(ordersKey);
+      const key = getOrdersKey();
+      if (!key) return [];
+      const savedOrders = localStorage.getItem(key);
       if (savedOrders) {
         return JSON.parse(savedOrders);
       }
@@ -112,7 +114,17 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     return [];
   };
 
-  // Merge API and local orders, preferring local details when available
+  // ✅ NEW: Save orders to localStorage
+  const saveOrdersToLocal = (ordersToSave) => {
+    try {
+      const key = getOrdersKey();
+      if (!key) return;
+      localStorage.setItem(key, JSON.stringify(ordersToSave));
+    } catch (error) {
+      console.error('Error saving orders to localStorage:', error);
+    }
+  };
+
   const mergeOrders = (apiOrders, localOrders) => {
     const mergedMap = new Map();
     
@@ -122,14 +134,17 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
       if (key) mergedMap.set(key, order);
     });
     
-    // Override with API orders (they have latest status)
+    // Override/merge with API orders (they have latest status)
     apiOrders.forEach(order => {
       const key = order.orderNumber || order._id || order.orderId;
       if (key) {
         const existing = mergedMap.get(key);
         if (existing) {
-          // Merge: keep local details but use API status
-          mergedMap.set(key, { ...existing, ...order, cart: existing.cart || existing.items || existing.medicines || order.cart || order.items || order.medicines || [] });
+          mergedMap.set(key, { 
+            ...existing, 
+            ...order, 
+            cart: existing.cart || existing.items || existing.medicines || order.cart || order.items || order.medicines || [] 
+          });
         } else {
           mergedMap.set(key, order);
         }
@@ -161,7 +176,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
       
       if (response.ok) {
         alert('Order cancelled successfully');
-        await fetchOrders(); // Refresh orders
+        await fetchOrders();
       } else {
         setError(data.message || 'Failed to cancel order');
         alert('Failed to cancel order: ' + (data.message || 'Unknown error'));
@@ -396,7 +411,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
         )}
       </div>
 
-      {/* Order Details Modal - Complete Details */}
+      {/* Order Details Modal */}
       {showDetailsModal && selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto">
           <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -496,10 +511,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
                           src={medicine.image || 'https://via.placeholder.com/50'} 
                           alt={medicine.name}
                           className="w-12 h-12 object-contain rounded bg-gray-50"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/50';
-                          }}
+                          onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/50'; }}
                         />
                         <div className="flex-1">
                           <p className="font-medium text-sm">{medicine.name}</p>
@@ -527,9 +539,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
                           Rs.{(medicine.price || medicine.discountedPrice || 0) * medicine.quantity}
                         </p>
                         {medicine.perTabletPrice && (
-                          <p className="text-xs text-gray-500">
-                            Rs.{medicine.perTabletPrice}/tab
-                          </p>
+                          <p className="text-xs text-gray-500">Rs.{medicine.perTabletPrice}/tab</p>
                         )}
                       </div>
                     </div>
@@ -539,9 +549,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
 
               {/* Price Summary */}
               <div className="border-t pt-4">
-                <h4 className="font-medium mb-3" style={{ color: 'var(--secondary-color)' }}>
-                  Price Summary
-                </h4>
+                <h4 className="font-medium mb-3" style={{ color: 'var(--secondary-color)' }}>Price Summary</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Subtotal</span>
@@ -571,16 +579,8 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
               {/* Prescription Info */}
               {selectedOrder.prescriptionUrl && (
                 <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-light)' }}>
-                  <p className="text-sm font-medium mb-2" style={{ color: 'var(--secondary-color)' }}>
-                    Prescription Uploaded
-                  </p>
-                  <a 
-                    href={selectedOrder.prescriptionUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm hover:underline"
-                    style={{ color: 'var(--primary-color)' }}
-                  >
+                  <p className="text-sm font-medium mb-2" style={{ color: 'var(--secondary-color)' }}>Prescription Uploaded</p>
+                  <a href={selectedOrder.prescriptionUrl} target="_blank" rel="noopener noreferrer" className="text-sm hover:underline" style={{ color: 'var(--primary-color)' }}>
                     View Prescription Document
                   </a>
                 </div>
@@ -589,9 +589,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
               {/* Order Timeline */}
               {selectedOrder.timeline && selectedOrder.timeline.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-3" style={{ color: 'var(--secondary-color)' }}>
-                    Order Timeline
-                  </h4>
+                  <h4 className="font-medium mb-3" style={{ color: 'var(--secondary-color)' }}>Order Timeline</h4>
                   <div className="space-y-2">
                     {selectedOrder.timeline.map((event, idx) => (
                       <div key={idx} className="flex items-start gap-3 text-sm">
