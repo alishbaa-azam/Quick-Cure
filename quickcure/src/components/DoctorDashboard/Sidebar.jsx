@@ -75,9 +75,9 @@ const menuItems = [
     );
   }
 
-  // Desktop sidebar - sticky so it stays visible while the dashboard content scrolls
+  // Desktop sidebar - always visible, static in flex layout (no fixed positioning)
   return (
-    <aside className="hidden lg:flex w-64 flex-shrink-0 sticky top-0 h-screen overflow-y-auto flex-col bg-gradient-to-br from-[#0f2c33] to-[#174047] shadow-2xl shadow-black/20 scrollbar-hide">
+    <aside className="hidden lg:flex w-64 flex-shrink-0 min-h-screen flex-col bg-gradient-to-br from-[#0f2c33] to-[#174047] shadow-2xl shadow-black/20">
       {/* Logo Area */}
       <div className="p-5 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-3">

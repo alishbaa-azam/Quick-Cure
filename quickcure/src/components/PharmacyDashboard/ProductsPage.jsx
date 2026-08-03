@@ -6,6 +6,7 @@ import {
   AlertCircle, X, RefreshCw, Filter, ChevronLeft, ChevronRight,
   Image as ImageIcon, BarChart2, Clock, Activity
 } from 'lucide-react';
+import { FaFlask } from 'react-icons/fa';
 import { pharmacyAPI } from '../../services/pharmacyAPI';
 import { message } from 'antd';
 import {
@@ -260,7 +261,7 @@ const ProductsPage = () => {
 
   // Open View Modal
   const openViewModal = (medicine) => {
-    navigate(`/pharmacy/dashboard/${pharmacyId}/products/view/${medicine.id}`, { state: { medicine } });
+    navigate(`view/${medicine.id}`, { state: { medicine } });
   };
 
   // Open Delete Modal
@@ -332,9 +333,8 @@ const ProductsPage = () => {
               <RefreshCw size={16} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
-
-            <button
-              onClick={() => navigate(`/pharmacy/dashboard/${pharmacyId}/products/add`)}
+            <button 
+              onClick={() => navigate('add')}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#2c6774] text-white rounded-xl hover:bg-[#1a3a3a] transition-colors font-medium shadow-sm text-sm"
             >
               <Plus size={18} />
@@ -659,7 +659,7 @@ const ProductsPage = () => {
                                 <Eye size={16} />
                               </button>
                               <button
-                                onClick={() => navigate(`/pharmacy/dashboard/${pharmacyId}/products/edit/${medicine.id}`, { state: { medicine } })}
+                                onClick={() => navigate(`edit/${medicine.id}`, { state: { medicine } })}
                                 className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                 title="Edit"
                               >
@@ -689,72 +689,141 @@ const ProductsPage = () => {
             </div>
           </div>
 
-          {/* Mobile Card View */}
+          {/* Mobile Card View - Enhanced with MedicineCard styling */}
           <div className="md:hidden space-y-3">
             {currentItems.length > 0 ? (
-              currentItems.map((medicine) => (
-                <div key={medicine.id} className="bg-white rounded-xl border border-gray-200 p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100">
-                        {medicine.image ? (
-                          <img src={medicine.image} alt={medicine.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Package size={20} className="text-gray-400" />
+              currentItems.map((medicine) => {
+                const isTablet = ['tablet', 'capsule', 'caplet', 'pill'].some(t =>
+                  medicine.form?.toLowerCase().includes(t)
+                );
+                const isSyrup = ['syrup', 'suspension', 'drops', 'liquid', 'solution'].some(s =>
+                  medicine.form?.toLowerCase().includes(s)
+                );
+                const isOutOfStock = medicine.stock <= 0;
+                const isDiscounted = medicine.discountedPrice && medicine.price > medicine.discountedPrice;
+                const discountPercentage = isDiscounted
+                  ? Math.round(((medicine.price - medicine.discountedPrice) / medicine.price) * 100)
+                  : 0;
+
+                return (
+                  <div key={medicine.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow transition-all duration-150">
+                    {/* Image Section */}
+                    <div className="relative h-32 bg-gray-50 flex items-center justify-center">
+                      {medicine.image ? (
+                        <img
+                          src={medicine.image}
+                          alt={medicine.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+                          }}
+                        />
+                      ) : (
+                        <Package size={32} className="text-gray-400" />
+                      )}
+
+                      {/* Badges */}
+                      {isDiscounted && discountPercentage > 0 && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-lg font-medium shadow-sm">
+                          {discountPercentage}% OFF
+                        </div>
+                      )}
+
+                      {isOutOfStock && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-lg font-medium shadow-sm">
+                          Out of Stock
+                        </div>
+                      )}
+
+                      {/* Form Badge */}
+                      {medicine.form && (
+                        <div className={`absolute bottom-2 right-2 text-white text-xs px-2 py-1 rounded-lg font-medium flex items-center gap-1 ${isTablet ? 'bg-purple-500' : 'bg-green-500'
+                          }`}>
+                          {isTablet ? <Package size={12} /> : <FaFlask size={12} />}
+                          {medicine.form}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info Section */}
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 mb-1">
+                        {medicine.name}
+                      </h3>
+
+                      {medicine.genericName && (
+                        <p className="text-xs text-gray-500 line-clamp-1 mb-2">
+                          {medicine.genericName}
+                        </p>
+                      )}
+
+                      {/* Price */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-base font-bold text-green-600">
+                          Rs. {(medicine.discountedPrice || medicine.price || 0).toFixed(2)}
+                        </span>
+                        {isDiscounted && (
+                          <span className="text-xs text-gray-500 line-through">
+                            Rs. {medicine.price.toFixed(2)}
+                          </span>
                         )}
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{medicine.name}</p>
-                        <p className="text-xs text-gray-500">{medicine.genericName}</p>
+
+                      {/* Form-specific info */}
+                      {isTablet && (
+                        <div className="text-xs text-gray-600 mb-2 flex items-center gap-1 bg-purple-50 p-2 rounded-lg">
+                          <Package size={12} className="text-purple-600" />
+                          <span className="font-medium">{medicine.tabletsPerUnit || 10} tabs/strip</span>
+                        </div>
+                      )}
+
+                      {isSyrup && (
+                        <div className="text-xs text-gray-600 mb-2 flex items-center gap-1 bg-blue-50 p-2 rounded-lg">
+                          <FaFlask size={12} className="text-blue-600" />
+                          <span className="font-medium">{medicine.volume || '60ml'}</span>
+                        </div>
+                      )}
+
+                      {/* Stock Status */}
+                      <div className="mb-3">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs rounded-full border ${stockColors[medicine.status]?.bg || 'bg-gray-100'
+                          } ${stockColors[medicine.status]?.border || 'border-gray-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${stockColors[medicine.status]?.dot || 'bg-gray-500'}`}></span>
+                          {medicine.status}
+                        </span>
+                        {!isOutOfStock && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {medicine.stock <= 5 ? `Only ${medicine.stock} left` : `${medicine.stock} in stock`}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-3 border-t border-gray-100">
+                        <button
+                          onClick={() => openViewModal(medicine)}
+                          className="flex-1 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 text-sm font-medium transition-colors"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => navigate(`edit/${medicine.id}`, { state: { medicine } })}
+                          className="flex-1 py-2 text-green-600 border border-green-200 rounded-lg hover:bg-green-50 text-sm font-medium transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(medicine)}
+                          className="flex-1 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 text-sm font-medium transition-colors"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
-                    <span className={`px-2 py-1 text-xs rounded-full border ${stockColors[medicine.status]?.bg || 'bg-gray-100'
-                      }`}>
-                      {medicine.status}
-                    </span>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-                    <div>
-                      <p className="text-xs text-gray-500">Category</p>
-                      <p className="font-medium">{medicine.category}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Stock</p>
-                      <p className="font-medium">{medicine.stock} units</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Price</p>
-                      <p className="font-medium">{formatCurrency(medicine.price)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Brand</p>
-                      <p className="font-medium">{medicine.brand}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 pt-2 border-t border-gray-100">
-                    <button
-                      onClick={() => openViewModal(medicine)}
-                      className="flex-1 py-2 text-blue-600 border rounded-lg hover:bg-blue-50 text-sm"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => navigate(`/pharmacy/dashboard/${pharmacyId}/products/edit/${medicine.id}`, { state: { medicine } })}
-                      className="flex-1 py-2 text-green-600 border rounded-lg hover:bg-green-50 text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(medicine)}
-                      className="flex-1 py-2 text-red-600 border rounded-lg hover:bg-red-50 text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
                 <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />

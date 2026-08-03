@@ -201,6 +201,7 @@ export default function LabDetail() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [selectedCity, setSelectedCity] = useState('');
 
   // ✅ FIX 1: Page refresh when booking confirmed
   // useEffect(() => {
@@ -365,6 +366,10 @@ useEffect(() => {
     ]).then(([labRes, testsRes]) => {
       setLab(labRes.data);
       setTests(testsRes.data || []);
+      // Auto-select first city if available
+      if (labRes.data.serviceCities && labRes.data.serviceCities.length > 0) {
+        setSelectedCity(labRes.data.serviceCities[0]);
+      }
     }).catch(error => {
       console.error('Error fetching data:', error);
     });
@@ -528,10 +533,16 @@ useEffect(() => {
     // This will trigger refresh when returning from booking
     sessionStorage.setItem('navigatedToBooking', 'true');
     
+    if (!selectedCity) {
+      alert("Please select a city for sample collection.");
+      return;
+    }
+    
     navigate(`/labs/${id}/booking`, {
       state: { 
         patients: patientsWithTests,
-        labId: id 
+        labId: id,
+        selectedCity: selectedCity
       },
     });
   };
@@ -611,6 +622,32 @@ useEffect(() => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
+
+      {/* CITY SELECTOR - Show when logged in and lab has service cities */}
+      {isLoggedIn && lab.serviceCities && lab.serviceCities.length > 0 && (
+        <div className="mb-6 p-4 bg-white rounded-2xl shadow-lg border border-[#c0d3dc]">
+          <div className="flex items-center gap-4 flex-wrap">
+            <label className="font-semibold text-[#174047] min-w-[120px]">
+            Service Available in City
+            </label>
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="flex-1 min-w-[200px] px-4 py-2.5 border border-[#c0d3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2c6774] bg-white text-[#174047]"
+            >
+              <option value="">Select your city</option>
+              {lab.serviceCities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+            {selectedCity && (
+              <span className="text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
+              {/* Service available in {selectedCity} */}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* PATIENT SELECTOR - Only show when logged in */}
       {isLoggedIn && (

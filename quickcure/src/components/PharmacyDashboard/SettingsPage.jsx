@@ -1,127 +1,63 @@
-// settingsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { 
-  Settings, MapPin, Truck, 
+  MapPin, Truck, 
   Phone, Mail, Building, CheckCircle,
-  Upload, Image as ImageIcon, Save,
-  AlertCircle, Loader, ExternalLink
+  Save, AlertCircle, ExternalLink, Loader
 } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
 import { pharmacyAPI } from '../../services/pharmacyAPI';
 import { message } from 'antd';
 
 const SettingsPage = () => {
-  const [loading, setLoading] = useState(true);
+  const { pharmacy, pharmacyId: contextPharmacyId, refetchPharmacy } = useOutletContext();
+  const [loading, setLoading] = useState(!pharmacy);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [pharmacyId, setPharmacyId] = useState(null);
+  const [pharmacyId, setPharmacyId] = useState(contextPharmacyId);
   const [showMapPreview, setShowMapPreview] = useState(false);
   
   const [pharmacySettings, setPharmacySettings] = useState({
-    // Pharmacy Info
     name: '',
     email: '',
     phone: '',
     address: '',
     description: '',
-    
-    // Services
     deliveryRadius: 5,
     minimumOrderAmount: 0,
     deliveryFee: 0,
     freeDeliveryThreshold: 0,
-    
-    // Images
-    logo: null,
-    banner: null,
-    image: null,
-    
-    // Contact Info
-    whatsapp: '',
-    facebook: '',
-    instagram: '',
   });
 
-  const [logoPreview, setLogoPreview] = useState('');
-  const [bannerPreview, setBannerPreview] = useState('');
-  const [uploadingImage, setUploadingImage] = useState(false);
-
-  // Generate Google Maps embed URL from address
   const getGoogleMapsEmbedUrl = (address) => {
     if (!address) return '';
     const encodedAddress = encodeURIComponent(address);
     return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   };
 
-  // Generate Google Maps link for external view
   const getGoogleMapsLink = (address) => {
     if (!address) return '';
     const encodedAddress = encodeURIComponent(address);
     return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
   };
 
-  // Get pharmacy ID from localStorage
   useEffect(() => {
-    const storedPharmacyId = localStorage.getItem('pharmacyId');
-    if (storedPharmacyId) {
-      setPharmacyId(storedPharmacyId);
-      fetchPharmacySettings(storedPharmacyId);
+    if (pharmacy) {
+      setLoading(false);
+      setPharmacySettings({
+        name: pharmacy.name || '',
+        email: pharmacy.email || '',
+        phone: pharmacy.phone || '',
+        address: pharmacy.address || '',
+        description: pharmacy.description || '',
+        deliveryRadius: pharmacy.deliveryRadius || 5,
+        minimumOrderAmount: pharmacy.minimumOrderAmount || 0,
+        deliveryFee: pharmacy.deliveryFee || 0,
+        freeDeliveryThreshold: pharmacy.freeDeliveryThreshold || 0,
+      });
     } else {
-      message.error('Pharmacy ID not found. Please login again.');
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch pharmacy settings from API
-  const fetchPharmacySettings = async (id) => {
-    try {
       setLoading(true);
-      const response = await pharmacyAPI.getPharmacyProfile(id);
-      
-      if (response.data?.success) {
-        const data = response.data.data;
-        
-        setPharmacySettings({
-          name: data.name || '',
-          email: data.email || '',
-          phone: data.phone || '',
-          address: data.address || '',
-          description: data.description || '',
-          deliveryRadius: data.deliveryRadius || 5,
-          minimumOrderAmount: data.minimumOrderAmount || 0,
-          deliveryFee: data.deliveryFee || 0,
-          freeDeliveryThreshold: data.freeDeliveryThreshold || 0,
-          logo: data.logo || null,
-          banner: data.banner || data.bannerImage || null,
-          image: data.image || data.logo || null,
-          whatsapp: data.whatsapp || '',
-          facebook: data.facebook || '',
-          instagram: data.instagram || '',
-        });
-        
-        // Set image previews
-        if (data.logo || data.image) {
-          setLogoPreview(data.logo || data.image);
-        }
-        if (data.banner || data.bannerImage) {
-          setBannerPreview(data.banner || data.bannerImage);
-        }
-      } else {
-        message.error(response.data?.message || 'Failed to load pharmacy settings');
-      }
-    } catch (error) {
-      console.error('Error fetching pharmacy settings:', error);
-      
-      if (error.code === 'ERR_NETWORK') {
-        message.error('Cannot connect to server. Please check your connection.');
-      } else if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else {
-        message.error('Failed to load pharmacy settings');
-      }
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [pharmacy]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -131,75 +67,19 @@ const SettingsPage = () => {
     }));
   };
 
-  // Image upload function
-  const handleImageUpload = async (e, type) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      message.error('Image size should be less than 5MB');
-      return;
-    }
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      message.error('Only JPEG, PNG, WEBP images are allowed');
-      return;
-    }
-
-    setUploadingImage(true);
-    
-    try {
-      const base64Image = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(file);
-      });
-      
-      if (type === 'logo') {
-        setLogoPreview(base64Image);
-        setPharmacySettings(prev => ({
-          ...prev,
-          logo: base64Image,
-          image: base64Image
-        }));
-      } else {
-        setBannerPreview(base64Image);
-        setPharmacySettings(prev => ({
-          ...prev,
-          banner: base64Image,
-          bannerImage: base64Image
-        }));
-      }
-      
-      message.success(`${type === 'logo' ? 'Logo' : 'Banner'} selected. Click Save to update.`);
-      
-    } catch (error) {
-      console.error('Error processing image:', error);
-      message.error('Failed to process image');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   const handleSave = async () => {
-    // Validation
     if (!pharmacySettings.name.trim()) {
       message.error('Pharmacy name is required');
       return;
     }
-    
     if (!pharmacySettings.email.trim()) {
       message.error('Email is required');
       return;
     }
-    
     if (!pharmacySettings.phone.trim()) {
       message.error('Phone number is required');
       return;
     }
-    
     if (!pharmacySettings.address.trim()) {
       message.error('Address is required');
       return;
@@ -218,23 +98,18 @@ const SettingsPage = () => {
         minimumOrderAmount: Number(pharmacySettings.minimumOrderAmount),
         deliveryFee: Number(pharmacySettings.deliveryFee),
         freeDeliveryThreshold: Number(pharmacySettings.freeDeliveryThreshold),
-        logo: pharmacySettings.logo,
-        image: pharmacySettings.logo,
-        banner: pharmacySettings.banner,
-        bannerImage: pharmacySettings.banner,
-        whatsapp: pharmacySettings.whatsapp,
-        facebook: pharmacySettings.facebook,
-        instagram: pharmacySettings.instagram,
       };
+      
+      console.log('Saving settings with data:', updateData);
       
       const response = await pharmacyAPI.updatePharmacyProfile(pharmacyId, updateData);
       
       if (response.data?.success) {
         setSaveSuccess(true);
         message.success('Settings saved successfully!');
-        
-        fetchPharmacySettings(pharmacyId);
-        
+        if (refetchPharmacy) {
+          await refetchPharmacy();
+        }
         setTimeout(() => {
           setSaveSuccess(false);
         }, 3000);
@@ -243,7 +118,6 @@ const SettingsPage = () => {
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      
       if (error.code === 'ERR_NETWORK') {
         message.error('Cannot connect to server. Please check your connection.');
       } else if (error.response?.data?.message) {
@@ -255,6 +129,7 @@ const SettingsPage = () => {
       setIsSaving(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -304,7 +179,7 @@ const SettingsPage = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
+        {/* Left Column - Main Settings */}
         <div className="lg:col-span-2 space-y-6">
           {/* Pharmacy Information */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
@@ -374,15 +249,11 @@ const SettingsPage = () => {
                     onChange={handleInputChange}
                     rows="3"
                     className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] transition-colors"
-                    placeholder="Enter your complete pharmacy address (e.g., 123 Main Street, Gulberg, Lahore, Pakistan)"
+                    placeholder="Enter your complete pharmacy address"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Address is constant and will only change when you update it
-                </p>
               </div>
               
-              {/* Google Maps Preview Section */}
               {pharmacySettings.address && (
                 <div className="md:col-span-2">
                   <div className="flex items-center justify-between mb-2">
@@ -400,7 +271,6 @@ const SettingsPage = () => {
                   
                   {showMapPreview && (
                     <div className="space-y-3">
-                      {/* Embedded Google Maps */}
                       <div className="rounded-lg overflow-hidden border border-gray-300 bg-gray-100">
                         <iframe
                           title="Pharmacy Location"
@@ -415,7 +285,6 @@ const SettingsPage = () => {
                         />
                       </div>
                       
-                      {/* Link to open in Google Maps */}
                       <a
                         href={getGoogleMapsLink(pharmacySettings.address)}
                         target="_blank"
@@ -425,29 +294,6 @@ const SettingsPage = () => {
                         <ExternalLink size={14} />
                         View larger map in Google Maps
                       </a>
-                      
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-700 flex items-center gap-2">
-                          <MapPin size={14} />
-                          <span className="font-medium">Current Address:</span> {pharmacySettings.address}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {!showMapPreview && (
-                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                      <p className="text-sm text-gray-600 flex items-center gap-2">
-                        <MapPin size={14} />
-                        <span className="font-medium">Address:</span> {pharmacySettings.address}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowMapPreview(true)}
-                        className="mt-2 text-sm text-[#2c6774] hover:text-[#174047]"
-                      >
-                        Click to preview on map
-                      </button>
                     </div>
                   )}
                 </div>
@@ -524,9 +370,6 @@ const SettingsPage = () => {
                   step="50"
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] transition-colors"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Base fee (actual fee calculated by distance)
-                </p>
               </div>
               
               <div>
@@ -550,128 +393,8 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column - Info Box */}
         <div className="space-y-6">
-          {/* Pharmacy Images */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Pharmacy Images</h2>
-            <p className="text-sm text-gray-500 mb-4">These images will appear on the customer side</p>
-            
-            {/* Logo Upload */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pharmacy Logo
-              </label>
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                  {logoPreview ? (
-                    <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
-                  ) : (
-                    <ImageIcon className="text-gray-400" size={24} />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <label className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#174047] transition-colors text-sm font-medium">
-                      {uploadingImage ? <Loader className="w-4 h-4 animate-spin" /> : <Upload size={16} />}
-                      <span>{logoPreview ? 'Change Logo' : 'Upload Logo'}</span>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'logo')}
-                      className="hidden"
-                      disabled={uploadingImage}
-                    />
-                  </label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Recommended: 200x200px, PNG/JPG (Max 5MB)
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Banner Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pharmacy Banner
-              </label>
-              <div className="mb-3">
-                <div className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                  {bannerPreview ? (
-                    <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
-                  ) : (
-                    <ImageIcon className="text-gray-400" size={32} />
-                  )}
-                </div>
-              </div>
-              <label className="cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-                  {uploadingImage ? <Loader className="w-4 h-4 animate-spin" /> : <Upload size={16} />}
-                  <span>{bannerPreview ? 'Change Banner' : 'Upload Banner'}</span>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, 'banner')}
-                  className="hidden"
-                  disabled={uploadingImage}
-                />
-              </label>
-              <p className="text-xs text-gray-500 mt-2">
-                Recommended: 1200x300px, PNG/JPG (Max 5MB)
-              </p>
-            </div>
-          </div>
-
-          {/* Social Media */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Social Media Links</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  WhatsApp
-                </label>
-                <input
-                  type="text"
-                  name="whatsapp"
-                  value={pharmacySettings.whatsapp}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] transition-colors"
-                  placeholder="https://wa.me/923001234567"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Facebook
-                </label>
-                <input
-                  type="text"
-                  name="facebook"
-                  value={pharmacySettings.facebook}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] transition-colors"
-                  placeholder="https://facebook.com/pharmacy"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Instagram
-                </label>
-                <input
-                  type="text"
-                  name="instagram"
-                  value={pharmacySettings.instagram}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] transition-colors"
-                  placeholder="https://instagram.com/pharmacy"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-3">

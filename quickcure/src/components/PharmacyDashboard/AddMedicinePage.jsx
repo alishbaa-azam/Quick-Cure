@@ -216,7 +216,7 @@ const AddMedicinePage = () => {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <button
+          <button type="button"
             onClick={() => navigate(`/pharmacy/dashboard/${pharmacyId}/products`)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >

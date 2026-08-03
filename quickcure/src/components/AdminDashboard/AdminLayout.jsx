@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, Stethoscope, Microscope,
   Pill, ShoppingCart, DollarSign, BarChart3,
   LogOut, Menu, Bell, Search, User, X, Settings, Shield,
-  FileText, Activity
+  FileText, Activity, FlaskConical
 } from 'lucide-react';
 import { message } from 'antd';
 import logo from "../../images/logo.png";
@@ -23,6 +23,7 @@ const AdminLayout = () => {
     { name: 'Registrations', href: '/admin/registrations', icon: FileText },
     { name: 'Doctors', href: '/admin/doctors', icon: Stethoscope },
     { name: 'Labs', href: '/admin/labs', icon: Microscope },
+    { name: 'Technicians', href: '/admin/technicians', icon: FlaskConical },
     { name: 'Pharmacies', href: '/admin/pharmacies', icon: Pill },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Payments', href: '/admin/payments', icon: DollarSign },

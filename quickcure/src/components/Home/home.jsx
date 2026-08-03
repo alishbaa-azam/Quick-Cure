@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./home.css";
 import bgImage from "../../hospital.webp"; // ← replace with your background image path
@@ -13,15 +12,20 @@ import neuro from "../../images/neuroscience.png";
 import paediatric from "../../images/pediatrics.png";
 import stomach from "../../images/stomach.png";
 import TestimonialCarousel from './TestimonialCarousel';
-// import {FaSearch} from 'react-icons/fa';
+import SearchSuggestions from '../Search/SearchSuggestions';
 
 export default function Home() {
-  const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log("Searching for:", query);
+  const handleSearch = (searchQuery) => {
+    console.log('=== HOME handleSearch called ===');
+    console.log('Query:', searchQuery);
+    if (searchQuery.trim()) {
+      // Use window.location for reliable navigation
+      const searchUrl = `/search?q=${encodeURIComponent(searchQuery.trim())}&type=all`;
+      console.log('Navigating to:', searchUrl);
+      window.location.href = searchUrl;
+    }
   };
 
   return (
@@ -42,17 +46,10 @@ export default function Home() {
               trusted pharmacies anytime, anywhere.
             </p>
 
-            <form className="search1" onSubmit={handleSearch}>
-              <input
-                type="text"
-                placeholder="Search for doctors..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <button type="submit" className="search-btn">
-                <FaSearch  />
-              </button>
-            </form>
+            <SearchSuggestions 
+              placeholder="Search doctors, labs, pharmacies..." 
+              onSearch={handleSearch}
+            />
           </div>
         </div>
       </section>
@@ -94,7 +91,7 @@ export default function Home() {
           <div className="speciality">
             <img src={bones} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/orthopaedist")}>
                 <span>Orthopaedics</span>
                 <br></br>
                 Bones and joints care
@@ -106,7 +103,7 @@ export default function Home() {
             <img src={stomach} alt="" />
             <div className="card-text">
               <p onClick={() => navigate("/specialities/gastroenterologist")}>
-                <span>Gestrosciences</span>
+                <span>Gastroenterology</span>
                 <br></br>
                 Digestive health care
               </p>
@@ -127,7 +124,7 @@ export default function Home() {
           <div className="speciality">
             <img src={kidney} alt="" />
             <div className="card-text">
-              <p onClick={() => navigate("/specialities/sonologist")}>
+              <p onClick={() => navigate("/specialities/nephrologist")}>
                 <span>Renal Care</span>
                 <br></br>
                 Kidney health treatment
@@ -138,7 +135,7 @@ export default function Home() {
           <div className="speciality">
             <img src={liver} alt="" />
             <div className="card-text">
-              <p>
+              <p onClick={() => navigate("/specialities/hepatologist")}>
                 <span>Liver Care</span>
                 <br></br>
                 Liver health and transplant

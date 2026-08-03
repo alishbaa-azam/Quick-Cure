@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaFlask, FaCalendarAlt, FaClock, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSpinner, FaDownload, FaPrint, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { FaFlask, FaCalendarAlt, FaClock, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaSpinner, FaDownload, FaPrint, FaEdit, FaSave, FaTimes, FaFilePdf, FaFileImage } from 'react-icons/fa';
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -11,6 +11,8 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [reports, setReports] = useState({});
+  const [loadingReports, setLoadingReports] = useState({});
   const [editFormData, setEditFormData] = useState({
     name: '',
     email: '',
@@ -362,6 +364,31 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
     }
   };
 
+  const fetchBookingReports = async (bookingId) => {
+    if (!bookingId || reports[bookingId]) return;
+    setLoadingReports(prev => ({ ...prev, [bookingId]: true }));
+    const token = getAuthToken();
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/booking/${bookingId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setReports(prev => ({ ...prev, [bookingId]: response.data.reports }));
+      }
+    } catch (err) {
+      console.error('Error fetching reports:', err);
+    } finally {
+      setLoadingReports(prev => ({ ...prev, [bookingId]: false }));
+    }
+  };
+
+  const handleDownloadReport = (report) => {
+    if (report.reportFile?.url) {
+      const url = report.reportFile.url.startsWith('http') ? report.reportFile.url : `http://localhost:5000${report.reportFile.url}`;
+      window.open(url, '_blank');
+    }
+  };
+
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm('Are you sure you want to cancel this test booking?')) return;
     
@@ -694,6 +721,58 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
                   ))}
                 </div>
               </div>
+
+              {/* Reports Section - Only for completed bookings */}
+              {selectedBooking.bookingStatus === 'completed' && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium" style={{ color: 'var(--secondary-color)' }}>Lab Reports</h4>
+                    <button
+                      onClick={() => fetchBookingReports(selectedBooking._id)}
+                      className="text-xs px-3 py-1 rounded-lg border flex items-center gap-1"
+                      style={{ borderColor: 'var(--primary-color)', color: 'var(--primary-color)' }}
+                    >
+                      {loadingReports[selectedBooking._id] ? <FaSpinner className="animate-spin" /> : <FaDownload size={10} />}
+                      {loadingReports[selectedBooking._id] ? 'Loading...' : 'Load Reports'}
+                    </button>
+                  </div>
+                  {loadingReports[selectedBooking._id] ? (
+                    <div className="flex justify-center py-4">
+                      <FaSpinner className="animate-spin text-lg" style={{ color: 'var(--primary-color)' }} />
+                    </div>
+                  ) : reports[selectedBooking._id] && reports[selectedBooking._id].length > 0 ? (
+                    <div className="space-y-2">
+                      {reports[selectedBooking._id].map((report, idx) => (
+                        <div key={report._id || idx} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                          <div className="flex items-center gap-2">
+                            {report.reportFile?.mimeType?.includes('pdf') ? (
+                              <FaFilePdf className="text-red-500" />
+                            ) : (
+                              <FaFileImage className="text-blue-500" />
+                            )}
+                            <div>
+                              <p className="text-sm font-medium">{report.testId?.name || report.reportFile?.originalName || `Report ${idx + 1}`}</p>
+                              <p className="text-xs text-gray-500">{report.reportDate ? formatDate(report.reportDate) : ''}</p>
+                            </div>
+                          </div>
+                          {report.reportFile?.url && (
+                            <button
+                              onClick={() => handleDownloadReport(report)}
+                              className="px-3 py-1.5 text-xs rounded-lg text-white flex items-center gap-1"
+                              style={{ backgroundColor: 'var(--primary-color)' }}
+                            >
+                              <FaDownload size={10} />
+                              Download
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : reports[selectedBooking._id] ? (
+                    <p className="text-sm text-gray-400 text-center py-3">No reports uploaded yet</p>
+                  ) : null}
+                </div>
+              )}
 
               <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-light)' }}>
                 <h4 className="font-medium mb-3" style={{ color: 'var(--secondary-color)' }}>Appointment Details</h4>

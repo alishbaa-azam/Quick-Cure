@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiShoppingCart, FiTrash2, FiTruck, FiX, } from 'react-icons/fi';
-import { FaMinus, FaPlus } from 'react-icons/fa';
+import { FaMinus, FaPlus, FaStore } from 'react-icons/fa';
 
 const CartSidebar = ({
   isOpen,
@@ -17,8 +17,49 @@ const CartSidebar = ({
   getItemTotalPrice,
   getDisplayQuantity,
   isTabletForm,
+  getPharmacySubtotal,
+  getDeliveryFeeForPharmacy,
+  pharmacyDeliveryCache,
 }) => {
   if (!isOpen) return null;
+
+  // Group cart items by pharmacy
+  const groupItemsByPharmacy = () => {
+    const groups = {};
+    cartItems.forEach(item => {
+      const pharmacyId = item.pharmacyId || item.selectedPharmacy?._id;
+      const pharmacyName = item.pharmacyName || item.selectedPharmacy?.name || 'Unknown Pharmacy';
+      
+      if (!groups[pharmacyId]) {
+        groups[pharmacyId] = {
+          id: pharmacyId,
+          name: pharmacyName,
+          items: [],
+          subtotal: 0,
+          deliveryFee: 0,
+          freeDeliveryThreshold: 500
+        };
+      }
+      groups[pharmacyId].items.push(item);
+      groups[pharmacyId].subtotal += getItemTotalPrice(item);
+    });
+
+    // Calculate delivery fee for each pharmacy
+    Object.keys(groups).forEach(pharmacyId => {
+      const group = groups[pharmacyId];
+      const deliveryInfo = getDeliveryFeeForPharmacy 
+        ? getDeliveryFeeForPharmacy(pharmacyId, group.subtotal, 2.5)
+        : { deliveryFee: 0, freeDeliveryThreshold: 500 };
+      group.deliveryFee = deliveryInfo.deliveryFee;
+      group.freeDeliveryThreshold = deliveryInfo.freeDeliveryThreshold;
+    });
+
+    return Object.values(groups);
+  };
+
+  const pharmacyGroups = groupItemsByPharmacy();
+  const totalDeliveryFee = pharmacyGroups.reduce((sum, group) => sum + group.deliveryFee, 0);
+  const grandTotal = pharmacyGroups.reduce((sum, group) => sum + group.subtotal + group.deliveryFee, 0);
 
   return (
     <div className="fixed inset-0 z-50">
@@ -48,85 +89,110 @@ const CartSidebar = ({
             </div>
           ) : (
             <>
-              <div className="space-y-4 mb-6 max-h-[50vh] overflow-y-auto pr-1">
-                {cartItems.map((item) => {
-                  const currentQty = item.quantity || 1;
-                  const maxStock = item.maxStock || item.stockQuantity || 0;
-                  return (
-                    <div key={item._id} className="flex gap-3 pb-4 border-b border-gray-100">
-                      <img 
-                        src={item.image || 'https://via.placeholder.com/50'} 
-                        alt={item.name} 
-                        className="w-14 h-14 rounded-xl object-cover bg-gray-50" 
-                      />
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-800 text-sm line-clamp-1">{item.name}</p>
-                        <p className="text-[#2c6774] font-bold text-sm">Rs. {getItemTotalPrice(item).toFixed(2)}</p>
-                        {isTabletForm(item.form) && item.totalTablets && (
-                          <p className="text-xs text-gray-400">{item.totalTablets} tablets total</p>
-                        )}
-                        
-                        {/* Working Quantity Controls */}
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center gap-2 bg-gray-100 rounded-lg">
-                            <button
-                              onClick={() => onUpdateQuantity(item, currentQty - 1)}
-                              className="p-1.5 hover:bg-gray-200 rounded-l-lg transition-colors"
-                              disabled={currentQty <= 1}
-                            >
-                              <FaMinus className="w-3 h-3 text-gray-600" />
-                            </button>
-                            <span className="text-sm font-medium text-gray-700 min-w-[30px] text-center">
-                              {currentQty}
-                            </span>
-                            <button
-                              onClick={() => onUpdateQuantity(item, currentQty + 1)}
-                              className="p-1.5 hover:bg-gray-200 rounded-r-lg transition-colors"
-                              disabled={currentQty >= maxStock}
-                            >
-                              <FaPlus className="w-3 h-3 text-gray-600" />
-                            </button>
+              <div className="space-y-6 mb-6 max-h-[50vh] overflow-y-auto pr-1">
+                {pharmacyGroups.map((group) => (
+                  <div key={group.id} className="border border-gray-200 rounded-xl p-3">
+                    {/* Pharmacy Header */}
+                    <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <FaStore className="w-4 h-4 text-[#2c6774]" />
+                        <h4 className="font-semibold text-sm text-gray-800">{group.name}</h4>
+                      </div>
+                      <span className="text-xs text-gray-500">{group.items.length} item{group.items.length > 1 ? 's' : ''}</span>
+                    </div>
+
+                    {/* Pharmacy Items */}
+                    <div className="space-y-3">
+                      {group.items.map((item) => {
+                        const currentQty = item.quantity || 1;
+                        const maxStock = item.maxStock || item.stockQuantity || 0;
+                        return (
+                          <div key={item._id} className="flex gap-3">
+                            <img 
+                              src={item.image || 'https://via.placeholder.com/50'} 
+                              alt={item.name} 
+                              className="w-12 h-12 rounded-lg object-cover bg-gray-50" 
+                            />
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-800 text-sm line-clamp-1">{item.name}</p>
+                              <p className="text-[#2c6774] font-bold text-xs mt-0.5">Rs. {getItemTotalPrice(item).toFixed(2)}</p>
+                              {isTabletForm(item.form) && item.totalTablets && (
+                                <p className="text-xs text-gray-400">{item.totalTablets} tablets total</p>
+                              )}
+                              
+                              {/* Quantity Controls */}
+                              <div className="flex items-center justify-between mt-1.5">
+                                <div className="flex items-center gap-1.5 bg-gray-100 rounded-md">
+                                  <button
+                                    onClick={() => onUpdateQuantity(item, currentQty - 1)}
+                                    className="p-1 hover:bg-gray-200 rounded-l-md transition-colors"
+                                    disabled={currentQty <= 1}
+                                  >
+                                    <FaMinus className="w-2.5 h-2.5 text-gray-600" />
+                                  </button>
+                                  <span className="text-xs font-medium text-gray-700 min-w-[24px] text-center">
+                                    {currentQty}
+                                  </span>
+                                  <button
+                                    onClick={() => onUpdateQuantity(item, currentQty + 1)}
+                                    className="p-1 hover:bg-gray-200 rounded-r-md transition-colors"
+                                    disabled={currentQty >= maxStock}
+                                  >
+                                    <FaPlus className="w-2.5 h-2.5 text-gray-600" />
+                                  </button>
+                                </div>
+                                <button
+                                  onClick={() => onRemoveFromCart(item._id)}
+                                  className="text-rose-400 hover:text-rose-600 p-1 rounded-full hover:bg-rose-50 transition-colors"
+                                >
+                                  <FiTrash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => onRemoveFromCart(item._id)}
-                            className="text-rose-400 hover:text-rose-600 p-1.5 rounded-full hover:bg-rose-50 transition-colors"
-                          >
-                            <FiTrash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                        {currentQty >= maxStock && maxStock > 0 && (
-                          <p className="text-xs text-amber-600 mt-1">Max stock reached</p>
+                        );
+                      })}
+                    </div>
+
+                    {/* Pharmacy Subtotal & Delivery */}
+                    <div className="mt-3 pt-2 border-t border-gray-100 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">Subtotal</span>
+                        <span className="font-medium text-gray-700">Rs. {group.subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">Delivery Fee</span>
+                        {group.deliveryFee === 0 ? (
+                          <span className="text-emerald-600 font-medium">FREE</span>
+                        ) : (
+                          <span className="font-medium text-gray-700">Rs. {group.deliveryFee.toFixed(2)}</span>
                         )}
                       </div>
+                      {group.deliveryFee > 0 && group.freeDeliveryThreshold > group.subtotal && (
+                        <div className="bg-blue-50 rounded-md p-1.5 mt-1">
+                          <p className="text-xs text-[#2c6774]">
+                            Add Rs. {(group.freeDeliveryThreshold - group.subtotal).toFixed(2)} more for FREE delivery
+                          </p>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm font-semibold pt-1 border-t border-gray-200">
+                        <span className="text-gray-800">Pharmacy Total</span>
+                        <span className="text-[#2c6774]">Rs. {(group.subtotal + group.deliveryFee).toFixed(2)}</span>
+                      </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
 
-              <div className="border-t border-gray-100 pt-4 space-y-3">
+              {/* Grand Total */}
+              <div className="border-t border-gray-200 pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal</span>
-                  <span className="font-semibold text-gray-800">Rs. {subtotal.toFixed(2)}</span>
+                  <span className="text-gray-500">Total Delivery Fees</span>
+                  <span className="font-semibold text-gray-800">Rs. {totalDeliveryFee.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Delivery Fee</span>
-                  {deliveryFee === 0 ? (
-                    <span className="text-emerald-600 font-semibold">FREE</span>
-                  ) : (
-                    <span className="font-semibold text-gray-800">Rs. {deliveryFee.toFixed(2)}</span>
-                  )}
-                </div>
-                {deliveryFee > 0 && freeDeliveryThreshold > subtotal && (
-                  <div className="bg-[#9fbfc5]/20 rounded-lg p-2">
-                    <p className="text-xs text-[#2c6774] flex items-center gap-1">
-                      <FiTruck className="w-3 h-3" />
-                      Add Rs. {(freeDeliveryThreshold - subtotal).toFixed(2)} more for FREE delivery
-                    </p>
-                  </div>
-                )}
-                <div className="flex justify-between pt-2 border-t border-gray-100">
-                  <span className="font-bold text-gray-800">Total</span>
-                  <span className="font-bold text-xl text-[#2c6774]">Rs. {finalTotal.toFixed(2)}</span>
+                <div className="flex justify-between pt-2 border-t border-gray-200">
+                  <span className="font-bold text-gray-800 text-lg">Grand Total</span>
+                  <span className="font-bold text-2xl text-[#2c6774]">Rs. {grandTotal.toFixed(2)}</span>
                 </div>
                 <button
                   onClick={() => { onClose(); onCheckout(); }}
