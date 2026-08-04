@@ -497,6 +497,116 @@ export default function BookingPage() {
     }
   };
 
+  // ==================== LOCAL SYNC FOR MY-LAB-TESTS / DASHBOARD ====================
+  // These bookings must show up immediately in MyLabTests.jsx and in the dashboard's
+  // stats/charts (Activity Overview + Service Distribution) without a refresh, the
+  // same way appointments and pharmacy orders already do. We mirror the storage key
+  // convention used by MyLabTests.jsx (`labTests_${userKey}`) and fire a
+  // `labTestsUpdated` window event so any mounted dashboard/listeners recalculate.
+
+  const getUserKey = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return (
+        user?.id ||
+        user?._id ||
+        user?.user?.id ||
+        user?.email ||
+        localStorage.getItem("userEmail") ||
+        "guest"
+      );
+    } catch (e) {
+      return "guest";
+    }
+  };
+
+  const persistLabTestBookings = (finalPatients, responseBooking, totalInfo) => {
+    try {
+      const userKey = getUserKey();
+      const storageKey = `labTests_${userKey}`;
+      const existing = JSON.parse(localStorage.getItem(storageKey) || "[]");
+
+      // Backend may return either a single booking object or a group of bookings
+      // (one per patient). Support both shapes defensively.
+      const backendBookings = Array.isArray(responseBooking?.bookings)
+        ? responseBooking.bookings
+        : [];
+
+      const newEntries = finalPatients.map((patient, index) => {
+        const backendMatch = backendBookings[index] || {};
+
+        const patientTests = patient.selectedTests
+          .map((testId) => tests.find((t) => t._id === testId))
+          .filter(Boolean);
+
+        const patientOriginal = patientTests.reduce(
+          (sum, t) => sum + Number(t.price || 0),
+          0,
+        );
+        const discount = lab?.discount || 0;
+        const patientFinal = Math.round(
+          patientOriginal - (patientOriginal * discount) / 100,
+        );
+
+        return {
+          _id:
+            backendMatch.bookingId ||
+            backendMatch._id ||
+            `local_${Date.now()}_${index}`,
+          bookingId: backendMatch.bookingId || backendMatch._id,
+          bookingReference:
+            backendMatch.bookingReference ||
+            responseBooking?.bookingReference ||
+            `LB${Date.now().toString().slice(-8)}${index}`,
+          bookingStatus: backendMatch.bookingStatus || "pending",
+          groupBooking: finalPatients.length > 1,
+          groupId: responseBooking?.groupId,
+          lab: lab
+            ? {
+                name: lab.name,
+                logo: lab.logo,
+                branches: lab.branches,
+                address: lab.address,
+              }
+            : undefined,
+          tests: patientTests.map((t) => ({ name: t.name, price: t.price })),
+          patientDetails: {
+            name: patient.details.name,
+            age: patient.details.age,
+            gender: patient.details.gender,
+            email: patient.details.email,
+            mobile: patient.details.mobile,
+            address: patient.details.address,
+          },
+          appointmentDetails: {
+            preferredDate: patient.details.appointmentDate
+              ? new Date(patient.details.appointmentDate).toISOString()
+              : undefined,
+            addressForCollection: patient.details.address,
+          },
+          totalAmount: patientFinal,
+          originalAmount: patientOriginal,
+          discountApplied: discount,
+          amountSaved: patientOriginal - patientFinal,
+          paymentStatus: totalInfo.final > 0 ? "pending" : "completed",
+          createdAt: new Date().toISOString(),
+        };
+      });
+
+      const updatedList = [...existing, ...newEntries];
+      localStorage.setItem(storageKey, JSON.stringify(updatedList));
+
+      // Let MyLabTests.jsx and UserDashboard.jsx know new bookings exist so they
+      // refresh their lists / stats / charts immediately.
+      window.dispatchEvent(new CustomEvent("labTestsUpdated"));
+
+      return newEntries;
+    } catch (err) {
+      console.error("Error persisting lab test bookings locally:", err);
+      return [];
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -568,6 +678,11 @@ export default function BookingPage() {
                               bookingData_result?.bookings?.[0]?._id;
       const groupId = bookingData_result?.groupId;
       const firstPatient = updatedPatients[0]?.details;
+
+      // Persist immediately to localStorage + notify dashboard/MyLabTests so the
+      // booking shows up right away, regardless of whether the user goes through
+      // the payment flow or gets a free booking confirmation.
+      persistLabTestBookings(updatedPatients, bookingData_result, total);
 
       // Navigate to payment page
       if (total.final > 0) {

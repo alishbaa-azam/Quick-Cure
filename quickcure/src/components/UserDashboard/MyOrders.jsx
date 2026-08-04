@@ -22,16 +22,56 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     return userId ? `medicineOrders_${userId}` : null;
   };
 
+  // ✅ SECURITY: Only keep orders that actually belong to the logged-in user.
+  // Checks every shape the owner id/email might appear under across your
+  // different order schemas (order-level, patient-level, patientInfo-level).
+  const filterOrdersForCurrentUser = (ordersList, user) => {
+    if (!Array.isArray(ordersList)) return [];
+
+    const userId = user?.id || user?._id;
+    const userEmail = (user?.email || '').toLowerCase().trim();
+
+    if (!userId && !userEmail) return [];
+
+    return ordersList.filter((order) => {
+      const orderUserId =
+        order.userId ||
+        order.user ||
+        order.user?._id ||
+        order.patient?.userId ||
+        order.patientInfo?.userId ||
+        order.createdBy;
+
+      if (orderUserId && userId && String(orderUserId) === String(userId)) {
+        return true;
+      }
+
+      const orderEmail = (
+        order.patient?.email ||
+        order.patientInfo?.email ||
+        order.userEmail ||
+        ''
+      ).toLowerCase().trim();
+
+      if (userEmail && orderEmail && orderEmail === userEmail) {
+        return true;
+      }
+
+      // No matching ownership signal found — exclude it rather than risk a leak.
+      return false;
+    });
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
-    
-    const localOrders = getLocalOrders();
-    
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const localOrders = getLocalOrders(user);
+
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
       const userId = user?.id || user?._id;
-      
+
       if (!userId) {
         if (localOrders.length > 0) {
           setOrders(localOrders);
@@ -42,9 +82,9 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
         setLoading(false);
         return;
       }
-      
+
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch(`${API_BASE_URL}/medicine-orders?userId=${userId}`, {
         method: 'GET',
         headers: {
@@ -52,9 +92,9 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
         let apiOrders = [];
         if (data.orders) {
@@ -64,21 +104,25 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
         } else if (Array.isArray(data)) {
           apiOrders = data;
         }
-        
+
+        // ✅ SECURITY FIX: never trust the API response blindly — filter to
+        // only orders that belong to the currently logged-in user.
+        apiOrders = filterOrdersForCurrentUser(apiOrders, user);
+
         const mergedOrders = mergeOrders(apiOrders, localOrders);
-        
-        // ✅ KEY FIX: Save merged orders back to localStorage so stats can read them
+
+        // Save merged (already-filtered) orders back to localStorage
         saveOrdersToLocal(mergedOrders);
-        
+
         setOrders(mergedOrders);
-        
+
         if (onStatsUpdate) {
           onStatsUpdate(mergedOrders.length);
         }
-        
+
         // Dispatch event so dashboard stats update
         window.dispatchEvent(new CustomEvent('ordersUpdated'));
-        
+
       } else {
         if (localOrders.length > 0) {
           setOrders(localOrders);
@@ -100,13 +144,16 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     }
   };
 
-  const getLocalOrders = () => {
+  const getLocalOrders = (user) => {
     try {
       const key = getOrdersKey();
       if (!key) return [];
       const savedOrders = localStorage.getItem(key);
       if (savedOrders) {
-        return JSON.parse(savedOrders);
+        const parsed = JSON.parse(savedOrders);
+        // ✅ SECURITY: filter even local cache, in case stale/incorrect
+        // data from another account ever ended up under this key.
+        return filterOrdersForCurrentUser(parsed, user);
       }
     } catch (error) {
       console.error('Error loading local orders:', error);
@@ -114,7 +161,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     return [];
   };
 
-  // ✅ NEW: Save orders to localStorage
+  // Save orders to localStorage
   const saveOrdersToLocal = (ordersToSave) => {
     try {
       const key = getOrdersKey();
@@ -127,30 +174,30 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
 
   const mergeOrders = (apiOrders, localOrders) => {
     const mergedMap = new Map();
-    
+
     // Add local orders first (they have more detail)
     localOrders.forEach(order => {
       const key = order.orderNumber || order._id || order.orderId;
       if (key) mergedMap.set(key, order);
     });
-    
+
     // Override/merge with API orders (they have latest status)
     apiOrders.forEach(order => {
       const key = order.orderNumber || order._id || order.orderId;
       if (key) {
         const existing = mergedMap.get(key);
         if (existing) {
-          mergedMap.set(key, { 
-            ...existing, 
-            ...order, 
-            cart: existing.cart || existing.items || existing.medicines || order.cart || order.items || order.medicines || [] 
+          mergedMap.set(key, {
+            ...existing,
+            ...order,
+            cart: existing.cart || existing.items || existing.medicines || order.cart || order.items || order.medicines || []
           });
         } else {
           mergedMap.set(key, order);
         }
       }
     });
-    
+
     return Array.from(mergedMap.values());
   };
 
@@ -158,12 +205,12 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     if (!window.confirm('Are you sure you want to cancel this order?')) {
       return;
     }
-    
+
     setCancellingId(orderId);
-    
+
     try {
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch(`${API_BASE_URL}/medicine-orders/${orderId}/cancel`, {
         method: 'PUT',
         headers: {
@@ -171,9 +218,9 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
         alert('Order cancelled successfully');
         await fetchOrders();
@@ -215,7 +262,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     };
 
     const config = statusConfig[status] || statusConfig.pending;
-    
+
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
         {config.label}
@@ -252,7 +299,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
       {error && (
         <div className="mx-6 mt-4 p-4 bg-red-50 rounded-lg">
           <p className="text-sm text-red-700">{error}</p>
-          <button 
+          <button
             onClick={fetchOrders}
             className="mt-2 text-sm font-medium text-red-700 hover:text-red-800"
           >
@@ -270,7 +317,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Orders Found</h3>
             <p className="text-sm text-gray-500 mb-4">You haven't placed any medicine orders yet</p>
-            <button 
+            <button
               className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition"
               style={{ backgroundColor: 'var(--primary-color)' }}
               onClick={() => window.location.href = '/pharmacies'}
@@ -281,7 +328,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <div 
+              <div
                 key={order._id || order.orderId || order.orderNumber}
                 className="border rounded-xl p-5 hover:shadow-md transition-shadow"
                 style={{ borderColor: 'var(--bg-light)' }}
@@ -320,7 +367,6 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
                   <div>
                     <p className="text-xs text-gray-500">Total Amount</p>
                     <p className="text-sm font-medium flex items-center mt-1">
-                      <FaRupeeSign className="mr-1 text-xs" style={{ color: 'var(--accent-color)' }} />
                       Rs.{order.totalAmount || order.finalAmount || order.total || 0}
                     </p>
                   </div>
@@ -360,7 +406,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
                   <p className="text-xs text-gray-500 mb-2">Medicines:</p>
                   <div className="flex flex-wrap gap-2">
                     {(order.items || order.medicines || order.cart || []).slice(0, 3).map((medicine, idx) => (
-                      <span 
+                      <span
                         key={idx}
                         className="px-2 py-1 text-xs rounded-full"
                         style={{ backgroundColor: 'var(--bg-light)', color: 'var(--secondary-color)' }}
@@ -378,10 +424,10 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-3 pt-3 border-t" style={{ borderColor: 'var(--bg-light)' }}>
-                  <button 
+                  <button
                     className="px-4 py-2 text-sm rounded-lg border transition flex items-center"
-                    style={{ 
-                      borderColor: 'var(--primary-color)', 
+                    style={{
+                      borderColor: 'var(--primary-color)',
                       color: 'var(--primary-color)',
                       backgroundColor: 'transparent'
                     }}
@@ -391,7 +437,7 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
                     View Details
                   </button>
                   {order.status !== 'delivered' && order.status !== 'cancelled' && order.status !== 'failed' && (
-                    <button 
+                    <button
                       className="px-4 py-2 text-sm rounded-lg text-white transition hover:opacity-90"
                       style={{ backgroundColor: 'var(--accent-color)' }}
                       onClick={() => handleCancelOrder(order._id || order.orderId)}
@@ -419,14 +465,14 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
               <h3 className="text-lg font-semibold" style={{ color: 'var(--secondary-color)' }}>
                 Order Details
               </h3>
-              <button 
+              <button
                 onClick={() => setShowDetailsModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-full"
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Order Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-light)' }}>
@@ -507,8 +553,8 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
                   {(selectedOrder.items || selectedOrder.medicines || selectedOrder.cart || []).map((medicine, idx) => (
                     <div key={idx} className="flex justify-between items-start p-3 border rounded-lg">
                       <div className="flex items-start space-x-3 flex-1">
-                        <img 
-                          src={medicine.image || 'https://via.placeholder.com/50'} 
+                        <img
+                          src={medicine.image || 'https://via.placeholder.com/50'}
                           alt={medicine.name}
                           className="w-12 h-12 object-contain rounded bg-gray-50"
                           onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/50'; }}

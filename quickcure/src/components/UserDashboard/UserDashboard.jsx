@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MyAppointments from './MyAppointments';
 import MyOrders from './MyOrders';
@@ -26,6 +26,21 @@ import {
 } from 'recharts';
 import logo from '../../images/logo.png';
 
+// Always a full, calendar-indexed (Jan-Dec) 12-month baseline.
+// This is the single source of truth for chart data — never store a
+// sliced/rolling-window array back into state, or index math breaks
+// when multiple async stat loaders write into it independently.
+const getEmptyMonthlyData = () => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return months.map(month => ({
+    month,
+    appointments: 0,
+    orders: 0,
+    labTests: 0,
+    prescriptions: 0
+  }));
+};
+
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -45,8 +60,13 @@ const UserDashboard = () => {
     prescriptions: 0
   });
   
-  const [monthlyData, setMonthlyData] = useState([]);
-  
+  // Canonical, always-12-month, calendar-indexed dataset (Jan..Dec).
+  // Each of the 4 stat loaders merges its counts into this by month
+  // index. The chart itself derives a rolling "last 6 months" view
+  // from this via useMemo below — that derived view is never written
+  // back into state.
+  const [fullMonthlyData, setFullMonthlyData] = useState(getEmptyMonthlyData);
+
   const loadingRef = useRef({
     appointments: false,
     orders: false,
@@ -358,6 +378,13 @@ const UserDashboard = () => {
 
   const loadAllStats = useCallback(async () => {
     setIsLoading(true);
+    // Reset the canonical chart dataset to a clean 12-month baseline
+    // before re-fetching. Without this, switching users (or simply
+    // re-running loadAllStats) would merge new counts on top of
+    // whatever was left over from the previous load/user, since each
+    // loader below only ever adds/overwrites — it never clears stale
+    // months on its own.
+    setFullMonthlyData(getEmptyMonthlyData());
     try {
       await Promise.all([
         loadAppointmentStats(),
@@ -411,21 +438,29 @@ const UserDashboard = () => {
 
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userKey = user?._id || user?.id || 'guest';
+      const userId = user?._id || user?.id;
+      const userEmail = user?.email;
       
+      if (!userId && !userEmail) {
+        setStats(prev => ({ ...prev, orders: 0 }));
+        loadingRef.current.orders = false;
+        return;
+      }
+
+      // Try to get orders from localStorage first
+      const userKey = userId || userEmail;
       const ordersKey = `medicineOrders_${userKey}`;
       let orders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
       
-      if (orders.length === 0) {
-        const altKey = user?.id ? `medicineOrders_${user._id}` : `medicineOrders_${user.id}`;
-        if (altKey !== ordersKey) {
-          orders = JSON.parse(localStorage.getItem(altKey) || '[]');
-        }
+      // If no orders found with userId key, try with email key
+      if (orders.length === 0 && userEmail) {
+        const emailKey = `medicineOrders_${userEmail}`;
+        orders = JSON.parse(localStorage.getItem(emailKey) || '[]');
       }
 
+      // Also try to fetch from API to get latest orders
       try {
         const token = localStorage.getItem('token');
-        const userId = user?.id || user?._id;
         if (token && userId) {
           const response = await fetch(`http://localhost:5000/api/medicine-orders?userId=${userId}`, {
             method: 'GET',
@@ -439,24 +474,40 @@ const UserDashboard = () => {
             const data = await response.json();
             let apiOrders = data.orders || data.data || (Array.isArray(data) ? data : []);
             
-            if (apiOrders.length > 0) {
+            // Filter API orders to only include those belonging to the current user
+            const userEmailLower = userEmail?.toLowerCase().trim();
+            const filteredApiOrders = apiOrders.filter(order => {
+              // Check if order belongs to current user
+              const orderUserId = order.userId || order.user || order.user?._id || 
+                                order.patient?.userId || order.patientInfo?.userId;
+              const orderEmail = (order.patient?.email || order.patientInfo?.email || '').toLowerCase().trim();
+              
+              return (orderUserId && userId && String(orderUserId) === String(userId)) ||
+                     (userEmailLower && orderEmail && orderEmail === userEmailLower);
+            });
+            
+            if (filteredApiOrders.length > 0) {
+              // Merge API orders with local orders
               const mergedMap = new Map();
               orders.forEach(order => {
                 const key = order.orderNumber || order._id || order.orderId;
                 if (key) mergedMap.set(key, order);
               });
-              apiOrders.forEach(order => {
+              filteredApiOrders.forEach(order => {
                 const key = order.orderNumber || order._id || order.orderId;
                 if (key) {
                   const existing = mergedMap.get(key);
                   if (existing) {
-                    mergedMap.set(key, { ...existing, ...order, cart: existing.cart || existing.items || order.cart || order.items || [] });
+                    mergedMap.set(key, { ...existing, ...order, 
+                      cart: existing.cart || existing.items || order.cart || order.items || [] 
+                    });
                   } else {
                     mergedMap.set(key, order);
                   }
                 }
               });
               orders = Array.from(mergedMap.values());
+              // Save merged orders back to localStorage with the correct key
               localStorage.setItem(ordersKey, JSON.stringify(orders));
             }
           }
@@ -465,17 +516,55 @@ const UserDashboard = () => {
         console.log('API orders fetch failed, using localStorage:', apiErr.message);
       }
 
-      const orderCount = orders.length;
+      // Count only orders that belong to the current user
+      let orderCount = orders.length;
 
-      setStats(prev => ({
-        ...prev,
-        orders: orderCount
-      }));
+      // If orders array is empty but there might be orders in other storage keys
+      if (orderCount === 0) {
+        // Check if there are orders stored with different keys
+        const allKeys = Object.keys(localStorage);
+        const orderKeys = allKeys.filter(key => key.startsWith('medicineOrders_'));
+        
+        for (const key of orderKeys) {
+          try {
+            const storedOrders = JSON.parse(localStorage.getItem(key) || '[]');
+            if (storedOrders.length > 0) {
+              // Filter orders for current user
+              const filteredOrders = storedOrders.filter(order => {
+                const orderUserId = order.userId || order.user || order.user?._id || 
+                                  order.patient?.userId || order.patientInfo?.userId;
+                const orderEmail = (order.patient?.email || order.patientInfo?.email || '').toLowerCase().trim();
+                
+                return (orderUserId && userId && String(orderUserId) === String(userId)) ||
+                       (userEmail?.toLowerCase().trim() && orderEmail && orderEmail === userEmail?.toLowerCase().trim());
+              });
+              
+              if (filteredOrders.length > 0) {
+                // Found orders for this user in another key, save them to the correct key
+                localStorage.setItem(ordersKey, JSON.stringify(filteredOrders));
+                orderCount = filteredOrders.length;
+                break;
+              }
+            }
+          } catch (e) {
+            console.error('Error checking order key:', e);
+          }
+        }
+      }
 
+      // Update the stats with the correct order count
+      setStats(prev => {
+        const newStats = { ...prev, orders: orderCount };
+        return newStats;
+      });
+
+      // Also update the monthly chart data
       const monthlyOrders = getMonthlyData(orders, 'orders');
       updateChartData(monthlyOrders, 'orders');
+
     } catch (error) {
       console.error('Error loading order stats:', error);
+      setStats(prev => ({ ...prev, orders: 0 }));
     } finally {
       loadingRef.current.orders = false;
     }
@@ -490,7 +579,49 @@ const UserDashboard = () => {
       const userKey = user?._id || user?.id || 'guest';
       
       const labTestsKey = `labTests_${userKey}`;
-      const labTests = JSON.parse(localStorage.getItem(labTestsKey) || '[]');
+      let labTests = JSON.parse(localStorage.getItem(labTestsKey) || '[]');
+
+      // Sync with the backend
+      try {
+        const token = localStorage.getItem('token');
+        const email = user?.email || localStorage.getItem('userEmail');
+
+        if (token && email) {
+          const response = await fetch(
+            `http://localhost:5000/api/bookings/patient/${encodeURIComponent(email)}`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              const apiBookings = data.allBookings || data.bookings || [];
+              if (apiBookings.length > 0) {
+                const mergedMap = new Map();
+                labTests.forEach((t) => {
+                  const key = t.bookingReference || t._id;
+                  if (key) mergedMap.set(key, t);
+                });
+                apiBookings.forEach((b) => {
+                  const key = b.bookingReference || b._id;
+                  if (key) mergedMap.set(key, b);
+                });
+                labTests = Array.from(mergedMap.values());
+                localStorage.setItem(labTestsKey, JSON.stringify(labTests));
+              }
+            }
+          }
+        }
+      } catch (apiErr) {
+        console.log('API lab tests fetch failed, using localStorage:', apiErr.message);
+      }
+
       const labTestCount = labTests.length;
 
       setStats(prev => ({
@@ -583,59 +714,38 @@ const UserDashboard = () => {
     }));
   };
 
+  // Merges one stat type's counts into the canonical 12-month,
+  // calendar-indexed dataset (Jan..Dec). `monthlyDataForType` is
+  // always a fresh 12-item array from getMonthlyData, so index-based
+  // merging against `fullMonthlyData` (also always 12 items) is safe
+  // — no more mismatched-length merges, no more dropped months.
   const updateChartData = useCallback((monthlyDataForType, type) => {
     if (!monthlyDataForType || monthlyDataForType.length === 0) return;
 
-    setMonthlyData(prevData => {
-      const newData = [...prevData];
-      
-      if (newData.length === 0) {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        months.forEach(month => {
-          newData.push({
-            month: month,
-            appointments: 0,
-            orders: 0,
-            labTests: 0,
-            prescriptions: 0
-          });
-        });
-      }
-
-      monthlyDataForType.forEach((item, index) => {
-        if (newData[index]) {
-          const updatedItem = { ...newData[index] };
-          
-          if (type === 'appointments') {
-            updatedItem.appointments = item.count;
-          } else if (type === 'orders') {
-            updatedItem.orders = item.count;
-          } else if (type === 'labTests') {
-            updatedItem.labTests = item.count;
-          } else if (type === 'prescriptions') {
-            updatedItem.prescriptions = item.count;
-          }
-          
-          if (!updatedItem.month) {
-            updatedItem.month = item.month;
-          }
-          
-          newData[index] = updatedItem;
-        }
+    setFullMonthlyData(prevData => {
+      return prevData.map((entry, index) => {
+        const item = monthlyDataForType[index];
+        if (!item) return entry;
+        return { ...entry, [type]: item.count };
       });
-      
-      const currentMonth = new Date().getMonth();
-      const last6Months = [];
-      for (let i = 5; i >= 0; i--) {
-        const monthIndex = (currentMonth - i + 12) % 12;
-        if (newData[monthIndex]) {
-          last6Months.push(newData[monthIndex]);
-        }
-      }
-      
-      return last6Months;
     });
   }, []);
+
+  // Derived "last 6 months" rolling view used by the chart. This is
+  // recomputed from the canonical fullMonthlyData on every change —
+  // it is never itself written back into state, so it can never
+  // desync or lose months across renders.
+  const monthlyData = useMemo(() => {
+    const currentMonth = new Date().getMonth();
+    const last6Months = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthIndex = (currentMonth - i + 12) % 12;
+      if (fullMonthlyData[monthIndex]) {
+        last6Months.push(fullMonthlyData[monthIndex]);
+      }
+    }
+    return last6Months;
+  }, [fullMonthlyData]);
 
   const updateAppointmentStats = useCallback((count) => {
     setStats(prev => ({ ...prev, appointments: count }));
@@ -643,8 +753,18 @@ const UserDashboard = () => {
   }, [loadAllStats]);
 
   const updateOrderStats = useCallback((count) => {
-    setStats(prev => ({ ...prev, orders: count }));
-    loadAllStats();
+    // Make sure we're updating the stats correctly
+    setStats(prev => {
+      // Only update if the count is different or to ensure it's set correctly
+      if (prev.orders !== count) {
+        return { ...prev, orders: count };
+      }
+      return prev;
+    });
+    // Also trigger a full stats reload to ensure everything is in sync
+    setTimeout(() => {
+      loadAllStats();
+    }, 100);
   }, [loadAllStats]);
 
   const updateLabTestStats = useCallback((count) => {

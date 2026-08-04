@@ -39,6 +39,20 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
     fetchLabTests();
   }, [refreshTrigger]);
 
+  // Listen for lab test bookings created/changed anywhere in the app (e.g. from
+  // BookingPage.jsx right after a booking is confirmed) and refresh immediately,
+  // even if this component doesn't get a new refreshTrigger prop.
+  useEffect(() => {
+    const handleLabTestsUpdated = () => {
+      fetchLabTests();
+    };
+
+    window.addEventListener('labTestsUpdated', handleLabTestsUpdated);
+    return () => {
+      window.removeEventListener('labTestsUpdated', handleLabTestsUpdated);
+    };
+  }, []);
+
   // Function to save to localStorage
   const saveToLocalStorage = (bookings) => {
     const userKey = getUserKey();
@@ -87,7 +101,8 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
       return;
     }
 
-    // First try to load from localStorage
+    // First try to load from localStorage so the UI is instantly populated
+    // (this is what makes a just-created booking show up immediately).
     const hasLocalData = loadFromLocalStorage();
     
     if (!email) {
@@ -98,7 +113,7 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
       return;
     }
 
-    // Try to fetch from API
+    // Then reconcile with the backend so the list reflects the database.
     try {
       console.log('Fetching from API:', `${API_BASE_URL}/bookings/patient/${encodeURIComponent(email)}`);
       
@@ -166,12 +181,28 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
             createdAt: booking.createdAt,
             updatedAt: booking.updatedAt
           }));
+
+          // Merge with any locally-persisted bookings that the backend hasn't
+          // returned yet (e.g. a booking made a split-second ago), so nothing
+          // "disappears" while the API catches up. Backend records win when
+          // both exist for the same reference/id.
+          const localBookings = JSON.parse(localStorage.getItem(`labTests_${userKey}`) || '[]');
+          const mergedMap = new Map();
+          localBookings.forEach((b) => {
+            const key = b.bookingReference || b._id;
+            if (key) mergedMap.set(key, b);
+          });
+          transformedBookings.forEach((b) => {
+            const key = b.bookingReference || b._id;
+            if (key) mergedMap.set(key, b);
+          });
+          const mergedBookings = Array.from(mergedMap.values());
           
-          setLabTests(transformedBookings);
-          saveToLocalStorage(transformedBookings);
+          setLabTests(mergedBookings);
+          saveToLocalStorage(mergedBookings);
           
           if (onStatsUpdate) {
-            onStatsUpdate(transformedBookings.length);
+            onStatsUpdate(mergedBookings.length);
           }
         } else if (!hasLocalData) {
           setError('No lab test bookings found.');
@@ -348,6 +379,10 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
         );
         setLabTests(updatedTests);
         saveToLocalStorage(updatedTests);
+
+        // Let the dashboard (Activity Overview / Service Distribution) know a
+        // booking changed so it can recompute stats.
+        window.dispatchEvent(new CustomEvent('labTestsUpdated'));
         
         setIsEditing(false);
         alert('Booking updated successfully!');
@@ -381,6 +416,8 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
 
       if (response.data.success) {
         await fetchLabTests();
+        // Notify the dashboard so counts/charts update immediately.
+        window.dispatchEvent(new CustomEvent('labTestsUpdated'));
         setShowDetailsModal(false);
         alert('Booking cancelled successfully!');
       } else {
