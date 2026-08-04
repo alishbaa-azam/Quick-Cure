@@ -380,28 +380,7 @@ export default function PatientsTab({ patients, reports, bookings, searchText, s
                       </div>
                     </div>
                     
-                    {/* <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleViewDetails(patient)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm"
-                        style={{ 
-                          backgroundColor: `${theme.primary}15`,
-                          color: theme.primary,
-                          border: `1px solid ${theme.primary}30`
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = `${theme.primary}25`;
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = `${theme.primary}15`;
-                          e.currentTarget.style.transform = 'translateY(0)';
-                        }}
-                      >
-                        <FiEye size={16} />
-                        View Booking
-                      </button>
-                    </div> */}
+                    
                   </div>
                 </div>
 

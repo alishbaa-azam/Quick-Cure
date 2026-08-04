@@ -11,6 +11,8 @@ import PatientsTab from './tabs/PatientsTab';
 import CollectionsTab from './tabs/CollectionsTab';
 import ReportsTab from './tabs/ReportsTab';
 import ProfileTab from './tabs/ProfileTab';
+import TechniciansTab from './tabs/TechniciansTab';
+import CitiesTab from './tabs/CitiesTab';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 axios.defaults.baseURL = API_BASE_URL;
@@ -35,6 +37,7 @@ export default function LabDashboard() {
   const [patients, setPatients] = useState([]);
   const [collections, setCollections] = useState([]);
   const [reports, setReports] = useState([]);
+  const [technicians, setTechnicians] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,7 +101,8 @@ export default function LabDashboard() {
         fetchBookings(userLab._id),
         fetchPatients(userLab._id),
         fetchCollections(userLab._id),
-        fetchReports(userLab._id)
+        fetchReports(userLab._id),
+        fetchTechnicians(userLab._id),
       ]);
       
     } catch (error) {
@@ -139,7 +143,6 @@ export default function LabDashboard() {
 
   const fetchCollections = async (labId) => {
     try {
-      //  Fetch all collections for this lab, not just today's
       const response = await axios.get(`/sample-collection/lab/${labId}`);
       setCollections(response.data.data || response.data || []);
     } catch (error) {
@@ -153,6 +156,15 @@ export default function LabDashboard() {
       setReports(response.data.data || response.data || []);
     } catch (error) {
       console.error('Error fetching reports:', error);
+    }
+  };
+
+  const fetchTechnicians = async (labId) => {
+    try {
+      const response = await axios.get(`/technicians/lab/${labId}`);
+      setTechnicians(response.data);
+    } catch (error) {
+      console.error('Error fetching technicians:', error);
     }
   };
 
@@ -195,6 +207,7 @@ export default function LabDashboard() {
       if (values.name) formData.append('name', values.name);
       if (values.branches) formData.append('branches', values.branches);
       if (values.discount !== undefined) formData.append('discount', values.discount.toString());
+      if (values.serviceCities) formData.append('serviceCities', JSON.stringify(values.serviceCities));
       if (logoFile) formData.append('logo', logoFile);
 
       await axios.put(`/labs/${lab._id}`, formData, {
@@ -213,18 +226,16 @@ export default function LabDashboard() {
   const handleScheduleCollection = async (data) => {
     if (!lab?._id) return alert("Lab information missing!");
     
-    //  Find the specific booking to extract required patient info
     const booking = bookings.find(b => b._id === data.bookingId);
     if (!booking) return alert("Selected booking not found!");
 
     try {
       setLoading(true);
       
-      //  Enrich payload with patient details the backend likely requires
       const payload = { 
         ...data, 
         labId: lab._id,
-        patientId: booking.patientDetails?._id, //  Send ObjectId, not email
+        patientId: booking.patientDetails?._id,
         collectionAddress: booking.patientDetails?.address 
       };
 
@@ -250,7 +261,6 @@ export default function LabDashboard() {
   const handleUpdateCollectionStatus = async (id, status) => {
     try {
       setLoading(true);
-      // Use PATCH or PUT based on your backend API for status updates
       await axios.patch(`/sample-collection/${id}/status`, { status });
       
       if (lab?._id) await fetchCollections(lab._id);
@@ -264,7 +274,7 @@ export default function LabDashboard() {
   };
 
   const handleDeleteReport = async (id) => {
-    if (window.confirm("Are you sure you want to delete this report? 🗑️")) {
+    if (window.confirm("Are you sure you want to delete this report?")) {
       try {
         setLoading(true);
         await axios.delete(`/reports/${id}`);
@@ -310,19 +320,17 @@ export default function LabDashboard() {
     }
   };
 
-  // Update booking status
+  // Update booking status with enhanced statuses
   const updateBookingStatus = async (id, status) => {
     if (!id) return alert("Booking ID is missing!");
     
     try {
       setLoading(true);
-      //  Use PATCH for partial updates and send both possible keys
       await axios.patch(`/bookings/${id}/status`, { 
         status: status, 
         bookingStatus: status 
       });
 
-      //  Simplified lab ID check
       if (lab?._id) await fetchBookings(lab._id);
       
       setIsBookingModalVisible(false);
@@ -334,6 +342,37 @@ export default function LabDashboard() {
     }
   };
 
+  // Assign technician to booking
+  const handleAssignTechnician = async (bookingId, technicianId) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(`/technicians/${technicianId}/assign`, { bookingId });
+      alert(` Technician assigned successfully! Email notification sent.`);
+      await fetchBookings(lab._id);
+      await fetchTechnicians(lab._id);
+      setIsBookingModalVisible(false);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Failed to assign technician. Please try again.';
+      alert(` ${errorMsg}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update service cities from Cities tab
+  const handleUpdateCities = async (cities) => {
+    try {
+      const formData = new FormData();
+      formData.append('serviceCities', JSON.stringify(cities));
+      await axios.put(`/labs/${lab._id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      await fetchLabData();
+    } catch (error) {
+      alert('Failed to update cities');
+    }
+  };
+
   // Patient Handlers
   const handleEditPatient = (patient) => {
     setEditingPatient(patient);
@@ -341,8 +380,6 @@ export default function LabDashboard() {
   };
 
   const handlePatientSubmit = async (values) => {
-    // In this derived system, editing a patient updates the latest booking info
-    // or can be extended to an actual patients collection update
     alert("Patient details updated successfully (Mock)");
     setIsPatientModalVisible(false);
     setEditingPatient(null);
@@ -351,7 +388,6 @@ export default function LabDashboard() {
   const handleDeletePatient = async (email) => {
     if (window.confirm("Are you sure you want to remove this patient and their history?")) {
       try {
-        // Implementation depends on backend, typically deleting by email or ID
         alert(`Patient ${email} removed from registry`);
         fetchLabData();
       } catch (error) {
@@ -383,23 +419,50 @@ export default function LabDashboard() {
     setFilteredBookings(filtered);
   }, [bookings, statusFilter, searchText, timeRange]);
 
-  // Stats
+  // Stats - using totalPatients > 1 for proper group booking detection
+  // Calculate today's active assignments per tech for accurate counts
+  const todayStart = dayjs().startOf('day');
+  const todayEnd = dayjs().endOf('day');
+
+  const getTodayAssignedCount = (techId) => {
+    return bookings.filter(b => {
+      if (b.assignedTechnician?.toString() !== techId?.toString()) return false;
+      const assignedAt = dayjs(b.assignedAt);
+      const isToday = assignedAt.isAfter(todayStart) && assignedAt.isBefore(todayEnd);
+      const isActive = ['assigned', 'sample_collected', 'in_lab', 'report_ready'].includes(b.bookingStatus);
+      return isToday && isActive;
+    }).length;
+  };
+
+  const totalSlotsToday = technicians.length * 6;
+  const usedSlotsToday = technicians.reduce((sum, t) => sum + getTodayAssignedCount(t._id), 0);
+  const availableSlotsToday = Math.max(0, totalSlotsToday - usedSlotsToday);
+
   const stats = {
     totalBookings: bookings.length,
     pendingBookings: bookings.filter(b => b.bookingStatus === 'pending').length,
     confirmedBookings: bookings.filter(b => b.bookingStatus === 'confirmed').length,
+    assignedBookings: bookings.filter(b => b.bookingStatus === 'assigned').length,
+    sampleCollected: bookings.filter(b => b.bookingStatus === 'sample_collected').length,
+    inLab: bookings.filter(b => b.bookingStatus === 'in_lab').length,
+    reportReady: bookings.filter(b => b.bookingStatus === 'report_ready').length,
+    delivered: bookings.filter(b => b.bookingStatus === 'delivered').length,
     completedBookings: bookings.filter(b => b.bookingStatus === 'completed').length,
     cancelledBookings: bookings.filter(b => b.bookingStatus === 'cancelled').length,
     totalRevenue: bookings.filter(b => b.bookingStatus === 'completed').reduce((sum, b) => sum + (b.totalAmount || 0), 0),
     totalTests: tests.length,
-    groupBookings: bookings.filter(b => b.groupBooking === true).length,
+    groupBookings: bookings.filter(b => b.totalPatients && b.totalPatients > 1).length,
+    activeTechnicians: technicians.filter(t => t.availability === 'available').length,
+    totalTechnicians: technicians.length,
+    techDailyUsed: usedSlotsToday,
+    techDailyTotal: totalSlotsToday,
+    techDailyAvailable: availableSlotsToday,
   };
 
   // Handlers
   const handleTestSubmit = async (values) => {
     setLoading(true);
     
-    // Clean payload: extract _id and send only data to prevent backend errors
     const { _id, ...data } = values;
     
     const success = _id 
@@ -441,15 +504,17 @@ export default function LabDashboard() {
   useEffect(() => {
     fetchLabData();
   }, []);
-const deleteBooking = async (id) => {
-  try {
-    await axios.delete(`/bookings/${id}`);
-    await fetchBookings(lab._id);
-    alert("Deleted successfully");
-  } catch (err) {
-    alert("Delete failed ");
-  }
-};
+
+  const deleteBooking = async (id) => {
+    try {
+      await axios.delete(`/bookings/${id}`);
+      await fetchBookings(lab._id);
+      alert("Deleted successfully");
+    } catch (err) {
+      alert("Delete failed");
+    }
+  };
+
   // Render tab content
   const renderTabContent = () => {
     switch(activeTab) {
@@ -488,10 +553,27 @@ const deleteBooking = async (id) => {
           timeRange={timeRange}
           setTimeRange={setTimeRange}
           onViewBooking={handleViewBooking}
-           onDeleteBooking={deleteBooking}
+          onDeleteBooking={deleteBooking}
+          technicians={technicians}
+          onAssignTechnician={handleAssignTechnician}
+        />;
+      case 'technicians':
+        return <TechniciansTab
+          lab={lab}
+          theme={theme}
+          technicians={technicians}
+          bookings={bookings}
+          onRefresh={() => fetchTechnicians(lab._id)}
+        />;
+      case 'cities':
+        return <CitiesTab
+          lab={lab}
+          theme={theme}
+          bookings={bookings}
+          technicians={technicians}
+          onUpdateCities={handleUpdateCities}
         />;
       case 'patients':
-        // derive unique patients from bookings to ensure they have appointments
         const patientsWithBookings = bookings.reduce((acc, b) => {
           if (b.patientDetails && b.patientDetails.email) {
             if (!acc.some(p => p.email === b.patientDetails.email)) {
@@ -549,16 +631,12 @@ const deleteBooking = async (id) => {
   if (loading && !lab) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        {/* <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-          <p style={{ color: theme.primary }}>Loading dashboard...</p>
-        </div> */}
         <div className="flex justify-center items-center min-h-[400px]">
-  <div className="text-center">
-    <div className="w-12 h-12 border-4 border-[var(--bg-light)] border-t-[var(--primary-color)] rounded-full animate-spin mx-auto mb-4"></div>
-    <p style={{ color: 'var(--primary-color)' }} className="font-medium">Loading dashboard...</p>
-  </div>
-</div>
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-[var(--bg-light)] border-t-[var(--primary-color)] rounded-full animate-spin mx-auto mb-4"></div>
+            <p style={{ color: 'var(--primary-color)' }} className="font-medium">Loading dashboard...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -606,6 +684,7 @@ const deleteBooking = async (id) => {
             <button 
               onClick={handleRefresh}
               className="p-2 rounded-full hover:bg-gray-100"
+              title="Refresh Data"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -637,11 +716,13 @@ const deleteBooking = async (id) => {
         isPatientModalVisible={isPatientModalVisible}
         setIsPatientModalVisible={setIsPatientModalVisible}
         editingPatient={editingPatient}
+        editingCollection={editingCollection}
         selectedBooking={selectedBooking}
         editingTest={editingTest}
         lab={lab}
         tests={tests}
         bookings={bookings}
+        technicians={technicians}
         logoFile={logoFile}
         setLogoFile={setLogoFile}
         theme={theme}
@@ -652,1645 +733,9 @@ const deleteBooking = async (id) => {
         onUpdateStatus={updateBookingStatus}
         onScheduleCollection={handleScheduleCollection}
         onReportSubmit={handleUploadReport}
+        onAssignTechnician={handleAssignTechnician}
         API_BASE_URL={API_BASE_URL}
       />
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState, useEffect } from 'react';
-// import { 
-//   Calendar, 
-//   Users, 
-//   FileText, 
-//   Activity, 
-//   User, 
-//   Plus, 
-//   Search, 
-//   Filter, 
-//   Download, 
-//   Eye, 
-//   CheckCircle, 
-//   Clock, 
-//   AlertCircle,
-//   BarChart3,
-//   Home,
-//   FlaskConical,
-//   CalendarDays,
-//   FolderOpen,
-//   Settings,
-//   LogOut,
-//   Menu,
-//   X
-// } from 'lucide-react';
-
-// // Mock Data
-// const initialPatients = [
-//   { id: 1, name: 'Sarah Johnson', age: 34, gender: 'Female', phone: '+1 234 567 8900', email: 'sarah.j@email.com', lastVisit: '2024-03-15' },
-//   { id: 2, name: 'Michael Chen', age: 45, gender: 'Male', phone: '+1 234 567 8901', email: 'michael.c@email.com', lastVisit: '2024-03-14' },
-//   { id: 3, name: 'Emily Rodriguez', age: 28, gender: 'Female', phone: '+1 234 567 8902', email: 'emily.r@email.com', lastVisit: '2024-03-10' },
-//   { id: 4, name: 'David Kim', age: 52, gender: 'Male', phone: '+1 234 567 8903', email: 'david.k@email.com', lastVisit: '2024-03-12' },
-// ];
-
-// const initialTests = [
-//   { id: 1, name: 'Complete Blood Count', code: 'CBC', price: 45, turnaround: '4 hours', category: 'Hematology' },
-//   { id: 2, name: 'Lipid Panel', code: 'LIPID', price: 65, turnaround: '6 hours', category: 'Chemistry' },
-//   { id: 3, name: 'Thyroid Function', code: 'TSH', price: 55, turnaround: '8 hours', category: 'Endocrinology' },
-//   { id: 4, name: 'Urinalysis', code: 'UA', price: 25, turnaround: '2 hours', category: 'Microbiology' },
-//   { id: 5, name: 'Vitamin D', code: 'VITD', price: 85, turnaround: '24 hours', category: 'Nutrition' },
-// ];
-
-// const initialBookings = [
-//   { id: 1, patientId: 1, patientName: 'Sarah Johnson', testId: 1, testName: 'Complete Blood Count', date: '2024-03-20', time: '10:00 AM', status: 'confirmed', paymentStatus: 'paid' },
-//   { id: 2, patientId: 2, patientName: 'Michael Chen', testId: 2, testName: 'Lipid Panel', date: '2024-03-20', time: '11:30 AM', status: 'pending', paymentStatus: 'unpaid' },
-//   { id: 3, patientId: 3, patientName: 'Emily Rodriguez', testId: 3, testName: 'Thyroid Function', date: '2024-03-21', time: '09:00 AM', status: 'confirmed', paymentStatus: 'paid' },
-//   { id: 4, patientId: 4, patientName: 'David Kim', testId: 4, testName: 'Urinalysis', date: '2024-03-19', time: '02:00 PM', status: 'completed', paymentStatus: 'paid' },
-// ];
-
-// const initialReports = [
-//   { id: 1, patientId: 1, patientName: 'Sarah Johnson', testId: 1, testName: 'Complete Blood Count', date: '2024-03-18', status: 'ready', fileUrl: '#', resultSummary: 'All values within normal range' },
-//   { id: 2, patientId: 4, patientName: 'David Kim', testId: 4, testName: 'Urinalysis', date: '2024-03-15', status: 'ready', fileUrl: '#', resultSummary: 'Normal findings, no abnormalities detected' },
-// ];
-
-// const AdminProfile = {
-//   name: 'Dr. Emily Watson',
-//   role: 'Lab Director',
-//   email: 'emily.watson@labsync.com',
-//   phone: '+1 (555) 123-4567',
-//   avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop',
-//   labName: 'LabSync Diagnostics',
-//   address: '123 Medical Center Blvd, Suite 200, San Francisco, CA 94105',
-// };
-
-// // Helper function to get status badge color
-// const StatusBadge = ({ status }) => {
-//   const colors = {
-//     confirmed: 'bg-green-100 text-green-800',
-//     pending: 'bg-yellow-100 text-yellow-800',
-//     completed: 'bg-blue-100 text-blue-800',
-//     cancelled: 'bg-red-100 text-red-800',
-//     ready: 'bg-emerald-100 text-emerald-800',
-//   };
-//   return (
-//     <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
-//       {status.charAt(0).toUpperCase() + status.slice(1)}
-//     </span>
-//   );
-// };
-
-// // Main Dashboard Component
-// function App() {
-//   const [activeTab, setActiveTab] = useState('dashboard');
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-//   const [patients, setPatients] = useState(initialPatients);
-//   const [tests, setTests] = useState(initialTests);
-//   const [bookings, setBookings] = useState(initialBookings);
-//   const [reports, setReports] = useState(initialReports);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [showAddModal, setShowAddModal] = useState(false);
-//   const [modalType, setModalType] = useState('');
-
-//   // Stats calculations
-//   const totalPatients = patients.length;
-//   const totalTests = tests.length;
-//   const todayBookings = bookings.filter(b => b.date === new Date().toISOString().split('T')[0]).length;
-//   const pendingReports = reports.filter(r => r.status !== 'ready').length;
-
-//   const navItems = [
-//     { id: 'dashboard', label: 'Dashboard', icon: Home },
-//     { id: 'tests', label: 'Tests', icon: FlaskConical },
-//     { id: 'bookings', label: 'Bookings', icon: CalendarDays },
-//     { id: 'patients', label: 'Patients', icon: Users },
-//     { id: 'reports', label: 'Reports', icon: FolderOpen },
-//     { id: 'profile', label: 'Profile', icon: User },
-//   ];
-
-//   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-//   // Filtered data based on search
-//   const filteredPatients = patients.filter(p => 
-//     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-//     p.email.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-  
-//   const filteredBookings = bookings.filter(b => 
-//     b.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-//     b.testName.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   // Dashboard Content
-//   const renderDashboard = () => (
-//     <div className="space-y-6">
-//       <h2 className="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Total Patients</p>
-//               <p className="text-3xl font-bold text-gray-800">{totalPatients}</p>
-//             </div>
-//             <div className="bg-blue-100 p-3 rounded-full">
-//               <Users className="w-6 h-6 text-blue-600" />
-//             </div>
-//           </div>
-//         </div>
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Available Tests</p>
-//               <p className="text-3xl font-bold text-gray-800">{totalTests}</p>
-//             </div>
-//             <div className="bg-purple-100 p-3 rounded-full">
-//               <FlaskConical className="w-6 h-6 text-purple-600" />
-//             </div>
-//           </div>
-//         </div>
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Today's Bookings</p>
-//               <p className="text-3xl font-bold text-gray-800">{todayBookings}</p>
-//             </div>
-//             <div className="bg-green-100 p-3 rounded-full">
-//               <Calendar className="w-6 h-6 text-green-600" />
-//             </div>
-//           </div>
-//         </div>
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Pending Reports</p>
-//               <p className="text-3xl font-bold text-gray-800">{pendingReports}</p>
-//             </div>
-//             <div className="bg-orange-100 p-3 rounded-full">
-//               <FileText className="w-6 h-6 text-orange-600" />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Bookings</h3>
-//           <div className="space-y-3">
-//             {bookings.slice(0, 3).map(booking => (
-//               <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-//                 <div>
-//                   <p className="font-medium text-gray-800">{booking.patientName}</p>
-//                   <p className="text-sm text-gray-500">{booking.testName} • {booking.date}</p>
-//                 </div>
-//                 <StatusBadge status={booking.status} />
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Reports</h3>
-//           <div className="space-y-3">
-//             {reports.slice(0, 3).map(report => (
-//               <div key={report.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-//                 <div>
-//                   <p className="font-medium text-gray-800">{report.patientName}</p>
-//                   <p className="text-sm text-gray-500">{report.testName} • {report.date}</p>
-//                 </div>
-//                 <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-//                   <Eye className="w-4 h-4" /> View
-//                 </button>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-
-//   // Tests Management
-//   const renderTests = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center">
-//         <h2 className="text-2xl font-bold text-gray-800">Test Catalog</h2>
-//         <button 
-//           onClick={() => { setModalType('test'); setShowAddModal(true); }}
-//           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
-//         >
-//           <Plus className="w-5 h-5" /> Add Test
-//         </button>
-//       </div>
-//       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-//         <table className="min-w-full divide-y divide-gray-200">
-//           <thead className="bg-gray-50">
-//             <tr>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test Name</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Turnaround</th>
-//             </tr>
-//           </thead>
-//           <tbody className="divide-y divide-gray-200">
-//             {tests.map(test => (
-//               <tr key={test.id} className="hover:bg-gray-50">
-//                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{test.name}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">{test.code}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">{test.category}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">${test.price}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">{test.turnaround}</td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//       </div>
-//     </div>
-//   );
-
-//   // Bookings Management
-//   const renderBookings = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center">
-//         <h2 className="text-2xl font-bold text-gray-800">Appointments & Bookings</h2>
-//         <button 
-//           onClick={() => { setModalType('booking'); setShowAddModal(true); }}
-//           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
-//         >
-//           <Plus className="w-5 h-5" /> New Booking
-//         </button>
-//       </div>
-//       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-//         <table className="min-w-full divide-y divide-gray-200">
-//           <thead className="bg-gray-50">
-//             <tr>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
-//             </tr>
-//           </thead>
-//           <tbody className="divide-y divide-gray-200">
-//             {filteredBookings.map(booking => (
-//               <tr key={booking.id} className="hover:bg-gray-50">
-//                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{booking.patientName}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">{booking.testName}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">{booking.date} at {booking.time}</td>
-//                 <td className="px-6 py-4"><StatusBadge status={booking.status} /></td>
-//                 <td className="px-6 py-4">
-//                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-//                     {booking.paymentStatus}
-//                   </span>
-//                 </td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//       </div>
-//     </div>
-//   );
-
-//   // Patients Management
-//   const renderPatients = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center">
-//         <h2 className="text-2xl font-bold text-gray-800">Patient Registry</h2>
-//         <button 
-//           onClick={() => { setModalType('patient'); setShowAddModal(true); }}
-//           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
-//         >
-//           <Plus className="w-5 h-5" /> Add Patient
-//         </button>
-//       </div>
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {filteredPatients.map(patient => (
-//           <div key={patient.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
-//             <div className="flex items-start justify-between">
-//               <div>
-//                 <h3 className="font-semibold text-gray-800 text-lg">{patient.name}</h3>
-//                 <p className="text-gray-500 text-sm">{patient.age} yrs • {patient.gender}</p>
-//                 <p className="text-gray-600 text-sm mt-2">{patient.email}</p>
-//                 <p className="text-gray-600 text-sm">{patient.phone}</p>
-//               </div>
-//               <div className="bg-blue-100 p-2 rounded-full">
-//                 <User className="w-5 h-5 text-blue-600" />
-//               </div>
-//             </div>
-//             <div className="mt-4 pt-4 border-t border-gray-100">
-//               <p className="text-xs text-gray-500">Last Visit: {patient.lastVisit}</p>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-
-//   // Reports Management
-//   const renderReports = () => (
-//     <div className="space-y-6">
-//       <h2 className="text-2xl font-bold text-gray-800">Lab Reports</h2>
-//       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-//         <table className="min-w-full divide-y divide-gray-200">
-//           <thead className="bg-gray-50">
-//             <tr>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Summary</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-//               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-//             </tr>
-//           </thead>
-//           <tbody className="divide-y divide-gray-200">
-//             {reports.map(report => (
-//               <tr key={report.id} className="hover:bg-gray-50">
-//                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{report.patientName}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">{report.testName}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500">{report.date}</td>
-//                 <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{report.resultSummary}</td>
-//                 <td className="px-6 py-4"><StatusBadge status={report.status} /></td>
-//                 <td className="px-6 py-4">
-//                   <button className="text-blue-600 hover:text-blue-800 flex items-center gap-1">
-//                     <Download className="w-4 h-4" /> PDF
-//                   </button>
-//                 </td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//       </div>
-//     </div>
-//   );
-
-//   // Profile Page
-//   const renderProfile = () => (
-//     <div className="max-w-4xl mx-auto space-y-6">
-//       <h2 className="text-2xl font-bold text-gray-800">Lab Profile</h2>
-//       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-//         <div className="p-8 border-b border-gray-100">
-//           <div className="flex items-center gap-6">
-//             <img src={AdminProfile.avatar} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-blue-100" />
-//             <div>
-//               <h3 className="text-2xl font-bold text-gray-800">{AdminProfile.name}</h3>
-//               <p className="text-blue-600 font-medium">{AdminProfile.role}</p>
-//               <p className="text-gray-500 mt-1">{AdminProfile.labName}</p>
-//             </div>
-//           </div>
-//         </div>
-//         <div className="p-8 space-y-4">
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//             <div>
-//               <label className="text-xs text-gray-500 uppercase font-semibold">Email Address</label>
-//               <p className="text-gray-800 mt-1">{AdminProfile.email}</p>
-//             </div>
-//             <div>
-//               <label className="text-xs text-gray-500 uppercase font-semibold">Phone Number</label>
-//               <p className="text-gray-800 mt-1">{AdminProfile.phone}</p>
-//             </div>
-//             <div className="md:col-span-2">
-//               <label className="text-xs text-gray-500 uppercase font-semibold">Lab Address</label>
-//               <p className="text-gray-800 mt-1">{AdminProfile.address}</p>
-//             </div>
-//           </div>
-//           <div className="pt-6 border-t border-gray-100">
-//             <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
-//               <Settings className="w-4 h-4" /> Edit Profile
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-
-//   // Modal for adding new entries
-//   const AddModal = () => {
-//     if (!showAddModal) return null;
-//     return (
-//       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-//         <div className="bg-white rounded-xl max-w-md w-full p-6">
-//           <h3 className="text-xl font-bold mb-4">Add New {modalType === 'patient' ? 'Patient' : modalType === 'test' ? 'Test' : 'Booking'}</h3>
-//           <div className="space-y-3">
-//             {modalType === 'patient' && (
-//               <>
-//                 <input type="text" placeholder="Full Name" className="w-full p-2 border rounded-lg" />
-//                 <input type="number" placeholder="Age" className="w-full p-2 border rounded-lg" />
-//                 <select className="w-full p-2 border rounded-lg"><option>Male</option><option>Female</option></select>
-//                 <input type="email" placeholder="Email" className="w-full p-2 border rounded-lg" />
-//                 <input type="tel" placeholder="Phone" className="w-full p-2 border rounded-lg" />
-//               </>
-//             )}
-//             {modalType === 'test' && (
-//               <>
-//                 <input type="text" placeholder="Test Name" className="w-full p-2 border rounded-lg" />
-//                 <input type="text" placeholder="Code" className="w-full p-2 border rounded-lg" />
-//                 <input type="text" placeholder="Category" className="w-full p-2 border rounded-lg" />
-//                 <input type="number" placeholder="Price" className="w-full p-2 border rounded-lg" />
-//               </>
-//             )}
-//             {modalType === 'booking' && (
-//               <>
-//                 <select className="w-full p-2 border rounded-lg"><option>Select Patient</option>{patients.map(p => <option key={p.id}>{p.name}</option>)}</select>
-//                 <select className="w-full p-2 border rounded-lg"><option>Select Test</option>{tests.map(t => <option key={t.id}>{t.name}</option>)}</select>
-//                 <input type="date" className="w-full p-2 border rounded-lg" />
-//                 <input type="time" className="w-full p-2 border rounded-lg" />
-//               </>
-//             )}
-//             <div className="flex gap-3 pt-4">
-//               <button onClick={() => setShowAddModal(false)} className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg">Cancel</button>
-//               <button onClick={() => setShowAddModal(false)} className="flex-1 bg-blue-600 text-white py-2 rounded-lg">Save</button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="flex h-screen bg-gray-50 font-sans">
-//       {/* Mobile menu button */}
-//       <button onClick={toggleSidebar} className="lg:hidden fixed top-4 left-4 z-20 bg-white p-2 rounded-lg shadow-md">
-//         {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-//       </button>
-
-//       {/* Sidebar */}
-//       <aside className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition duration-200 ease-in-out z-30 w-64 bg-white border-r border-gray-200 shadow-lg lg:shadow-none`}>
-//         <div className="flex flex-col h-full">
-//           <div className="p-6 border-b border-gray-200">
-//             <div className="flex items-center gap-3">
-//               <FlaskConical className="w-8 h-8 text-blue-600" />
-//               <span className="text-xl font-bold text-gray-800">LabSync Pro</span>
-//             </div>
-//             <p className="text-xs text-gray-500 mt-2">Diagnostic Management</p>
-//           </div>
-//           <nav className="flex-1 p-4 space-y-1">
-//             {navItems.map(item => (
-//               <button
-//                 key={item.id}
-//                 onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-//                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeTab === item.id ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
-//               >
-//                 <item.icon className="w-5 h-5" />
-//                 <span className="font-medium">{item.label}</span>
-//               </button>
-//             ))}
-//           </nav>
-//           <div className="p-4 border-t border-gray-200">
-//             <button className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition">
-//               <LogOut className="w-5 h-5" />
-//               <span className="font-medium">Logout</span>
-//             </button>
-//           </div>
-//         </div>
-//       </aside>
-
-//       {/* Main content */}
-//       <main className="flex-1 lg:ml-64 overflow-y-auto">
-//         <div className="p-6 md:p-8">
-//           {/* Search bar */}
-//           {(activeTab === 'patients' || activeTab === 'bookings') && (
-//             <div className="mb-6 relative">
-//               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-//               <input
-//                 type="text"
-//                 placeholder={`Search ${activeTab}...`}
-//                 value={searchTerm}
-//                 onChange={(e) => setSearchTerm(e.target.value)}
-//                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               />
-//             </div>
-//           )}
-          
-//           {activeTab === 'dashboard' && renderDashboard()}
-//           {activeTab === 'tests' && renderTests()}
-//           {activeTab === 'bookings' && renderBookings()}
-//           {activeTab === 'patients' && renderPatients()}
-//           {activeTab === 'reports' && renderReports()}
-//           {activeTab === 'profile' && renderProfile()}
-//         </div>
-//       </main>
-//       <AddModal />
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// src/components/LabDashboard/LabDashboard.jsx
-// import React, { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import axios from 'axios';
-// import dayjs from 'dayjs';
-// import { 
-//   Calendar, Users, FileText, Activity, User, Plus, Search, 
-//   Eye, CheckCircle, Clock, AlertCircle, Home, FlaskConical,
-//   CalendarDays, FolderOpen, Settings, LogOut, Menu, X,
-//   DollarSign, TrendingUp, Download, Filter, Edit, Trash2,
-//   ChevronRight, Bell, Star, Truck, FileCheck, ClipboardList
-// } from 'lucide-react';
-
-// const API_BASE_URL = 'http://localhost:5000/api';
-// axios.defaults.baseURL = API_BASE_URL;
-
-// // Status Badge Component
-// const StatusBadge = ({ status }) => {
-//   const colors = {
-//     confirmed: 'bg-green-100 text-green-800',
-//     pending: 'bg-yellow-100 text-yellow-800',
-//     completed: 'bg-blue-100 text-blue-800',
-//     cancelled: 'bg-red-100 text-red-800',
-//     'in-progress': 'bg-purple-100 text-purple-800',
-//     ready: 'bg-emerald-100 text-emerald-800',
-//     scheduled: 'bg-indigo-100 text-indigo-800'
-//   };
-//   return (
-//     <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
-//       {status?.charAt(0).toUpperCase() + status?.slice(1) || 'Unknown'}
-//     </span>
-//   );
-// };
-
-// // Main Dashboard Component
-// export default function LabDashboard() {
-//   const navigate = useNavigate();
-  
-//   // State
-//   const [lab, setLab] = useState(null);
-//   const [tests, setTests] = useState([]);
-//   const [bookings, setBookings] = useState([]);
-//   const [patients, setPatients] = useState([]);
-//   const [collections, setCollections] = useState([]);
-//   const [reports, setReports] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [activeTab, setActiveTab] = useState('dashboard');
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [showModal, setShowModal] = useState(false);
-//   const [modalType, setModalType] = useState('');
-//   const [editingItem, setEditingItem] = useState(null);
-//   const [formData, setFormData] = useState({});
-
-//   // Theme colors
-//   const theme = {
-//     primary: '#2c6774',
-//     secondary: '#174047',
-//     accent: '#5c878f',
-//     hover: '#1e4e56',
-//     bgLight: '#9fbfc5',
-//     textLight: '#c0d3dc',
-//     white: '#ffffff'
-//   };
-
-//   // Navigation items
-//   const navItems = [
-//     { id: 'dashboard', label: 'Dashboard', icon: Home },
-//     { id: 'tests', label: 'Tests', icon: FlaskConical },
-//     { id: 'bookings', label: 'Bookings', icon: CalendarDays },
-//     { id: 'patients', label: 'Patients', icon: Users },
-//     { id: 'collections', label: 'Collections', icon: Truck },
-//     { id: 'reports', label: 'Reports', icon: FolderOpen },
-//     { id: 'profile', label: 'Profile', icon: User },
-//   ];
-
-//   // Helper Functions
-//   const getCurrentUser = () => {
-//     try {
-//       const user = JSON.parse(localStorage.getItem("user"));
-//       return user;
-//     } catch (error) {
-//       console.error("Error parsing user:", error);
-//       return null;
-//     }
-//   };
-
-//   // API Functions
-//   const fetchLabData = async () => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       const currentUser = getCurrentUser();
-      
-//       if (!currentUser) {
-//         setError("Please login first");
-//         setLoading(false);
-//         return;
-//       }
-
-//       if (currentUser.role !== "lab") {
-//         setError("Access denied. Lab users only.");
-//         setLoading(false);
-//         return;
-//       }
-
-//       const { data: labs } = await axios.get("/labs");
-      
-//       const userLab = labs.find(lab => {
-//         const labUserId = lab.userId?._id || lab.userId;
-//         const currentUserId = currentUser._id || currentUser.id;
-//         return labUserId?.toString() === currentUserId?.toString();
-//       });
-
-//       if (!userLab) {
-//         setError("Lab not found");
-//         setLoading(false);
-//         return;
-//       }
-
-//       setLab(userLab);
-
-//       await Promise.all([
-//         fetchTests(userLab._id),
-//         fetchBookings(userLab._id),
-//         fetchPatients(userLab._id),
-//         fetchCollections(userLab._id),
-//         fetchReports(userLab._id)
-//       ]);
-      
-//     } catch (error) {
-//       console.error("Dashboard error:", error);
-//       setError(error.response?.data?.message || "Failed to load dashboard");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const fetchTests = async (labId) => {
-//     try {
-//       const response = await axios.get(`/tests/lab/${labId}`);
-//       setTests(response.data);
-//     } catch (error) {
-//       console.error('Failed to fetch tests:', error);
-//       setTests([]);
-//     }
-//   };
-
-//   const fetchBookings = async (labId) => {
-//     try {
-//       const response = await axios.get(`/bookings/lab/${labId}`);
-//       const sorted = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-//       setBookings(sorted);
-//     } catch (error) {
-//       console.error('Failed to fetch bookings:', error);
-//       setBookings([]);
-//     }
-//   };
-
-//   const fetchPatients = async (labId) => {
-//     try {
-//       const response = await axios.get(`/patients/lab/${labId}`);
-//       setPatients(response.data.data || response.data || []);
-//     } catch (error) {
-//       console.error('Error fetching patients:', error);
-//       setPatients([]);
-//     }
-//   };
-
-//   const fetchCollections = async (labId) => {
-//     try {
-//       const response = await axios.get(`/sample-collection/lab/${labId}/today`);
-//       setCollections(response.data.data || []);
-//     } catch (error) {
-//       console.error('Error fetching collections:', error);
-//       setCollections([]);
-//     }
-//   };
-
-//   const fetchReports = async (labId) => {
-//     try {
-//       const response = await axios.get(`/reports/lab/${labId}`);
-//       setReports(response.data.data || []);
-//     } catch (error) {
-//       console.error('Error fetching reports:', error);
-//       setReports([]);
-//     }
-//   };
-
-//   // CRUD Operations
-//   const createTest = async (values) => {
-//     try {
-//       await axios.post('/tests', { ...values, labId: lab._id });
-//       await fetchTests(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to create test:', error);
-//       return false;
-//     }
-//   };
-
-//   const updateTest = async (id, values) => {
-//     try {
-//       await axios.put(`/tests/${id}`, values);
-//       await fetchTests(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to update test:', error);
-//       return false;
-//     }
-//   };
-
-//   const deleteTest = async (id) => {
-//     try {
-//       await axios.delete(`/tests/${id}`);
-//       await fetchTests(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to delete test:', error);
-//       return false;
-//     }
-//   };
-
-//   const updateBookingStatus = async (id, status) => {
-//     try {
-//       await axios.put(`/bookings/${id}/status`, { status });
-//       await fetchBookings(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to update booking:', error);
-//       return false;
-//     }
-//   };
-
-//   const scheduleCollection = async (data) => {
-//     try {
-//       await axios.post('/sample-collection/schedule', { ...data, labId: lab._id });
-//       await fetchCollections(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to schedule collection:', error);
-//       return false;
-//     }
-//   };
-
-//   const uploadReport = async (formData) => {
-//     try {
-//       await axios.post('/reports/upload', formData, {
-//         headers: { 'Content-Type': 'multipart/form-data' }
-//       });
-//       await fetchReports(lab._id);
-//       return true;
-//     } catch (error) {
-//       console.error('Failed to upload report:', error);
-//       return false;
-//     }
-//   };
-
-//   // Stats calculations
-//   const stats = {
-//     totalPatients: patients.length,
-//     totalTests: tests.length,
-//     todayBookings: bookings.filter(b => dayjs(b.appointmentDetails?.preferredDate).isSame(dayjs(), 'day')).length,
-//     pendingBookings: bookings.filter(b => b.bookingStatus === 'pending').length,
-//     totalRevenue: bookings.filter(b => b.bookingStatus === 'completed').reduce((sum, b) => sum + (b.totalAmount || 0), 0),
-//     monthlyRevenue: bookings.filter(b => b.bookingStatus === 'completed' && dayjs(b.createdAt).isAfter(dayjs().subtract(30, 'days'))).reduce((sum, b) => sum + (b.totalAmount || 0), 0),
-//     pendingReports: reports.filter(r => r.status === 'pending').length,
-//     pendingCollections: collections.filter(c => c.status === 'scheduled').length
-//   };
-
-//   // Modal handlers
-//   const openModal = (type, item = null) => {
-//     setModalType(type);
-//     setEditingItem(item);
-//     if (item) {
-//       setFormData(item);
-//     } else {
-//       setFormData({});
-//     }
-//     setShowModal(true);
-//   };
-
-//   const closeModal = () => {
-//     setShowModal(false);
-//     setEditingItem(null);
-//     setFormData({});
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     let success = false;
-    
-//     if (modalType === 'test') {
-//       if (editingItem) {
-//         success = await updateTest(editingItem._id, formData);
-//       } else {
-//         success = await createTest(formData);
-//       }
-//     } else if (modalType === 'booking') {
-//       success = await updateBookingStatus(formData._id, formData.bookingStatus);
-//     } else if (modalType === 'collection') {
-//       success = await scheduleCollection(formData);
-//     } else if (modalType === 'report') {
-//       const reportFormData = new FormData();
-//       reportFormData.append('bookingId', formData.bookingId);
-//       reportFormData.append('testId', formData.testId);
-//       reportFormData.append('patientId', formData.patientId);
-//       if (formData.reportFile) reportFormData.append('reportFile', formData.reportFile);
-//       if (formData.reportData) reportFormData.append('reportData', JSON.stringify(formData.reportData));
-//       success = await uploadReport(reportFormData);
-//     }
-    
-//     if (success) closeModal();
-//   };
-
-//   // Filtered data
-//   const filteredPatients = patients.filter(p => 
-//     p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-//     p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//     p.mobile?.includes(searchTerm)
-//   );
-  
-//   const filteredBookings = bookings.filter(b => 
-//     b.patientDetails?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-//     b.bookingReference?.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   // Initialize
-//   useEffect(() => {
-//     fetchLabData();
-//   }, []);
-
-//   // Loading state
-//   if (loading) {
-//     return (
-//       <div className="flex h-screen items-center justify-center bg-gray-50">
-//         <div className="text-center">
-//           <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4 mx-auto"></div>
-//           <p className="text-gray-600">Loading dashboard...</p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Error state
-//   if (error) {
-//     return (
-//       <div className="flex h-screen items-center justify-center bg-gray-50">
-//         <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-lg text-center max-w-md">
-//           <p className="text-lg mb-4">{error}</p>
-//           <button 
-//             onClick={fetchLabData}
-//             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-//           >
-//             Try Again
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Dashboard Content
-//   const renderDashboard = () => (
-//     <div className="space-y-6">
-//       <div>
-//         <h2 className="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
-//         <p className="text-gray-500">Welcome back, {lab?.name}</p>
-//       </div>
-
-//       {/* Stats Grid */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Total Patients</p>
-//               <p className="text-3xl font-bold text-gray-800">{stats.totalPatients}</p>
-//             </div>
-//             <div className="bg-blue-100 p-3 rounded-full">
-//               <Users className="w-6 h-6 text-blue-600" />
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Available Tests</p>
-//               <p className="text-3xl font-bold text-gray-800">{stats.totalTests}</p>
-//             </div>
-//             <div className="bg-purple-100 p-3 rounded-full">
-//               <FlaskConical className="w-6 h-6 text-purple-600" />
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Today's Bookings</p>
-//               <p className="text-3xl font-bold text-gray-800">{stats.todayBookings}</p>
-//             </div>
-//             <div className="bg-green-100 p-3 rounded-full">
-//               <Calendar className="w-6 h-6 text-green-600" />
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-gray-500 text-sm">Pending Reports</p>
-//               <p className="text-3xl font-bold text-gray-800">{stats.pendingReports}</p>
-//             </div>
-//             <div className="bg-orange-100 p-3 rounded-full">
-//               <FileText className="w-6 h-6 text-orange-600" />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Revenue Row */}
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between mb-4">
-//             <h3 className="text-lg font-semibold text-gray-800">Revenue Overview</h3>
-//             <TrendingUp className="w-5 h-5 text-gray-400" />
-//           </div>
-//           <div className="space-y-4">
-//             <div>
-//               <p className="text-sm text-gray-500">Total Revenue (All Time)</p>
-//               <p className="text-3xl font-bold" style={{ color: theme.primary }}>₹{stats.totalRevenue.toLocaleString()}</p>
-//             </div>
-//             <div>
-//               <p className="text-sm text-gray-500">Last 30 Days</p>
-//               <p className="text-xl font-semibold text-gray-700">₹{stats.monthlyRevenue.toLocaleString()}</p>
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <div className="flex items-center justify-between mb-4">
-//             <h3 className="text-lg font-semibold text-gray-800">Booking Status</h3>
-//             <ClipboardList className="w-5 h-5 text-gray-400" />
-//           </div>
-//           <div className="space-y-3">
-//             <div className="flex justify-between items-center">
-//               <span className="text-sm text-gray-600">Pending</span>
-//               <span className="font-semibold text-yellow-600">{bookings.filter(b => b.bookingStatus === 'pending').length}</span>
-//             </div>
-//             <div className="flex justify-between items-center">
-//               <span className="text-sm text-gray-600">Confirmed</span>
-//               <span className="font-semibold text-green-600">{bookings.filter(b => b.bookingStatus === 'confirmed').length}</span>
-//             </div>
-//             <div className="flex justify-between items-center">
-//               <span className="text-sm text-gray-600">Completed</span>
-//               <span className="font-semibold text-blue-600">{bookings.filter(b => b.bookingStatus === 'completed').length}</span>
-//             </div>
-//             <div className="flex justify-between items-center">
-//               <span className="text-sm text-gray-600">Cancelled</span>
-//               <span className="font-semibold text-red-600">{bookings.filter(b => b.bookingStatus === 'cancelled').length}</span>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Recent Activity */}
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Bookings</h3>
-//           <div className="space-y-3">
-//             {bookings.slice(0, 5).map(booking => (
-//               <div key={booking._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-//                 <div>
-//                   <p className="font-medium text-gray-800">{booking.patientDetails?.name}</p>
-//                   <p className="text-sm text-gray-500">{booking.tests?.length} tests • {dayjs(booking.createdAt).format('DD MMM')}</p>
-//                 </div>
-//                 <StatusBadge status={booking.bookingStatus} />
-//               </div>
-//             ))}
-//             {bookings.length === 0 && (
-//               <p className="text-center text-gray-500 py-4">No bookings found</p>
-//             )}
-//           </div>
-//         </div>
-
-//         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-//           <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Reports</h3>
-//           <div className="space-y-3">
-//             {reports.slice(0, 5).map(report => (
-//               <div key={report._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-//                 <div>
-//                   <p className="font-medium text-gray-800">{report.patientId?.name || 'N/A'}</p>
-//                   <p className="text-sm text-gray-500">{report.testId?.name} • {dayjs(report.reportDate).format('DD MMM')}</p>
-//                 </div>
-//                 <StatusBadge status={report.status} />
-//               </div>
-//             ))}
-//             {reports.length === 0 && (
-//               <p className="text-center text-gray-500 py-4">No reports found</p>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-
-//   // Tests Management
-//   const renderTests = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center flex-wrap gap-4">
-//         <h2 className="text-2xl font-bold text-gray-800">Test Catalog</h2>
-//         <button 
-//           onClick={() => openModal('test')}
-//           className="px-4 py-2 text-white rounded-lg flex items-center gap-2 hover:opacity-90 transition"
-//           style={{ backgroundColor: theme.primary }}
-//         >
-//           <Plus className="w-5 h-5" /> Add Test
-//         </button>
-//       </div>
-      
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {tests.map(test => (
-//           <div key={test._id} className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-//             <div className="flex justify-between items-start mb-3">
-//               <div>
-//                 <h3 className="font-semibold text-gray-800 text-lg">{test.name}</h3>
-//                 <p className="text-sm text-gray-500">{test.description || 'No description'}</p>
-//               </div>
-//               <div className="flex gap-2">
-//                 <button onClick={() => openModal('test', test)} className="text-blue-600 hover:text-blue-800">
-//                   <Edit className="w-4 h-4" />
-//                 </button>
-//                 <button onClick={() => deleteTest(test._id)} className="text-red-600 hover:text-red-800">
-//                   <Trash2 className="w-4 h-4" />
-//                 </button>
-//               </div>
-//             </div>
-//             <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-//               <span className="text-sm text-gray-500">Price</span>
-//               <span className="text-xl font-bold" style={{ color: theme.primary }}>₹{test.price}</span>
-//             </div>
-//           </div>
-//         ))}
-//         {tests.length === 0 && (
-//           <div className="col-span-full text-center py-8 text-gray-500">No tests added yet</div>
-//         )}
-//       </div>
-//     </div>
-//   );
-
-//   // Bookings Management
-//   const renderBookings = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center flex-wrap gap-4">
-//         <h2 className="text-2xl font-bold text-gray-800">Appointments & Bookings</h2>
-//       </div>
-      
-//       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-//         <div className="overflow-x-auto">
-//           <table className="min-w-full divide-y divide-gray-200">
-//             <thead className="bg-gray-50">
-//               <tr>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tests</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-//               </tr>
-//             </thead>
-//             <tbody className="divide-y divide-gray-200">
-//               {filteredBookings.map(booking => (
-//                 <tr key={booking._id} className="hover:bg-gray-50">
-//                   <td className="px-6 py-4 text-sm font-mono font-medium text-gray-900">{booking.bookingReference}</td>
-//                   <td className="px-6 py-4">
-//                     <div className="font-medium text-gray-900">{booking.patientDetails?.name}</div>
-//                     <div className="text-xs text-gray-500">{booking.patientDetails?.mobile}</div>
-//                   </td>
-//                   <td className="px-6 py-4 text-sm text-gray-500">{booking.tests?.length} tests</td>
-//                   <td className="px-6 py-4 text-sm font-medium">₹{booking.totalAmount}</td>
-//                   <td className="px-6 py-4 text-sm text-gray-500">{dayjs(booking.appointmentDetails?.preferredDate).format('DD MMM YYYY')}</td>
-//                   <td className="px-6 py-4">
-//                     <select
-//                       value={booking.bookingStatus}
-//                       onChange={async (e) => {
-//                         await updateBookingStatus(booking._id, e.target.value);
-//                       }}
-//                       className="px-2 py-1 text-xs rounded-full border-0 cursor-pointer"
-//                     >
-//                       <option value="pending">Pending</option>
-//                       <option value="confirmed">Confirmed</option>
-//                       <option value="completed">Completed</option>
-//                       <option value="cancelled">Cancelled</option>
-//                     </select>
-//                   </td>
-//                   <td className="px-6 py-4">
-//                     <button className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm">
-//                       <Eye className="w-4 h-4" /> View
-//                     </button>
-//                   </td>
-//                 </tr>
-//               ))}
-//               {filteredBookings.length === 0 && (
-//                 <tr>
-//                   <td colSpan="7" className="px-6 py-8 text-center text-gray-500">No bookings found</td>
-//                 </tr>
-//               )}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-//     </div>
-//   );
-
-//   // Patients Management
-//   const renderPatients = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center flex-wrap gap-4">
-//         <h2 className="text-2xl font-bold text-gray-800">Patient Registry</h2>
-//       </div>
-      
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {filteredPatients.map(patient => (
-//           <div key={patient._id || patient.email} className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-//             <div className="flex items-start justify-between">
-//               <div className="flex-1">
-//                 <h3 className="font-semibold text-gray-800 text-lg">{patient.name}</h3>
-//                 <p className="text-gray-500 text-sm">{patient.age || 'N/A'} yrs • {patient.gender || 'N/A'}</p>
-//                 <p className="text-gray-600 text-sm mt-2">{patient.email}</p>
-//                 <p className="text-gray-600 text-sm">{patient.mobile}</p>
-//               </div>
-//               <div className="bg-blue-100 p-2 rounded-full">
-//                 <User className="w-5 h-5 text-blue-600" />
-//               </div>
-//             </div>
-//             {patient.address && (
-//               <div className="mt-3 pt-3 border-t border-gray-100">
-//                 <p className="text-xs text-gray-500">Address: {patient.address}</p>
-//               </div>
-//             )}
-//           </div>
-//         ))}
-//         {filteredPatients.length === 0 && (
-//           <div className="col-span-full text-center py-8 text-gray-500">No patients found</div>
-//         )}
-//       </div>
-//     </div>
-//   );
-
-//   // Collections Management
-//   const renderCollections = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center flex-wrap gap-4">
-//         <h2 className="text-2xl font-bold text-gray-800">Sample Collections</h2>
-//         <button 
-//           onClick={() => openModal('collection')}
-//           className="px-4 py-2 text-white rounded-lg flex items-center gap-2 hover:opacity-90 transition"
-//           style={{ backgroundColor: theme.primary }}
-//         >
-//           <Plus className="w-5 h-5" /> Schedule Collection
-//         </button>
-//       </div>
-      
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {collections.map(collection => (
-//           <div key={collection._id} className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-//             <div className="flex justify-between items-start mb-3">
-//               <div>
-//                 <p className="text-xs text-gray-500">Tracking ID</p>
-//                 <p className="font-mono text-sm font-medium">{collection.trackingId}</p>
-//               </div>
-//               <StatusBadge status={collection.status} />
-//             </div>
-//             <div className="mb-3">
-//               <p className="text-xs text-gray-500">Patient</p>
-//               <p className="font-medium">{collection.patientId?.name}</p>
-//             </div>
-//             <div className="mb-3">
-//               <p className="text-xs text-gray-500">Schedule</p>
-//               <p className="text-sm">{dayjs(collection.scheduledDate).format('DD MMM YYYY')} • {collection.scheduledTimeSlot}</p>
-//             </div>
-//             <button className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1">
-//               <Eye className="w-4 h-4" /> View Details
-//             </button>
-//           </div>
-//         ))}
-//         {collections.length === 0 && (
-//           <div className="col-span-full text-center py-8 text-gray-500">No collections scheduled</div>
-//         )}
-//       </div>
-//     </div>
-//   );
-
-//   // Reports Management
-//   const renderReports = () => (
-//     <div className="space-y-6">
-//       <div className="flex justify-between items-center flex-wrap gap-4">
-//         <h2 className="text-2xl font-bold text-gray-800">Lab Reports</h2>
-//         <button 
-//           onClick={() => openModal('report')}
-//           className="px-4 py-2 text-white rounded-lg flex items-center gap-2 hover:opacity-90 transition"
-//           style={{ backgroundColor: theme.primary }}
-//         >
-//           <Plus className="w-5 h-5" /> Upload Report
-//         </button>
-//       </div>
-      
-//       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-//         <div className="overflow-x-auto">
-//           <table className="min-w-full divide-y divide-gray-200">
-//             <thead className="bg-gray-50">
-//               <tr>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Report #</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-//               </tr>
-//             </thead>
-//             <tbody className="divide-y divide-gray-200">
-//               {reports.map(report => (
-//                 <tr key={report._id} className="hover:bg-gray-50">
-//                   <td className="px-6 py-4 text-sm font-mono font-medium text-gray-900">{report.reportNumber}</td>
-//                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{report.patientId?.name || 'N/A'}</td>
-//                   <td className="px-6 py-4 text-sm text-gray-500">{report.testId?.name || 'N/A'}</td>
-//                   <td className="px-6 py-4 text-sm text-gray-500">{dayjs(report.reportDate).format('DD MMM YYYY')}</td>
-//                   <td className="px-6 py-4"><StatusBadge status={report.status} /></td>
-//                   <td className="px-6 py-4">
-//                     <button className="text-blue-600 hover:text-blue-800 flex items-center gap-1">
-//                       <Download className="w-4 h-4" /> PDF
-//                     </button>
-//                   </td>
-//                 </tr>
-//               ))}
-//               {reports.length === 0 && (
-//                 <tr>
-//                   <td colSpan="6" className="px-6 py-8 text-center text-gray-500">No reports found</td>
-//                 </tr>
-//               )}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-//     </div>
-//   );
-
-//   // Profile Page
-//   const renderProfile = () => (
-//     <div className="max-w-4xl mx-auto space-y-6">
-//       <h2 className="text-2xl font-bold text-gray-800">Lab Profile</h2>
-      
-//       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-//         <div className="p-8 border-b border-gray-100">
-//           <div className="flex items-center gap-6">
-//             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center" style={{ backgroundColor: lab?.logo ? 'transparent' : theme.bgLight }}>
-//               {lab?.logo ? (
-//                 <img src={`${API_BASE_URL}/uploads/${lab.logo}`} alt={lab.name} className="w-full h-full object-cover" />
-//               ) : (
-//                 <FlaskConical className="w-10 h-10 text-white" />
-//               )}
-//             </div>
-//             <div>
-//               <h3 className="text-2xl font-bold text-gray-800">{lab?.name || 'Lab Name'}</h3>
-//               <p className="text-blue-600 font-medium">Lab Manager</p>
-//               <p className="text-gray-500 mt-1">Lab ID: {lab?._id}</p>
-//             </div>
-//           </div>
-//         </div>
-        
-//         <div className="p-8 space-y-4">
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//             <div>
-//               <label className="text-xs text-gray-500 uppercase font-semibold">Lab Name</label>
-//               <p className="text-gray-800 mt-1">{lab?.name || 'N/A'}</p>
-//             </div>
-//             <div>
-//               <label className="text-xs text-gray-500 uppercase font-semibold">Branches</label>
-//               <p className="text-gray-800 mt-1">{lab?.branches || 'N/A'}</p>
-//             </div>
-//             <div>
-//               <label className="text-xs text-gray-500 uppercase font-semibold">Discount</label>
-//               <p className="text-gray-800 mt-1">{lab?.discount || 0}%</p>
-//             </div>
-//             <div>
-//               <label className="text-xs text-gray-500 uppercase font-semibold">Member Since</label>
-//               <p className="text-gray-800 mt-1">{lab?.createdAt ? dayjs(lab.createdAt).format('DD MMM YYYY') : 'N/A'}</p>
-//             </div>
-//           </div>
-          
-//           <div className="pt-6 border-t border-gray-100">
-//             <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
-//               <Settings className="w-4 h-4" /> Edit Profile
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-
-//   // Modal Component
-//   const Modal = () => {
-//     if (!showModal) return null;
-
-//     return (
-//       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-//         <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-//           <div className="p-6">
-//             <h3 className="text-xl font-bold mb-4">
-//               {modalType === 'test' && (editingItem ? 'Edit Test' : 'Add New Test')}
-//               {modalType === 'collection' && 'Schedule Collection'}
-//               {modalType === 'report' && 'Upload Report'}
-//             </h3>
-            
-//             <form onSubmit={handleSubmit} className="space-y-4">
-//               {modalType === 'test' && (
-//                 <>
-//                   <input
-//                     type="text"
-//                     placeholder="Test Name"
-//                     value={formData.name || ''}
-//                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     required
-//                   />
-//                   <textarea
-//                     placeholder="Description"
-//                     value={formData.description || ''}
-//                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-//                     rows={3}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                   />
-//                   <input
-//                     type="number"
-//                     placeholder="Price"
-//                     value={formData.price || ''}
-//                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     required
-//                   />
-//                 </>
-//               )}
-
-//               {modalType === 'collection' && (
-//                 <>
-//                   <select
-//                     value={formData.bookingId || ''}
-//                     onChange={(e) => setFormData({ ...formData, bookingId: e.target.value })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     required
-//                   >
-//                     <option value="">Select Booking</option>
-//                     {bookings.filter(b => b.bookingStatus === 'confirmed').map(booking => (
-//                       <option key={booking._id} value={booking._id}>
-//                         {booking.bookingReference} - {booking.patientDetails?.name}
-//                       </option>
-//                     ))}
-//                   </select>
-//                   <input
-//                     type="date"
-//                     placeholder="Collection Date"
-//                     value={formData.scheduledDate || ''}
-//                     onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     required
-//                   />
-//                   <select
-//                     value={formData.scheduledTimeSlot || 'morning'}
-//                     onChange={(e) => setFormData({ ...formData, scheduledTimeSlot: e.target.value })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                   >
-//                     <option value="morning">Morning (9 AM - 12 PM)</option>
-//                     <option value="afternoon">Afternoon (12 PM - 3 PM)</option>
-//                     <option value="evening">Evening (3 PM - 6 PM)</option>
-//                   </select>
-//                 </>
-//               )}
-
-//               {modalType === 'report' && (
-//                 <>
-//                   <select
-//                     value={formData.bookingId || ''}
-//                     onChange={(e) => setFormData({ ...formData, bookingId: e.target.value })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     required
-//                   >
-//                     <option value="">Select Booking</option>
-//                     {bookings.map(booking => (
-//                       <option key={booking._id} value={booking._id}>
-//                         {booking.bookingReference} - {booking.patientDetails?.name}
-//                       </option>
-//                     ))}
-//                   </select>
-//                   <select
-//                     value={formData.testId || ''}
-//                     onChange={(e) => setFormData({ ...formData, testId: e.target.value })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     required
-//                   >
-//                     <option value="">Select Test</option>
-//                     {tests.map(test => (
-//                       <option key={test._id} value={test._id}>{test.name}</option>
-//                     ))}
-//                   </select>
-//                   <input
-//                     type="file"
-//                     onChange={(e) => setFormData({ ...formData, reportFile: e.target.files[0] })}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     accept=".pdf,.jpg,.png"
-//                   />
-//                   <textarea
-//                     placeholder="Report Summary"
-//                     value={formData.reportData || ''}
-//                     onChange={(e) => setFormData({ ...formData, reportData: e.target.value })}
-//                     rows={3}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                   />
-//                 </>
-//               )}
-
-//               <div className="flex gap-3 pt-4">
-//                 <button type="button" onClick={closeModal} className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition">
-//                   Cancel
-//                 </button>
-//                 <button type="submit" className="flex-1 text-white py-2 rounded-lg hover:opacity-90 transition" style={{ backgroundColor: theme.primary }}>
-//                   {editingItem ? 'Update' : 'Save'}
-//                 </button>
-//               </div>
-//             </form>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="flex h-screen bg-gray-50 font-sans">
-//       {/* Mobile menu button */}
-//       <button 
-//         onClick={() => setSidebarOpen(!sidebarOpen)} 
-//         className="lg:hidden fixed top-4 left-4 z-20 bg-white p-2 rounded-lg shadow-md"
-//       >
-//         {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-//       </button>
-
-//       {/* Sidebar */}
-//       <aside className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition duration-200 ease-in-out z-30 w-64 bg-white border-r border-gray-200 shadow-lg lg:shadow-none`}>
-//         <div className="flex flex-col h-full">
-//           <div className="p-6 border-b border-gray-200">
-//             <div className="flex items-center gap-3">
-//               <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: theme.primary }}>
-//                 <FlaskConical className="w-5 h-5 text-white" />
-//               </div>
-//               <div>
-//                 <span className="text-xl font-bold text-gray-800">LabSync Pro</span>
-//                 <p className="text-xs text-gray-500">Diagnostic Management</p>
-//               </div>
-//             </div>
-//           </div>
-          
-//           <nav className="flex-1 p-4 space-y-1">
-//             {navItems.map(item => (
-//               <button
-//                 key={item.id}
-//                 onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-//                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-//                   activeTab === item.id ? 'text-white' : 'text-gray-600 hover:bg-gray-100'
-//                 }`}
-//                 style={activeTab === item.id ? { backgroundColor: theme.primary } : {}}
-//               >
-//                 <item.icon className="w-5 h-5" />
-//                 <span className="font-medium">{item.label}</span>
-//               </button>
-//             ))}
-//           </nav>
-          
-//           <div className="p-4 border-t border-gray-200">
-//             <button 
-//               onClick={() => {
-//                 localStorage.removeItem('user');
-//                 navigate('/login');
-//               }}
-//               className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition"
-//             >
-//               <LogOut className="w-5 h-5" />
-//               <span className="font-medium">Logout</span>
-//             </button>
-//           </div>
-//         </div>
-//       </aside>
-
-//       {/* Main content */}
-//       <main className="flex-1 lg:ml-64 overflow-y-auto">
-//         <div className="p-6 md:p-8">
-//           {/* Search bar for patients and bookings */}
-//           {(activeTab === 'patients' || activeTab === 'bookings') && (
-//             <div className="mb-6 relative">
-//               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-//               <input
-//                 type="text"
-//                 placeholder={`Search ${activeTab}...`}
-//                 value={searchTerm}
-//                 onChange={(e) => setSearchTerm(e.target.value)}
-//                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               />
-//             </div>
-//           )}
-          
-//           {activeTab === 'dashboard' && renderDashboard()}
-//           {activeTab === 'tests' && renderTests()}
-//           {activeTab === 'bookings' && renderBookings()}
-//           {activeTab === 'patients' && renderPatients()}
-//           {activeTab === 'collections' && renderCollections()}
-//           {activeTab === 'reports' && renderReports()}
-//           {activeTab === 'profile' && renderProfile()}
-//         </div>
-//       </main>
-      
-//       <Modal />
-//     </div>
-//   );
-// }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
-import { FaMinus, FaPlus, FaBox, FaFlask } from 'react-icons/fa';
+import { FaMinus, FaPlus, FaBox, FaFlask, FaStore } from 'react-icons/fa';
+import { FiMinus, FiPlus, FiShoppingCart } from 'react-icons/fi';
 import { isRoleRestricted, getRestrictionMessage } from '../../utils/roleRestrictions';
 
 const MedicineCard = ({ medicine, context = 'all-medicines' }) => {
@@ -167,136 +168,171 @@ const MedicineCard = ({ medicine, context = 'all-medicines' }) => {
   };
 
   const isAggregatedView = context === 'all-medicines';
+  const maxStock = stockQty;
+  const isDisabled = isOutOfStock || isPharmacy || !isLoggedIn;
+
+  // Stock status
+  const getStockStatus = () => {
+    if (isOutOfStock) return { text: 'Out of Stock', color: 'bg-red-500 text-white' };
+    if (stockQty <= 5) return { text: 'Low Stock', color: 'bg-orange-500 text-white' };
+    return { text: 'In Stock', color: 'bg-green-500 text-white' };
+  };
+
+  const stockStatus = getStockStatus();
+  const hasDiscount = isDiscounted && discountPercentage > 0;
 
   return (
-    <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden hover:shadow transition-all duration-150 w-full max-w-[200px] mx-auto flex flex-col h-full">
+    <div className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       {/* Image Section */}
-      <div className="relative h-24 bg-gray-50 flex items-center justify-center flex-shrink-0">
+      <div className="relative h-36 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-3">
         <img
           src={medicine.image}
           alt={medicine.name}
-          className="w-full h-full object-cover"
+          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
           }}
         />
         
-        {isDiscounted && discountPercentage > 0 && (
-          <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
+        {hasDiscount && (
+          <div className="absolute top-2 left-2 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
             {discountPercentage}% OFF
           </div>
         )}
         
-        {isOutOfStock && (
-          <div className="absolute top-1 right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
-            Out of Stock
-          </div>
-        )}
+        <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm ${stockStatus.color}`}>
+          {stockStatus.text}
+        </div>
         
         {isAggregatedView && medicine.availableAtCount > 1 && (
-          <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
+          <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full shadow-sm">
             {medicine.availableAtCount} stores
           </div>
         )}
 
         {medicine.form && (
-          <div className={`absolute bottom-1 right-1 text-white text-[10px] px-1.5 py-0.5 rounded font-medium flex items-center gap-1 ${isTablet ? 'bg-purple-500' : 'bg-green-500'}`}>
-            {isTablet ? <FaBox className="w-2.5 h-2.5" /> : <FaFlask className="w-2.5 h-2.5" />}
-            {medicine.form}
+          <div className="absolute bottom-2 right-2">
+            {isTablet && (
+              <div className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                <FaBox className="w-3 h-3" /> {medicine.form}
+              </div>
+            )}
+            {isSyrup && (
+              <div className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                <FaFlask className="w-3 h-3" /> {medicine.form}
+              </div>
+            )}
           </div>
         )}
       </div>
       
-      {/* Info Section */}
-      <div className="p-2 flex flex-col flex-1">
-        <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 mb-0.5">
+      {/* Content Section */}
+      <div className="p-3">
+        <h3 className="font-bold text-gray-800 line-clamp-1 text-sm">
           {medicine.name}
         </h3>
         
         {medicine.genericName && (
-          <p className="text-[10px] text-gray-500 line-clamp-1 mb-1">
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
             {medicine.genericName}
           </p>
         )}
-
-        {/* Price */}
-        <div className="flex items-center gap-1 mb-1">
-          <span className="text-sm font-bold text-green-600">
+        
+        {/* Pharmacy Name */}
+        {(medicine.pharmacyName || (medicine.availableAt && medicine.availableAt.length > 0)) && (
+          <div className="flex items-center gap-1 mt-1 text-xs text-gray-600">
+            <FaStore className="w-3 h-3 text-[#2c6774]" />
+            <span className="line-clamp-1 font-bold">
+              {medicine.pharmacyName || medicine.availableAt[0]?.pharmacyName || 'Pharmacy'}
+            </span>
+          </div>
+        )}
+        
+        {/* Description */}
+        {medicine.description && (
+          <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+            {medicine.description}
+          </p>
+        )}
+        
+        {/* Price Section */}
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-lg font-bold text-[#2c6774]">
             Rs. {finalPrice.toFixed(2)}
           </span>
-          {isDiscounted && (
-            <span className="text-[10px] text-gray-500 line-through">
+          {hasDiscount && (
+            <span className="text-xs text-gray-400 line-through">
               Rs. {originalPrice.toFixed(2)}
             </span>
           )}
         </div>
-        
-        {/* Form-specific info */}
-        {isTablet && (
-          <div className="text-[8px] text-gray-500 mb-1 flex items-center gap-1 bg-purple-50 p-1 rounded">
-            <FaBox className="w-2.5 h-2.5 text-purple-600" />
-            <span className="font-medium">{getTabletsPerStrip()} tabs/strip</span>
-          </div>
-        )}
 
-        {isSyrup && (
-          <div className="text-[8px] text-gray-500 mb-1 flex items-center gap-1 bg-blue-50 p-1 rounded">
-            <FaFlask className="w-2.5 h-2.5 text-blue-600" />
-            <span className="font-medium">{medicine.volume || '60ml'}</span>
-          </div>
-        )}
-
-        {/* Stock indicator */}
-        {!isOutOfStock && (
-          <p className="text-[9px] text-gray-400 mb-1">
-            {stockQty <= 5 ? `Only ${stockQty} left` : 'In Stock'}
-          </p>
-        )}
+        {/* Medicine Details Chips */}
+        <div className="flex flex-wrap gap-1 mt-2">
+          {isTablet && (
+            <span className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">
+              {getTabletsPerStrip()} tabs/strip
+            </span>
+          )}
+          {isSyrup && (
+            <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
+              {medicine.volume || '60ml'}
+            </span>
+          )}
+          {!isOutOfStock && (
+            <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+              Stock: {stockQty}
+            </span>
+          )}
+        </div>
         
-        {/* Add to Cart / Quantity Controls */}
-        <div className="mt-auto">
+        {/* Action Section */}
+        <div className="flex gap-2 mt-3">
           {!isOutOfStock && isInCart ? (
-            <div className="flex items-center border border-[var(--primary-color)] rounded overflow-hidden">
+            // Show + - buttons when item is in cart
+            <div className="flex-1 flex items-center border border-[#2c6774] rounded-lg overflow-hidden bg-white">
               <button
                 onClick={handleDecrement}
-                className="w-8 h-7 bg-[var(--primary-color)] text-white flex items-center justify-center hover:bg-[var(--secondary-color)] transition-colors"
+                className="w-8 h-8 bg-[#f0f6f7] hover:bg-[#e0eaec] flex items-center justify-center transition-colors"
               >
-                <FaMinus size={10} />
+                <FiMinus className="w-3 h-3 text-[#2c6774]" />
               </button>
-              <span className="flex-1 text-center text-xs font-semibold text-[var(--primary-color)]">
+              <div className="flex-1 text-center font-semibold text-[#2c6774] text-sm">
                 {currentCartQty}
-              </span>
+              </div>
               <button
                 onClick={handleIncrement}
-                disabled={currentCartQty >= stockQty}
-                className="w-8 h-7 bg-[var(--primary-color)] text-white flex items-center justify-center hover:bg-[var(--secondary-color)] disabled:opacity-50 transition-colors"
+                disabled={currentCartQty >= maxStock}
+                className={`w-8 h-8 bg-[#f0f6f7] hover:bg-[#e0eaec] flex items-center justify-center transition-colors ${
+                  currentCartQty >= maxStock ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                <FaPlus size={10} />
+                <FiPlus className="w-3 h-3 text-[#2c6774]" />
               </button>
             </div>
           ) : (
-            <div className="flex gap-1">
-              <button
-                onClick={handleAddToCart}
-                disabled={isOutOfStock || isPharmacy}
-                className={`flex-1 py-1.5 text-[10px] font-medium rounded transition-colors ${
-                  isOutOfStock || isPharmacy
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)]'
-                }`}
-              >
-                {isOutOfStock ? 'Out of Stock' : isPharmacy ? 'Not Allowed' : 'Add to Cart'}
-              </button>
-              
-              <Link
-                to={isAggregatedView ? `/medicine/${encodeURIComponent(medicine.name)}` : `/medicine/${medicine._id || medicine.id}`}
-                className="bg-gray-100 text-gray-700 py-1.5 px-2 rounded hover:bg-gray-200 transition-colors text-[10px] font-medium text-center"
-              >
-                Detail
-              </Link>
-            </div>
+            // Show Add to Cart button when not in cart
+            <button
+              onClick={handleAddToCart}
+              disabled={isDisabled}
+              className={`flex-1 py-2 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-1 ${
+                isDisabled 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-[#2c6774] text-white hover:bg-[#1e4e56] active:scale-95 shadow-sm hover:shadow'
+              }`}
+            >
+              <FiShoppingCart className="w-3.5 h-3.5" />
+              {isOutOfStock ? 'Out of Stock' : isPharmacy ? 'Not Allowed' : 'Add to Cart'}
+            </button>
           )}
+          
+          <Link
+            to={isAggregatedView ? `/medicine/${encodeURIComponent(medicine.name)}` : `/medicine/${medicine._id || medicine.id}`}
+            className="px-3 py-2 rounded-lg font-medium text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors whitespace-nowrap"
+          >
+            Details
+          </Link>
         </div>
       </div>
     </div>

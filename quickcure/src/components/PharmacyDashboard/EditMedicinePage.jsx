@@ -9,7 +9,7 @@ import { pharmacyAPI } from '../../services/pharmacyAPI';
 
 const EditMedicinePage = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { medicineId: id } = useParams();
   const location = useLocation();
   const outletContext = useOutletContext();
   const [loading, setLoading] = useState(false);

@@ -47,18 +47,19 @@ import MedicinePage from "./components/Pharmacy/MedicinePage";
 import MedicineDetail from "./components/Pharmacy/MedicineDetail";
 import MedicineBooking from "./components/Pharmacy/MedicineBooking";
 import PharmacyRegistration from "./components/Registration/PharmacyRegistration";
+// import OrderHistory from './components/Pharmacy/OrderHistory';
 
 // Dashboard Components (NEW STRUCTURE) - ACTIVATED
-import PharmacyDashboardLayout from './components/Dashboard/PharmacyDashboardLayout.jsx';
-import DashboardHome from './components/Dashboard/DashboardHome.jsx';
-import CategoriesPage from './components/Dashboard/CategoriesPage.jsx';
-import ProductsPage from './components/Dashboard/ProductsPage.jsx';
-import SalesPage from './components/Dashboard/SalesPage.jsx';
-import OrdersPage from './components/Dashboard/OrdersPage.jsx';
-import SettingsPage from './components/Dashboard/SettingsPage.jsx';
-import AddMedicinePage from './components/Dashboard/AddMedicinePage';
-import EditMedicinePage from './components/Dashboard/EditMedicinePage';
-import ViewMedicinePage from './components/Dashboard/ViewMedicinePage.jsx';
+import PharmacyDashboardLayout from './components/PharmacyDashboard/PharmacyDashboardLayout.jsx';
+import DashboardHome from './components/PharmacyDashboard/DashboardHome.jsx';
+import CategoriesPage from './components/PharmacyDashboard/CategoriesPage.jsx';
+import ProductsPage from './components/PharmacyDashboard/ProductsPage.jsx';
+import SalesPage from './components/PharmacyDashboard/SalesPage.jsx';
+import OrdersPage from './components/PharmacyDashboard/OrdersPage.jsx';
+import SettingsPage from './components/PharmacyDashboard/SettingsPage.jsx';
+import AddMedicinePage from './components/PharmacyDashboard/AddMedicinePage';
+import EditMedicinePage from './components/PharmacyDashboard/EditMedicinePage';
+import ViewMedicinePage from './components/PharmacyDashboard/ViewMedicinePage.jsx';
 import AboutPage from './components/AboutUs.jsx';
 import PaymentPage from './components/Payment/PaymentPage';
 
@@ -74,6 +75,14 @@ import AdminPaymentsPage from './components/AdminDashboard/PaymentsPage';
 import AdminReportsPage from './components/AdminDashboard/ReportsPage';
 import AdminSettingsPage from './components/AdminDashboard/SettingsPage';
 import RegistrationRequestsPage from './components/AdminDashboard/RegistrationRequestsPage';
+
+// Technician Dashboard
+import TechnicianLayout from './components/TechnicianDashboard/TechnicianLayout';
+import TechnicianDashboardHome from './components/TechnicianDashboard/TechnicianDashboardHome';
+import TodaysTasks from './components/TechnicianDashboard/TodaysTasks';
+import UpcomingTasks from './components/TechnicianDashboard/UpcomingTasks';
+import CompletedTasks from './components/TechnicianDashboard/CompletedTasks';
+import TechnicianProfile from './components/TechnicianDashboard/TechnicianProfile';
 
 import ScrollToTop from "./ScrollToTop";
 import ContactPage from './components/ContactPage.jsx';
@@ -101,6 +110,17 @@ function Layout() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/termspolicies" element={<TermsPolicyPage />} />
+        
+        {/* Technician Routes - Uses existing login page */}
+        <Route path="/technician" element={<TechnicianLayout />}>
+          <Route index element={<TechnicianDashboardHome />} />
+          <Route path="dashboard" element={<TechnicianDashboardHome />} />
+          <Route path="today" element={<TodaysTasks />} />
+          <Route path="upcoming" element={<UpcomingTasks />} />
+          <Route path="completed" element={<CompletedTasks />} />
+          <Route path="profile" element={<TechnicianProfile />} />
+        </Route>
+        
         <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboardHome />} />
         <Route path="dashboard" element={<AdminDashboardHome />} />
@@ -141,6 +161,7 @@ function Layout() {
        <Route path="/pharmacies/:id" element={<PharmacyDetailPage />} />
        <Route path="/medicines" element={<MedicinePage />} />
        <Route path="/medicine/:id" element={<MedicineDetail />} />
+       {/* <Route path="/orders" element={<OrderHistory />} /> */}
        <Route path="/booking" element={<MedicineBooking />} />
 
         <Route path="/payment" element={<PaymentPage />} />
@@ -152,9 +173,9 @@ function Layout() {
         }>
           <Route index element={<DashboardHome />} />
           <Route path="products" element={<ProductsPage />} />
-          <Route path="products/add" element={<AddMedicinePage />} />
-          <Route path="products/edit/:id" element={<EditMedicinePage />} />
-          <Route path="products/view/:id" element={<ViewMedicinePage />} />
+          <Route path="products/add" element={<AddMedicinePage />} /> // No change here
+          <Route path="products/edit/:medicineId" element={<EditMedicinePage />} />
+          <Route path="products/view/:medicineId" element={<ViewMedicinePage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="sales" element={<SalesPage />} />
           <Route path="categories" element={<CategoriesPage />} />

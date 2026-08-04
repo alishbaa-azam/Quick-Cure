@@ -1,15 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faShoppingCart, 
+  faSearch, 
+  faFolderOpen,
+  faTimes,
+  faPills,
+  faCheckCircle,
+  faTimesCircle,
+  faInfoCircle,
+  faFilter,
+  faSort,
+  faArrowLeft,
+  faArrowRight
+} from '@fortawesome/free-solid-svg-icons';
 import MedicineCard from './MedicineCard.jsx';
 import { useCart } from '../../contexts/CartContext';
+import CartSidebar from './CartSidebar.jsx';
 
 const MedicinePage = () => {
-  // USE CART CONTEXT
+  const navigate = useNavigate();
+  
   const { 
     cart, 
     setCart,
     addToCart,
+    updateQuantity,
+    removeFromCart,
     getTotalItemCount,
+    getCartSubtotal,
+    getCartDeliveryFee,
+    getCartTotal,
+    getPharmacySubtotal,
+    getDeliveryFeeForPharmacy,
+    pharmacyDeliveryCache,
+    calculateItemTotal,
+    isTabletForm,
+    isSyrupForm,
     isInitialized: cartInitialized
   } = useCart();
   
@@ -24,8 +52,8 @@ const MedicinePage = () => {
     inStockMedicines: 0
   });
   const [currentUser, setCurrentUser] = useState(null);
+  const [showCart, setShowCart] = useState(false);
 
-  // Get current user
   const getCurrentUser = () => {
     try {
       const userStr = localStorage.getItem('user');
@@ -38,7 +66,6 @@ const MedicinePage = () => {
     return null;
   };
 
-  // Initialize auth state
   useEffect(() => {
     const initializeAuth = () => {
       const user = getCurrentUser();
@@ -58,7 +85,6 @@ const MedicinePage = () => {
     };
   }, []);
 
-  // Fetch medicines from backend
   useEffect(() => {
     const fetchMedicines = async () => {
       try {
@@ -141,7 +167,6 @@ const MedicinePage = () => {
     fetchMedicines();
   }, [searchTerm, selectedCategory]);
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -174,9 +199,6 @@ const MedicinePage = () => {
   }, []);
 
   const handleAddToCart = (medicine) => {
-    console.log('MedicinePage: handleAddToCart called with:', medicine);
-    
-    // Get pharmacy ID
     let pharmacyId;
     
     if (medicine.pharmacyId) {
@@ -188,20 +210,35 @@ const MedicinePage = () => {
       return;
     }
     
-    // ✅ Use context addToCart directly
     addToCart(medicine, pharmacyId, { 
       quantity: medicine.selectedQuantity || 1, 
       quantityType: medicine.selectedQuantityType || 'unit',
       tabletQuantity: medicine.selectedTabletQuantity || null
     });
-    
-    console.log('MedicinePage: Added to cart via context');
   };
 
-  // Get cart item count from context
   const cartCount = getTotalItemCount();
+  
+  const handleCartUpdateQuantity = (item, newQuantity) => {
+    if (newQuantity < 1) {
+      removeFromCart(item._id, item.pharmacyId);
+    } else {
+      updateQuantity(item._id, item.pharmacyId, newQuantity);
+    }
+  };
+  
+  const handleCartRemoveFromCart = (medicineId) => {
+    const item = cart.find(i => i._id === medicineId || i.id === medicineId);
+    if (item) {
+      removeFromCart(medicineId, item.pharmacyId);
+    }
+  };
+  
+  const handleCartCheckout = () => {
+    setShowCart(false);
+    navigate('/booking');
+  };
 
-  // Loading state
   if (loading && medicines.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -212,7 +249,6 @@ const MedicinePage = () => {
     );
   }
 
-  // Error state
   if (error && medicines.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -231,111 +267,244 @@ const MedicinePage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header with Stats */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-(--primary-color)">All Medicines</h1>
-          <p className="text-gray-600 mt-1">
-            Browse medicines from all pharmacies
-            {stats.totalMedicines > 0 && (
-              <span className="ml-2 text-sm">
-                ({stats.inStockMedicines} in stock)
-              </span>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-6">
+        
+        {/* Header Section with Title and Cart Icon */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-[var(--primary-color)] flex items-center gap-2">
+                <FontAwesomeIcon icon={faPills} className="text-[var(--primary-color)]" />
+                All Medicines
+                <span className="text-sm font-normal text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  {stats.totalMedicines} available
+                </span>
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {stats.inStockMedicines} medicines in stock across all pharmacies
+              </p>
+            </div>
+            
+            {/* Cart Icon */}
+            <div className="relative">
+              <button
+                onClick={() => setShowCart(true)}
+                className="relative p-3 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                aria-label="Open cart"
+              >
+                <FontAwesomeIcon icon={faShoppingCart} className="w-7 h-7 text-[var(--primary-color)]" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Search & Filter Section - Now under the heading */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex flex-col md:flex-row gap-3">
+              {/* Search Bar */}
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Search medicines by name, generic name, or category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2.5 pl-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                />
+                <FontAwesomeIcon 
+                  icon={faSearch} 
+                  className="absolute left-3 top-3.5 text-gray-400"
+                />
+              </div>
+              
+              {/* Category Filter */}
+              {categories.length > 1 && (
+                <div className="md:w-68">
+{/* <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 hover:bg-white transition-all duration-200 cursor-pointer"
+                  >
+                    <option value="all brands">
+                      <FontAwesomeIcon icon={faFolderOpen} className="mr-2" />
+                      All Categories
+                    </option>
+                    {categories.filter(c => c !== 'all').map(category => (
+                      <option key={category} value={category}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </option>
+                    ))}
+                  </select>      
+                               */}
+                <select
+  value={selectedCategory}
+  onChange={(e) => setSelectedCategory(e.target.value)}
+  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 hover:bg-white transition-all duration-200 cursor-pointer"
+>
+  <option value="all" className="hover:bg-green-500 hover:text-white transition-colors duration-200">
+    <FontAwesomeIcon icon={faFolderOpen} className="mr-2" />
+    All Categories
+  </option>
+  {categories.filter(c => c !== 'all').map(category => (
+    <option 
+      key={category} 
+      value={category}
+      className="hover:bg-[var(--primary-color)] hover:text-white transition-colors duration-200 px-2 py-1"
+    >
+      {category.charAt(0).toUpperCase() + category.slice(1)}
+    </option>
+  ))}
+</select>
+                </div>
+              )}
+            </div>
+            
+            {/* Active Filters Display */}
+            {(searchTerm || selectedCategory !== 'all') && (
+              <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                <FontAwesomeIcon icon={faFilter} className="text-sm text-gray-400" />
+                <span className="text-sm text-gray-500">Active filters:</span>
+                {searchTerm && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                    Search: "{searchTerm}"
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="hover:text-blue-900 ml-1"
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="text-xs" />
+                    </button>
+                  </span>
+                )}
+                {selectedCategory !== 'all' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
+                    {selectedCategory}
+                    <button
+                      onClick={() => setSelectedCategory('all')}
+                      className="hover:text-purple-900 ml-1"
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="text-xs" />
+                    </button>
+                  </span>
+                )}
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('all');
+                  }}
+                  className="text-sm text-gray-400 hover:text-gray-600"
+                >
+                  Clear all
+                </button>
+              </div>
             )}
-          </p>
-        </div>
-        
-        {/* Search Bar */}
-        <div className="relative w-full md:w-auto md:flex-1 md:max-w-md">
-          <input
-            type="text"
-            placeholder="Search medicines..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent w-full"
-          />
-          <svg 
-            className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        
-        {/* Category Filter */}
-        {categories.length > 1 && (
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-white"
-          >
-            <option value="all">All Categories</option>
-            {categories.filter(c => c !== 'all').map(category => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </select>
-        )}
-        
-        {/* Cart Button */}
-        <div className="w-full md:w-auto">
-          <Link
-            to="/booking"
-            className={`bg-[var(--primary-color)] text-white px-6 py-2 rounded-lg hover:bg-[var(--secondary-color)] transition-colors inline-block w-full md:w-auto text-center ${
-              cartCount === 0 ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            View Cart ({cartCount})
-          </Link>
-        </div>
-      </div>
-
-      {/* Medicine Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {medicines.map(medicine => (
-          <MedicineCard
-            key={medicine._id}
-            medicine={medicine}
-            onAddToCart={handleAddToCart}
-          />
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {medicines.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-          </svg>
-          <p className="text-gray-500 text-lg">No medicines found</p>
-          {searchTerm && (
-            <p className="text-gray-400 mt-2">Try a different search term</p>
-          )}
-          {selectedCategory !== 'all' && (
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className="mt-4 text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-medium"
-            >
-              View all categories
-            </button>
-          )}
-        </div>
-      )}
-      
-      {/* Stats Footer */}
-      {stats.totalMedicines > 0 && medicines.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
-            <span>Total Medicines: {stats.totalMedicines}</span>
-            <span>In Stock: {stats.inStockMedicines}</span>
-            <span>Showing: {medicines.length} items</span>
           </div>
         </div>
-      )}
+
+        {/* Results Info */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-gray-600">
+            Showing <span className="font-semibold text-gray-800">{medicines.length}</span> medicines
+            {medicines.length > 0 && ` (${stats.inStockMedicines} in stock)`}
+          </p>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <FontAwesomeIcon icon={faSort} className="text-gray-400" />
+            <span>Sort by:</span>
+            <select className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
+              <option>Relevance</option>
+              <option>Name A-Z</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Medicine Grid */}
+        {medicines.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+            {medicines.map(medicine => (
+              <MedicineCard
+                key={medicine._id}
+                medicine={medicine}
+                context="all-medicines"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <FontAwesomeIcon icon={faPills} className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No medicines found</h3>
+            <p className="text-gray-500 mb-4">
+              {searchTerm || selectedCategory !== 'all' 
+                ? "Try adjusting your search or filter criteria"
+                : "No medicines are currently available"}
+            </p>
+            {(searchTerm || selectedCategory !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('all');
+                }}
+                className="px-6 py-2.5 bg-[var(--primary-color)] text-white rounded-lg hover:bg-[var(--secondary-color)] transition-colors"
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+        )}
+        
+        {/* Stats Footer */}
+        {stats.totalMedicines > 0 && medicines.length > 0 && (
+          <div className="mt-8 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-600">
+              {/* <div className="flex items-center gap-2">
+                <FontAwesomeIcon icon={faCheckCircle} className="text-green-500" />
+                <span>{stats.inStockMedicines} in stock</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FontAwesomeIcon icon={faTimesCircle} className="text-red-500" />
+                <span>{stats.totalMedicines - stats.inStockMedicines} out of stock</span>
+              </div> */}
+              <div className="border-l border-gray-200 pl-6">
+                <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 mr-1" />
+                Total: {stats.totalMedicines} medicines
+              </div>
+              <div className="border-l border-gray-200 pl-6">
+                Showing: {medicines.length} items
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Cart Sidebar */}
+        <CartSidebar
+          isOpen={showCart}
+          onClose={() => setShowCart(false)}
+          cartItems={cart}
+          cartItemCount={cartCount}
+          subtotal={getCartSubtotal()}
+          deliveryFee={getCartDeliveryFee(getCartSubtotal()).deliveryFee}
+          freeDeliveryThreshold={getCartDeliveryFee(getCartSubtotal()).freeDeliveryThreshold}
+          finalTotal={getCartTotal()}
+          onUpdateQuantity={handleCartUpdateQuantity}
+          onRemoveFromCart={handleCartRemoveFromCart}
+          onCheckout={handleCartCheckout}
+          getItemTotalPrice={calculateItemTotal}
+          getDisplayQuantity={(item) => {
+            const qty = item.quantity || 1;
+            if (isTabletForm(item.form)) return `${qty} strip${qty > 1 ? 's' : ''}`;
+            if (isSyrupForm(item.form)) return `${qty} bottle${qty > 1 ? 's' : ''}`;
+            return `${qty} unit${qty > 1 ? 's' : ''}`;
+          }}
+          isTabletForm={isTabletForm}
+          getPharmacySubtotal={getPharmacySubtotal}
+          getDeliveryFeeForPharmacy={getDeliveryFeeForPharmacy}
+          pharmacyDeliveryCache={pharmacyDeliveryCache}
+        />
+      </div>
     </div>
   );
 };

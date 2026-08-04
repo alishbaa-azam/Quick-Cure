@@ -257,6 +257,10 @@ export default function LoginPage({ onLogin }) {
     if (user?.role === "admin") {
       navigate("/admin/dashboard");
     } 
+    else if (user?.role === "technician") {
+      // Redirect technician to technician dashboard
+      navigate("/technician/dashboard");
+    }
     else if (user?.role === "doctor") {
       // Use doctorId if available, otherwise fall back to user ID
       const entityId = user?.doctorId || user?.id || user?._id;

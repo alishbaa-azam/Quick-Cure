@@ -14,6 +14,11 @@ body{
   --white: #ffffff;
 }
 
+::selection {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
 /* Responsive utility styles */
 @media (max-width: 640px) {
   .hide-scrollbar {

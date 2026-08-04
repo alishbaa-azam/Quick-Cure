@@ -25,7 +25,7 @@ export default function BookingPage() {
   const { id: labId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { patients: initialPatients } = location.state || {};
+  const { patients: initialPatients, selectedCity } = location.state || {};
 
   const isSubmitting = useRef(false);
   const [error, setError] = useState(null);
@@ -635,6 +635,7 @@ export default function BookingPage() {
       // Prepare booking data according to backend structure
       const bookingData = {
         labId,
+        serviceCity: selectedCity || '',
         patients: updatedPatients.map((patient) => ({
           testIds: patient.selectedTests,
           patientDetails: {

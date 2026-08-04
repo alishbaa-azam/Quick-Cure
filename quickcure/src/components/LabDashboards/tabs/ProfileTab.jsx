@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiUser, FiEdit2, FiDollarSign } from 'react-icons/fi';
+import { FiUser, FiEdit2, FiDollarSign, FiMapPin } from 'react-icons/fi';
 import { FaHospital, FaFlask, FaMapMarkerAlt } from 'react-icons/fa';
 
 export default function ProfileTab({ lab, stats, theme, onEditProfile }) {
@@ -50,6 +50,20 @@ export default function ProfileTab({ lab, stats, theme, onEditProfile }) {
                 <ProfileField label="Laboratory Name" value={lab.name} icon={FaHospital} />
                 <ProfileField label="Discount" value={`${lab.discount || 0}% OFF`} icon={FiDollarSign} />
                 <div className="sm:col-span-2"><ProfileField label="Branch Locations" value={lab.branches || 'No branches specified'} icon={FaMapMarkerAlt} /></div>
+                <div className="sm:col-span-2">
+                  <p className="text-sm text-gray-500 mb-1 flex items-center gap-1"><FiMapPin size={14} /> Service Cities</p>
+                  <div className="flex flex-wrap gap-2">
+                    {lab.serviceCities && lab.serviceCities.length > 0 ? (
+                      lab.serviceCities.map((city, i) => (
+                        <span key={i} className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-medium border border-teal-200">
+                          {city}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-400">No cities specified</span>
+                    )}
+                  </div>
+                </div>
                 <ProfileField label="Total Tests" value={safeStats.totalTests} icon={FaFlask} />
                 <ProfileField label="Total Revenue" value={`Rs.${safeStats.totalRevenue.toLocaleString()}`} icon={FiDollarSign} highlight />
                 <div className="sm:col-span-2">

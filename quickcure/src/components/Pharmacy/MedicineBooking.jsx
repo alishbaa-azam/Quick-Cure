@@ -3,7 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   FaArrowLeft, FaTrash, FaTimes, FaPlus, 
   FaMinus, FaCheckCircle, FaReceipt, FaHistory, FaExclamationCircle,
-  FaBox, FaBoxes, FaFlask, FaPills, FaBan
+  FaBox, FaBoxes, FaFlask, FaPills, FaBan, FaShoppingCart,
+  FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaStickyNote,
+  FaStore, FaTruck, FaWallet, FaCreditCard, FaShieldAlt
 } from 'react-icons/fa';
 import { useCart } from '../../contexts/CartContext';
 
@@ -40,7 +42,7 @@ const MedicineBooking = () => {
   const [pharmacies, setPharmacies] = useState([]);
   const [selectedPharmacy, setSelectedPharmacy] = useState(() => {
     const urlPharmacy = searchParams.get('pharmacy');
-    return urlPharmacy || 'all';
+    return urlPharmacy || null;
   });
   const [filteredCart, setFilteredCart] = useState([]);
   const [emailError, setEmailError] = useState('');
@@ -133,7 +135,7 @@ const MedicineBooking = () => {
   const getOrderPharmacyId = (orderItems) => {
     if (!orderItems || orderItems.length === 0) return null;
     
-    if (selectedPharmacy && selectedPharmacy !== 'all') {
+    if (selectedPharmacy) {
       return selectedPharmacy;
     }
     
@@ -149,9 +151,8 @@ const MedicineBooking = () => {
     return (item.quantity || 1) < maxStock;
   };
 
-  // ✅ FIXED: Simple stock validation - ONLY check stockQuantity, ignore inStock flag
   const validateStockWithBackend = async () => {
-    const itemsToValidate = selectedPharmacy === 'all' ? cart : filteredCart;
+    const itemsToValidate = filteredCart;
     
     if (!itemsToValidate || itemsToValidate.length === 0) {
       return false;
@@ -174,7 +175,6 @@ const MedicineBooking = () => {
           
           if (!response.ok) {
             console.error(`❌ API error for ${item.name}: ${response.status}`);
-            // If API fails, skip validation for this item
             continue;
           }
           
@@ -182,21 +182,17 @@ const MedicineBooking = () => {
           
           if (data.success && data.data) {
             const medicineData = data.data;
-            
-            // 🔥 FIXED: ONLY check stockQuantity, completely ignore inStock flag
             const currentStock = medicineData.stockQuantity || medicineData.stock || 0;
             const requestedQuantity = item.quantity || 1;
             
             console.log(`📦 ${item.name}: Stock=${currentStock}, Requested=${requestedQuantity}`);
             
-            // Only fail if actual stock is 0
             if (currentStock <= 0) {
               alert(`❌ ${item.name} is out of stock at the selected pharmacy!`);
               setValidatingStock(false);
               return false;
             }
             
-            // Check if requested quantity is available
             if (requestedQuantity > currentStock) {
               alert(`⚠️ Only ${currentStock} unit${currentStock > 1 ? 's' : ''} of ${item.name} available!\n\nYou requested: ${requestedQuantity}`);
               setValidatingStock(false);
@@ -207,7 +203,6 @@ const MedicineBooking = () => {
           }
         } catch (error) {
           console.error(`❌ Network error for ${item.name}:`, error);
-          // Continue with other items if one fails
         }
       }
       
@@ -216,7 +211,7 @@ const MedicineBooking = () => {
     } catch (error) {
       console.error('❌ Validation process error:', error);
       setValidatingStock(false);
-      return true; // Allow order if validation fails
+      return true;
     }
   };
 
@@ -337,8 +332,8 @@ const MedicineBooking = () => {
   const filterCartByPharmacy = (pharmacyId) => {
     const safeCart = cart || [];
     
-    if (pharmacyId === 'all') {
-      setFilteredCart(safeCart);
+    if (!pharmacyId) {
+      setFilteredCart([]);
       return;
     }
     
@@ -410,7 +405,10 @@ const MedicineBooking = () => {
     return calculateItemTotal(item);
   };
 
-  const subtotal = getCartSubtotal();
+  // Calculate subtotal from filtered cart only (selected pharmacy items)
+  const subtotal = filteredCart.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  
+  // Calculate delivery fee based on filtered cart subtotal
   const { deliveryFee, freeDeliveryThreshold } = getCartDeliveryFee(subtotal);
   const finalTotal = subtotal + deliveryFee;
 
@@ -592,6 +590,11 @@ const MedicineBooking = () => {
       return;
     }
     
+    if (!selectedPharmacy) {
+      alert('Please select a pharmacy to place your order.');
+      return;
+    }
+    
     if (patientInfo.email.trim()) {
       const error = validateEmail(patientInfo.email);
       if (error) {
@@ -600,12 +603,11 @@ const MedicineBooking = () => {
       }
     }
     
-    if (!cart || cart.length === 0) {
-      alert('Your cart is empty. Please add medicines before booking.');
+    if (!filteredCart || filteredCart.length === 0) {
+      alert('Your cart is empty for the selected pharmacy. Please add medicines before booking.');
       return;
     }
     
-    // ✅ Validate stock before placing order
     const isStockValid = await validateStockWithBackend();
     if (!isStockValid) {
       return;
@@ -614,7 +616,7 @@ const MedicineBooking = () => {
     setPlacingOrder(true);
     
     const orderNumber = generateUniqueOrderId();
-    const orderItems = selectedPharmacy === 'all' ? cart : filteredCart;
+    const orderItems = filteredCart;
     const orderPharmacyId = getOrderPharmacyId(orderItems);
     
     const orderData = {
@@ -655,12 +657,14 @@ const MedicineBooking = () => {
         localStorage.setItem(ordersKey, JSON.stringify(updatedOrders));
       }
       
-      // Store current order and navigate to payment
       const orderId = backendResult.order?._id || backendResult.order?.orderId || orderData.orderNumber;
       
       setCurrentOrder(orderData);
       
-      // Navigate to payment page
+      // Remove only the ordered items from cart (not the entire cart)
+      const updatedCart = cart.filter(item => !filteredCart.includes(item));
+      setCart(updatedCart);
+      
       if (finalTotal > 0) {
         navigate('/payment', {
           state: {
@@ -673,9 +677,7 @@ const MedicineBooking = () => {
           }
         });
       } else {
-        // Free order - show confirmation directly
         setShowOrderConfirmation(true);
-        clearCart();
       }
       
       setPatientInfo({
@@ -686,7 +688,7 @@ const MedicineBooking = () => {
         notes: ''
       });
       setEmailError('');
-      setSelectedPharmacy('all');
+      setSelectedPharmacy(null);
       
     } else {
       alert(`Failed to place order: ${backendResult.error}`);
@@ -719,10 +721,16 @@ const MedicineBooking = () => {
 
   if (!isInitialized || !cartInitialized) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your cart...</p>
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <FaPills className="w-6 h-6 text-[var(--primary-color)] animate-pulse" />
+            </div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading your cart...</p>
+          <p className="text-sm text-gray-400 mt-1">Please wait</p>
         </div>
       </div>
     );
@@ -730,16 +738,16 @@ const MedicineBooking = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 sm:p-8">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-100 flex items-center justify-center">
-            <FaExclamationCircle className="w-10 h-10 text-yellow-500" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/50">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center shadow-lg">
+            <FaExclamationCircle className="w-12 h-12 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">Login Required</h2>
-          <p className="text-gray-600 text-center mb-6">Please login to view your cart and place orders.</p>
+          <h2 className="text-3xl font-bold text-gray-800 text-center mb-3">Login Required</h2>
+          <p className="text-gray-600 text-center mb-8">Please login to view your cart and place orders.</p>
           <button
             onClick={() => navigate('/login', { state: { redirectTo: '/booking' } })}
-            className="w-full bg-[var(--primary-color)] text-white px-6 py-3 rounded-lg hover:bg-[var(--secondary-color)] transition-colors font-medium"
+            className="w-full bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] text-white px-6 py-4 rounded-2xl hover:shadow-lg transition-all duration-300 font-semibold text-lg"
           >
             Login to Continue
           </button>
@@ -750,18 +758,19 @@ const MedicineBooking = () => {
 
   if (safeCart.length === 0 && !showOrderConfirmation) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 sm:p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
-            <FaBox className="w-10 h-10 text-blue-500" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/50 text-center">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-lg">
+            <FaShoppingCart className="w-12 h-12 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-6">
-            Hello, {currentUser?.name || currentUser?.email?.split('@')[0] || 'there'}! Start adding medicines to your cart.
+          <h2 className="text-3xl font-bold text-gray-800 mb-3">Your cart is empty</h2>
+          <p className="text-gray-600 mb-8 text-lg">
+            Hello, <span className="font-semibold text-[var(--primary-color)]">{currentUser?.name || currentUser?.email?.split('@')[0] || 'there'}</span>!<br />
+            Start adding medicines to your cart.
           </p>
           <button
             onClick={() => navigate('/pharmacies')}
-            className="w-full bg-[var(--primary-color)] text-white px-6 py-3 rounded-lg hover:bg-[var(--secondary-color)] transition-colors font-medium"
+            className="w-full bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] text-white px-6 py-4 rounded-2xl hover:shadow-lg transition-all duration-300 font-semibold text-lg"
           >
             Browse Pharmacies
           </button>
@@ -773,14 +782,19 @@ const MedicineBooking = () => {
   const cartPharmacies = getUniquePharmaciesFromCart();
 
   return (
-    <div ref={formRef} className="container mx-auto px-4 py-8">
+    <div ref={formRef} className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
       {/* Stock Validation Loading Overlay */}
       {validatingStock && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-sm w-full mx-4">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-4 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin mb-4"></div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Verifying Stock</h3>
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-[var(--primary-color)] border-t-transparent rounded-full animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <FaPills className="w-6 h-6 text-[var(--primary-color)] animate-pulse" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mt-6 mb-2">Verifying Stock</h3>
               <p className="text-gray-600 text-center text-sm">
                 Checking real-time availability of medicines...
               </p>
@@ -789,374 +803,472 @@ const MedicineBooking = () => {
         </div>
       )}
 
+      {/* Order Confirmation Modal */}
       {showOrderConfirmation && currentOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaCheckCircle className="w-8 h-8 text-green-600" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-slideUp">
+            <div className="p-8">
+              <div className="text-center mb-8">
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center shadow-lg animate-bounce">
+                  <FaCheckCircle className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Order Confirmed!</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">Order Confirmed!</h2>
                 <p className="text-gray-600">Your order has been placed successfully</p>
               </div>
               
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                <div className="text-center mb-4">
-                  <p className="text-sm text-gray-500">Order Number</p>
-                  <p className="text-xl font-bold text-[var(--primary-color)]">{currentOrder.orderNumber}</p>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl mb-8 border border-gray-200/50">
+                <div className="text-center mb-6">
+                  <p className="text-sm text-gray-500 font-medium">Order Number</p>
+                  <p className="text-2xl font-bold bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] bg-clip-text text-transparent">
+                    {currentOrder.orderNumber}
+                  </p>
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Patient Name:</span>
-                    <span className="font-medium">{currentOrder.patientInfo.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Phone:</span>
-                    <span className="font-medium">{currentOrder.patientInfo.phone}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal:</span>
-                    <span className="font-medium">Rs. {(currentOrder.subtotal || currentOrder.total).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Delivery Fee:</span>
-                    <span className={`font-medium ${(currentOrder.deliveryFee || 0) === 0 ? 'text-green-600' : ''}`}>
-                      {(currentOrder.deliveryFee || 0) === 0 ? 'FREE' : `Rs. ${(currentOrder.deliveryFee || 0).toFixed(2)}`}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Total Amount:</span>
-                    <span className="font-bold text-[var(--primary-color)]">Rs. {currentOrder.total.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Status:</span>
-                    <span className="font-medium text-green-600">{currentOrder.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Date:</span>
-                    <span className="font-medium">{currentOrder.date}</span>
-                  </div>
+                  {[
+                    { label: 'Patient Name', value: currentOrder.patientInfo.name, icon: FaUser },
+                    { label: 'Phone', value: currentOrder.patientInfo.phone, icon: FaPhone },
+                    { label: 'Subtotal', value: `Rs. ${(currentOrder.subtotal || currentOrder.total).toFixed(2)}`, icon: FaWallet },
+                    { 
+                      label: 'Delivery Fee', 
+                      value: (currentOrder.deliveryFee || 0) === 0 ? 'FREE' : `Rs. ${(currentOrder.deliveryFee || 0).toFixed(2)}`,
+                      icon: FaTruck,
+                      highlight: (currentOrder.deliveryFee || 0) === 0
+                    },
+                    { label: 'Total Amount', value: `Rs. ${currentOrder.total.toFixed(2)}`, icon: FaCreditCard, bold: true },
+                    { label: 'Status', value: currentOrder.status, icon: FaShieldAlt, status: true },
+                    { label: 'Date', value: currentOrder.date, icon: FaHistory }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center py-2 border-b border-gray-200/50 last:border-0">
+                      <span className="text-gray-600 flex items-center gap-2">
+                        <item.icon className="w-4 h-4 text-gray-400" />
+                        {item.label}:
+                      </span>
+                      <span className={`font-medium ${item.bold ? 'text-xl text-[var(--primary-color)]' : ''} ${item.highlight ? 'text-green-600' : ''} ${item.status ? 'text-green-600' : ''}`}>
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
               
               <div className="space-y-3">
                 <button
                   onClick={closeOrderConfirmation}
-                  className="w-full bg-[var(--primary-color)] text-white py-3 px-6 rounded-lg hover:bg-[var(--secondary-color)] transition-colors font-semibold"
+                  className="w-full bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] text-white py-4 px-6 rounded-2xl hover:shadow-lg transition-all duration-300 font-semibold text-lg"
                 >
                   Continue Shopping
                 </button>
-                <button
-                  onClick={viewOrderHistory}
-                  className="w-full border border-[var(--primary-color)] text-[var(--primary-color)] py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-semibold flex items-center justify-center gap-2"
-                >
-                  <FaHistory /> View Order History
-                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center">
-          <button
-            onClick={handleBack}
-            className="mr-4 p-2 hover:bg-gray-200 rounded-full transition-colors"
-            aria-label="Go back"
-          >
-            <FaArrowLeft className="w-5 h-5 text-[var(--primary-color)]" />
-          </button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--primary-color)]">Book Your Medicines</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">
-              Welcome, <span className="font-medium">{currentUser?.name || currentUser?.email?.split('@')[0] || 'User'}</span>
-            </p>
-          </div>
-        </div>
-        
-        {orders.length > 0 && (
-          <button
-            onClick={viewOrderHistory}
-            className="inline-flex items-center text-[var(--primary-color)] hover:text-[var(--secondary-color)] transition-colors text-sm sm:text-base"
-          >
-            <FaReceipt className="mr-2" />
-            Order History ({orders.length})
-          </button>
-        )}
-      </div>
-
-      {loadingPharmacies && (
-        <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm">
-          Loading pharmacy information...
-        </div>
-      )}
-      
-      {pharmacyError && (
-        <div className="mb-4 p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm">
-          {pharmacyError}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-        <div className="space-y-4">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-700">
-            Selected Medicines <span className="text-sm font-normal text-gray-500 ml-2">({filteredCart.length} items)</span>
-          </h2>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Filter by Pharmacy
-            </label>
-            <select
-              value={selectedPharmacy}
-              onChange={(e) => handlePharmacyChange(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-colors bg-white text-sm sm:text-base"
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center">
+            <button
+              onClick={handleBack}
+              className="mr-4 p-3 hover:bg-white/60 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md"
+              aria-label="Go back"
             >
-              <option value="all">All Pharmacies ({safeCart.length} items)</option>
-              {cartPharmacies.map(pharmacy => {
-                const pharmacyItems = safeCart.filter(item => {
-                  const itemPharmacyId = getPharmacyIdForItem(item);
-                  return itemPharmacyId === pharmacy._id;
-                }).length;
-                
-                return (
-                  <option key={pharmacy._id} value={pharmacy._id}>
-                    {pharmacy.name} ({pharmacyItems} items)
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-          
-          {filteredCart.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-              <FaBox className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">No items found for the selected pharmacy.</p>
-              <button
-                onClick={() => handlePharmacyChange('all')}
-                className="text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-medium"
-              >
-                Show all items
-              </button>
+              <FaArrowLeft className="w-5 h-5 text-[var(--primary-color)]" />
+            </button>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] bg-clip-text text-transparent">
+                Book Your Medicines
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Welcome back, <span className="font-semibold text-[var(--primary-color)]">{currentUser?.name || currentUser?.email?.split('@')[0] || 'User'}</span>
+              </p>
             </div>
-          ) : (
-            <>
-              <div className="space-y-3">
-                {filteredCart.map(item => {
-                  const pharmacyName = getPharmacyNameForItem(item);
-                  const itemId = item.id || item._id;
-                  const maxStock = getMaxStockForItem(item);
-                  const isTablet = isTabletForm(item.form);
-                  const isSyrup = isSyrupForm(item.form);
-                  const price = item.discountedPrice || item.price || 0;
-                  const itemTotal = price * (item.quantity || 1);
-                  
-                  return (
-                    <div key={itemId} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="max-h-12 max-w-12 object-contain"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
-                            }}
-                          />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <h3 className="font-semibold text-gray-800 text-sm truncate">{item.name}</h3>
-                            <button
-                              onClick={() => handleRemoveFromCart(item)}
-                              className="p-1.5 text-red-400 hover:bg-red-50 rounded transition-colors flex-shrink-0"
-                            >
-                              <FaTrash className="w-3 h-3" />
-                            </button>
-                          </div>
-                          
-                          <p className="text-xs text-gray-500 mt-0.5">Rs. {price.toFixed(2)} each</p>
-                          
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center border border-gray-300 rounded overflow-hidden">
-                              <button
-                                onClick={() => handleUpdateQuantity(item, (item.quantity || 1) - 1)}
-                                className="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                              >
-                                <FaMinus className="w-2.5 h-2.5" />
-                              </button>
-                              <span className="w-10 text-center font-medium text-sm">{item.quantity || 1}</span>
-                              <button
-                                onClick={() => handleUpdateQuantity(item, (item.quantity || 1) + 1)}
-                                className={`w-8 h-8 flex items-center justify-center ${
-                                  canIncrementQuantity(item)
-                                    ? 'bg-gray-100 hover:bg-gray-200' 
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                }`}
-                                disabled={!canIncrementQuantity(item)}
-                              >
-                                <FaPlus className="w-2.5 h-2.5" />
-                              </button>
+          </div>
+        </div>
+
+        {loadingPharmacies && (
+          <div className="mb-4 p-4 bg-blue-50/80 backdrop-blur-sm text-blue-700 rounded-2xl text-sm border border-blue-200/50 flex items-center gap-3">
+            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            Loading pharmacy information...
+          </div>
+        )}
+        
+        {pharmacyError && (
+          <div className="mb-4 p-4 bg-yellow-50/80 backdrop-blur-sm text-yellow-700 rounded-2xl text-sm border border-yellow-200/50 flex items-center gap-3">
+            <FaExclamationCircle className="w-5 h-5" />
+            {pharmacyError}
+          </div>
+        )}
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* Left Column - Cart Items */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 border border-white/50">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                  <FaShoppingCart className="text-[var(--primary-color)]" />
+                  Selected Medicines
+                </h2>
+                <span className="bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] text-white px-4 py-1.5 rounded-full text-sm font-semibold">
+                  {filteredCart.length} items
+                </span>
+              </div>
+              
+              {/* Pharmacy Filter */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <FaStore className="text-[var(--primary-color)]" />
+                  Select Pharmacy <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedPharmacy || ''}
+                  onChange={(e) => handlePharmacyChange(e.target.value)}
+                  className="w-full px-5 py-3.5 bg-white border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[var(--primary-color)]/20 focus:border-[var(--primary-color)] transition-all duration-300 text-gray-700 font-medium cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236B7280\' d=\'M6 8L1 3h10z\'/%3E%3C/svg%3E')] bg-no-repeat bg-[center_right_1rem]"
+                  required
+                >
+                  <option value="" disabled>-- Select a pharmacy --</option>
+                  {cartPharmacies.map(pharmacy => {
+                    const pharmacyItems = safeCart.filter(item => {
+                      const itemPharmacyId = getPharmacyIdForItem(item);
+                      return itemPharmacyId === pharmacy._id;
+                    }).length;
+                    
+                    return (
+                      <option key={pharmacy._id} value={pharmacy._id}>
+                        🏪 {pharmacy.name} ({pharmacyItems} items)
+                      </option>
+                    );
+                  })}
+                </select>
+                {!selectedPharmacy && (
+                  <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                    <FaExclamationCircle className="w-3 h-3" />
+                    Please select a pharmacy to view items and place order
+                  </p>
+                )}
+              </div>
+              
+              {filteredCart.length === 0 ? (
+                <div className="text-center py-16 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
+                  <FaBox className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 mb-2">No items in cart for selected pharmacy.</p>
+                  <p className="text-sm text-gray-400">Select a different pharmacy or add medicines to cart</p>
+                </div>
+              ) : (
+                <>
+                  {/* Cart Items */}
+                  <div className="space-y-4">
+                    {filteredCart.map((item, index) => {
+                      const pharmacyName = getPharmacyNameForItem(item);
+                      const itemId = item.id || item._id;
+                      const maxStock = getMaxStockForItem(item);
+                      const isTablet = isTabletForm(item.form);
+                      const isSyrup = isSyrupForm(item.form);
+                      const price = item.discountedPrice || item.price || 0;
+                      const itemTotal = price * (item.quantity || 1);
+                      
+                      return (
+                        <div 
+                          key={itemId} 
+                          className="group bg-white rounded-2xl border border-gray-200/50 hover:border-[var(--primary-color)]/30 hover:shadow-lg transition-all duration-300 overflow-hidden animate-fadeIn"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <div className="p-5 flex items-center gap-5">
+                            {/* Image */}
+                            <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="max-h-14 max-w-14 object-contain"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = 'https://images.unsplash.com/photo-1585435557343-3b092031d5ad?w=400';
+                                }}
+                              />
                             </div>
-                            <span className="font-semibold text-green-600 text-sm">Rs. {itemTotal.toFixed(2)}</span>
+                            
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-semibold text-gray-800 text-base truncate">{item.name}</h3>
+                                  <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-2">
+                                    <FaStore className="w-3 h-3" />
+                                    {pharmacyName}
+                                  </p>
+                                  <div className="flex items-center gap-3 mt-1.5">
+                                    <span className="text-lg font-bold text-[var(--primary-color)]">
+                                      Rs. {price.toFixed(2)}
+                                    </span>
+                                    {item.discountedPrice && item.discountedPrice < item.price && (
+                                      <span className="text-sm text-gray-400 line-through">
+                                        Rs. {item.price.toFixed(2)}
+                                      </span>
+                                    )}
+                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                      {getQuantityDisplay(item)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleRemoveFromCart(item)}
+                                  className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all duration-300 opacity-0 group-hover:opacity-100"
+                                >
+                                  <FaTrash className="w-4 h-4" />
+                                </button>
+                              </div>
+                              
+                              {/* Quantity Controls */}
+                              <div className="flex items-center justify-between mt-3">
+                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-1 border border-gray-200/50">
+                                  <button
+                                    onClick={() => handleUpdateQuantity(item, (item.quantity || 1) - 1)}
+                                    className="w-9 h-9 rounded-lg hover:bg-white hover:shadow-sm transition-all duration-200 flex items-center justify-center text-gray-600"
+                                  >
+                                    <FaMinus className="w-3 h-3" />
+                                  </button>
+                                  <span className="w-10 text-center font-semibold text-gray-800 text-sm">
+                                    {item.quantity || 1}
+                                  </span>
+                                  <button
+                                    onClick={() => handleUpdateQuantity(item, (item.quantity || 1) + 1)}
+                                    className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                                      canIncrementQuantity(item)
+                                        ? 'hover:bg-white hover:shadow-sm text-gray-600' 
+                                        : 'text-gray-300 cursor-not-allowed'
+                                    }`}
+                                    disabled={!canIncrementQuantity(item)}
+                                  >
+                                    <FaPlus className="w-3 h-3" />
+                                  </button>
+                                </div>
+                                <span className="font-bold text-green-600 text-lg">
+                                  Rs. {itemTotal.toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
                           </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Cart Summary */}
+                  <div className="mt-8 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl border border-gray-200/50">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-base">
+                        <span className="text-gray-600">Subtotal ({filteredCart.length} items):</span>
+                        <span className="font-semibold text-gray-800">Rs. {subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="text-gray-600 flex items-center gap-2">
+                          <FaTruck className="text-[var(--primary-color)]" />
+                          Delivery Charge:
+                        </span>
+                        {deliveryFee === 0 ? (
+                          <span className="text-green-600 font-semibold">FREE</span>
+                        ) : (
+                          <span className="font-semibold text-gray-800">Rs. {deliveryFee.toFixed(2)}</span>
+                        )}
+                      </div>
+                      {deliveryFee > 0 && (
+                        <div className="text-xs text-gray-500 text-right">
+                          Free delivery on orders over Rs. {freeDeliveryThreshold}
+                        </div>
+                      )}
+                      <div className="border-t-2 border-gray-200/50 pt-4 mt-4">
+                        <div className="flex justify-between items-center text-xl font-bold">
+                          <span>Total:</span>
+                          <span className="bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] bg-clip-text text-transparent">
+                            Rs. {finalTotal.toFixed(2)}
+                          </span>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-              
-              <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm sm:text-base">
-                    <span className="text-gray-600">Subtotal ({filteredCart.length} items):</span>
-                    <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm sm:text-base">
-                    <span className="text-gray-600">Delivery Charge:</span>
-                    {deliveryFee === 0 ? (
-                      <span className="text-green-600 font-medium">FREE</span>
-                    ) : (
-                      <span className="font-medium">Rs. {deliveryFee.toFixed(2)}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Customer Form */}
+          <div className="lg:col-span-2">
+            <div className="sticky top-8">
+              <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 border border-white/50">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3 mb-6">
+                  <FaUser className="text-[var(--primary-color)]" />
+                  Customer Information
+                </h2>
+                
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <FaUser className="text-gray-400" />
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={patientInfo.name}
+                      onChange={handleInputChange}
+                      className="w-full px-5 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[var(--primary-color)]/20 focus:border-[var(--primary-color)] transition-all duration-300 text-gray-700 placeholder-gray-400"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <FaEnvelope className="text-gray-400" />
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={patientInfo.email}
+                      onChange={handleInputChange}
+                      className={`w-full px-5 py-3.5 bg-gray-50 border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[var(--primary-color)]/20 focus:border-[var(--primary-color)] transition-all duration-300 text-gray-700 placeholder-gray-400 ${
+                        emailError ? 'border-red-500' : 'border-gray-200'
+                      }`}
+                      placeholder="example@gmail.com"
+                    />
+                    {emailError && (
+                      <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                        <FaExclamationCircle className="w-3 h-3" />
+                        {emailError}
+                      </p>
                     )}
                   </div>
-                  <div className="border-t pt-3 mt-3 border-gray-200">
-                    <div className="flex justify-between text-lg sm:text-xl font-bold">
-                      <span>Total:</span>
-                      <span className="text-[var(--secondary-color)]">Rs. {finalTotal.toFixed(2)}</span>
-                    </div>
+                  
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <FaPhone className="text-gray-400" />
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      value={patientInfo.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-5 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[var(--primary-color)]/20 focus:border-[var(--primary-color)] transition-all duration-300 text-gray-700 placeholder-gray-400"
+                      maxLength="11"
+                      placeholder="03XX-XXXXXXX"
+                    />
                   </div>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div>
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Customer Information</h2>
-          <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={patientInfo.name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-colors bg-white text-sm sm:text-base"
-                  placeholder="Enter your full name"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={patientInfo.email}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-colors bg-white text-sm sm:text-base ${
-                    emailError ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="example@gmail.com"
-                />
-                {emailError && (
-                  <p className="text-red-500 text-xs mt-1">{emailError}</p>
-                )}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  required
-                  value={patientInfo.phone}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-colors bg-white text-sm sm:text-base"
-                  maxLength="11"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Delivery Address <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="address"
-                  required
-                  value={patientInfo.address}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-colors bg-white text-sm sm:text-base"
-                  placeholder="House #, Street, Area, City"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Additional Notes (Optional)
-                </label>
-                <textarea
-                  name="notes"
-                  value={patientInfo.notes}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-colors bg-white text-sm sm:text-base"
-                  placeholder="Any special instructions or delivery notes..."
-                />
+                  
+                  {/* Address */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <FaMapMarkerAlt className="text-gray-400" />
+                      Delivery Address <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="address"
+                      required
+                      value={patientInfo.address}
+                      onChange={handleInputChange}
+                      rows="3"
+                      className="w-full px-5 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[var(--primary-color)]/20 focus:border-[var(--primary-color)] transition-all duration-300 text-gray-700 placeholder-gray-400 resize-none"
+                      placeholder="House #, Street, Area, City"
+                    />
+                  </div>
+                  
+                  {/* Notes */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <FaStickyNote className="text-gray-400" />
+                      Additional Notes
+                    </label>
+                    <textarea
+                      name="notes"
+                      value={patientInfo.notes}
+                      onChange={handleInputChange}
+                      rows="3"
+                      className="w-full px-5 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[var(--primary-color)]/20 focus:border-[var(--primary-color)] transition-all duration-300 text-gray-700 placeholder-gray-400 resize-none"
+                      placeholder="Any special instructions or delivery notes..."
+                    />
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className="flex-1 px-6 py-4 border-2 border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 font-semibold text-base order-2 sm:order-1"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!!emailError || !selectedPharmacy || filteredCart.length === 0 || placingOrder || validatingStock}
+                      className={`flex-1 px-6 py-4 rounded-2xl transition-all duration-300 font-semibold text-base order-1 sm:order-2 ${
+                        emailError || !selectedPharmacy || filteredCart.length === 0 || placingOrder || validatingStock
+                          ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
+                          : 'bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] text-white hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+                      }`}
+                    >
+                      {validatingStock ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Verifying...
+                        </span>
+                      ) : placingOrder ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Placing...
+                        </span>
+                      ) : (
+                        `Place Order - Rs. ${finalTotal.toFixed(2)}`
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 mt-6">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="flex-1 border border-[var(--primary-color)] text-[var(--primary-color)] py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm sm:text-base order-2 sm:order-1"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={!!emailError || filteredCart.length === 0 || placingOrder || validatingStock}
-                className={`flex-1 py-3 px-6 rounded-lg transition-colors font-semibold text-sm sm:text-base order-1 sm:order-2 ${
-                  emailError || filteredCart.length === 0 || placingOrder || validatingStock
-                    ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
-                    : 'bg-[var(--primary-color)] text-white hover:bg-[var(--secondary-color)] shadow-sm'
-                }`}
-              >
-                {validatingStock ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Verifying Stock...
-                  </span>
-                ) : placingOrder ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Placing Order...
-                  </span>
-                ) : (
-                  `Place Order - Rs. ${finalTotal.toFixed(2)}`
-                )}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-slideUp {
+          animation: slideUp 0.5s ease-out forwards;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
     </div>
   );
 };

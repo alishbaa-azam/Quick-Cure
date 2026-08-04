@@ -163,6 +163,31 @@ export const pharmacyAPI = {
     }
   },
 
+
+  // Delete pharmacy image (logo or banner)
+  deleteImage: async (pharmacyId, type) => {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/pharmacies/dashboard/${pharmacyId}/image?type=${type}`, {
+        headers: getAuthHeader()
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Helper to resolve full image URL
+  getImageUrl: (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http') || imagePath.startsWith('data:')) {
+      return imagePath;
+    }
+    const cleanPath = imagePath.replace(/^[\\/]+/, '').replace(/\\/g, '/');
+    // Images are stored in /uploads/ at server root, not under /api/
+    const baseUrl = API_BASE_URL.replace(/\/api$/, '');
+    return `${baseUrl}/${cleanPath}`;
+  },
+
   // Get pharmacy by user ID (for dashboard - alternative)
   getPharmacyByUserId: async (userId) => {
     try {
@@ -267,3 +292,5 @@ export const pharmacyAPI = {
 
 // Also export the axios instance for direct use
 export default api;
+
+

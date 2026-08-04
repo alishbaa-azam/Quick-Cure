@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { message } from 'antd';
 import { pharmacyAPI } from '../../services/pharmacyAPI';
+import { API_BASE_URL } from '../../apiConfig.js';
 import logo from "../../images/logo.png";
 
 const PharmacyDashboardLayout = () => {
@@ -17,6 +18,13 @@ const PharmacyDashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id: pharmacyId } = useParams(); // ✅ Get pharmacyId from URL (route param is :id)
+
+  // Theme colors matching lab dashboard
+  const theme = {
+    primary: '#2c6774',
+    secondary: '#174047',
+    accent: '#5c878f',
+  };
 
   // ✅ DYNAMIC navigation paths with pharmacyId
   const navigation = [
@@ -221,34 +229,42 @@ const PharmacyDashboardLayout = () => {
         />
       )}
 
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1a3a3a] text-white transform transition-transform duration-300 ease-in-out ${
+      {/* Sidebar - Matching Lab Dashboard Style */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col shadow-lg transform transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } lg:relative border-r border-[#2c6774] flex flex-col`}>
-        <div className="p-6 flex items-center justify-between border-b border-[#2c6774] shrink-0">
+      } lg:relative`} style={{ backgroundColor: theme.secondary }}>
+        {/* Logo Section */}
+        <div className="p-6 border-b shrink-0" style={{ borderColor: theme.primary }}>
           <div className="flex items-center gap-3">
-            <div className="bg-white p-2 rounded-lg flex items-center justify-center">
-              <img 
-                src={logo} 
-                alt="logo" 
-                className="w-6 h-6 object-contain" 
-              />
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              {(() => {
+                const logoUrl = pharmacy?.logo || pharmacy?.image;
+                if (logoUrl) {
+                  const fullUrl = logoUrl.startsWith('http') || logoUrl.startsWith('data:')
+                    ? logoUrl
+                    : `${API_BASE_URL}/${logoUrl.replace(/^[\\/]+/, '').replace(/\\/g, '/')}`;
+                  return (
+                    <img
+                      src={fullUrl}
+                      alt={pharmacy.name}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  );
+                }
+                return <span className="text-white font-bold text-xl">{pharmacy?.name?.[0] || 'P'}</span>;
+              })()}
             </div>
-            <h1 className="font-bold text-xl tracking-tight">QuickCure</h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-white font-bold text-lg truncate" title={pharmacy?.name}>
+                {pharmacy?.name || 'QuickCure'}
+              </h1>
+              <p className="text-xs text-white/70">Pharmacy Management</p>
+            </div>
           </div>
-          <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Pharmacy Info */}
-        <div className="p-4 border-b border-[#2c6774] shrink-0">
-          <p className="text-sm font-semibold text-white truncate">{pharmacy.name}</p>
-          <p className="text-xs text-gray-400 mt-1 truncate">ID: {pharmacy._id}</p>
         </div>
 
         {/* Navigation - Scrollable */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+        <nav className="flex-1 py-6 overflow-y-auto px-4">
           {navigation.map((item) => {
             const Icon = item.icon;
             const active = isActivePath(item.href);
@@ -256,86 +272,105 @@ const PharmacyDashboardLayout = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${
-                  active 
-                    ? 'bg-[#2c6774] text-white shadow-lg' 
-                    : 'text-gray-400 hover:bg-[#2c6774]/20 hover:text-white'
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all mb-1 ${
+                  active
+                    ? 'text-white shadow-lg'
+                    : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`}
+                style={active ? { backgroundColor: theme.primary } : {}}
                 onClick={() => setSidebarOpen(false)}
               >
-                <Icon size={20} />
-                <span className="font-medium">{item.name}</span>
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Logout Button - Fixed at bottom */}
-        <div className="p-6 border-t border-[#2c6774] shrink-0 bg-[#1a3a3a]">
+        <div className="p-6 border-t shrink-0" style={{ borderColor: theme.primary, backgroundColor: theme.secondary }}>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-4 text-gray-400 hover:text-red-400 transition-colors w-full"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
           >
-            <LogOut size={20} />
-            <span className="font-medium">Log Out</span>
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm">Logout</span>
           </button>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-10 shrink-0 z-30 shadow-sm">
+        {/* Top Header - Matching Lab Dashboard Style */}
+        <header className="bg-white px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
           <div className="flex items-center gap-4">
-            <button 
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors" 
+            <button
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu size={24} className="text-[#1a3a3a]" />
+              <Menu size={24} style={{ color: theme.secondary }} />
             </button>
-            <div className="hidden md:flex flex-col">
-              <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                {pharmacy.city || 'Main Branch'}
-              </h2>
-              <p className="text-xl font-black text-[#1a3a3a] leading-tight truncate max-w-[200px]">
+            <div>
+              <h4 className="text-lg font-semibold" style={{ color: theme.secondary }}>
                 {pharmacy.name}
-              </p>
+              </h4>
+              <span className="text-xs text-gray-500">
+                {pharmacy.city || 'Main Branch'} • Pharmacy Dashboard
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 lg:gap-6">
+          <div className="flex items-center gap-3">
+            {/* Search Bar */}
             <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search database..." 
-                className="pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-xl text-sm focus:bg-white focus:border-[#2c6774] focus:ring-4 focus:ring-[#2c6774]/5 w-48 lg:w-80 transition-all outline-none"
+              <input
+                type="text"
+                placeholder="Search..."
+                className="pl-10 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-sm focus:bg-white focus:border-[#2c6774] focus:ring-4 focus:ring-[#2c6774]/5 w-48 lg:w-80 transition-all outline-none"
               />
             </div>
-            
+
+            {/* Notifications */}
             <button className="p-2.5 text-gray-500 hover:bg-gray-100 rounded-xl relative transition-colors">
               <Bell size={20} />
-              <span className="absolute top-2.5 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
             </button>
 
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-100 ml-2">
+            {/* User Profile */}
+            <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
               <div className="hidden lg:block text-right">
-                <p className="text-xs font-black text-gray-800">
+                <p className="text-xs font-bold text-gray-800">
                   {pharmacy.ownerName || 'Admin User'}
                 </p>
                 <p className="text-[10px] text-green-600 font-bold uppercase">Online</p>
               </div>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#2c6774] to-[#1a3a3a] flex items-center justify-center text-white shadow-lg shadow-teal-900/20 shrink-0">
-                <User size={22} />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2c6774] to-[#174047] flex items-center justify-center text-white shadow-lg overflow-hidden">
+                {(() => {
+                  const logoUrl = pharmacy?.logo || pharmacy?.image;
+                  if (logoUrl) {
+                    const fullUrl = logoUrl.startsWith('http') || logoUrl.startsWith('data:')
+                      ? logoUrl
+                      : `${API_BASE_URL}/${logoUrl.replace(/^[\\/]+/, '').replace(/\\/g, '/')}`;
+                    return (
+                      <img
+                        src={fullUrl}
+                        alt="Pharmacy Logo"
+                        className="w-full h-full object-cover"
+                      />
+                    );
+                  }
+                  return <User size={20} />;
+                })()}
               </div>
             </div>
           </div>
         </header>
 
         {/* Dynamic Content - Scrollable */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
           <div className="p-4 lg:p-6">
-            <Outlet context={{ pharmacy, pharmacyId: pharmacy._id }} />
+            <Outlet context={{ pharmacy, pharmacyId, refetchPharmacy: checkAuth }} />
           </div>
         </main>
       </div>
