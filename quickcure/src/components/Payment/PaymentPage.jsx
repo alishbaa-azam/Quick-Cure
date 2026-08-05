@@ -226,6 +226,11 @@ const PaymentPage = () => {
   const handlePaymentSuccess = (data) => {
     console.log('Payment success:', data);
     setPaymentSuccess(true);
+    
+    // Dispatch events to refresh orders/bookings in user dashboard and lab dashboard
+    window.dispatchEvent(new CustomEvent('ordersUpdated'));
+    window.dispatchEvent(new CustomEvent('labTestsUpdated'));
+    window.dispatchEvent(new CustomEvent('bookingsUpdated'));
   };
 
   const handleBackToHome = () => {

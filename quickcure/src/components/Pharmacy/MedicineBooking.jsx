@@ -953,8 +953,8 @@ const MedicineBooking = () => {
               {filteredCart.length === 0 ? (
                 <div className="text-center py-16 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
                   <FaBox className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-2">No items in cart for selected pharmacy.</p>
-                  <p className="text-sm text-gray-400">Select a different pharmacy or add medicines to cart</p>
+                  <p className="text-gray-500 mb-2">Please select a pharmacy to view items and place order.</p>
+                  {/* <p className="text-sm text-gray-400">Select a different pharmacy or add medicines to cart</p> */}
                 </div>
               ) : (
                 <>

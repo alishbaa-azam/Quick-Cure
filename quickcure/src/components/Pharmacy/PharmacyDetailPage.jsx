@@ -702,17 +702,17 @@ const PharmacyDetailPage = () => {
                 <FiMapPin className="w-4 h-4" />
                 {pharmacy.address}
               </p>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-4">
+              {/* <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-4">
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-white/20">
                   <FiClock /> {deliveryInfo.estimatedTime}
                 </span>
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-white/20">
                   <MdDeliveryDining /> {deliveryInfo.distance.toFixed(1)} km
                 </span>
-                {/* <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-white/20">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-white/20">
                   <FiTag /> {pharmacy.discount }% off
-                </span> */}
-              </div>
+                </span> 
+              </div> */}
             </div>
             <button 
               onClick={handleCallPharmacy} 

@@ -104,12 +104,12 @@ const roleSpecificOptions = () => {
         ]
       : []),
 
-    {
-      label: "Settings",
-      icon: FaCog,
-      path: "/settings",
-      color: "text-gray-700",
-    },
+    // {
+    //   label: "Settings",
+    //   icon: FaCog,
+    //   path: "/settings",
+    //   color: "text-gray-700",
+    // },
   ];
 
   const allOptions = [...commonOptions, ...roleSpecificOptions()];

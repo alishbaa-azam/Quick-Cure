@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation, useParams } from 'react-router-dom'; // ✅ Add useParams
 import { 
   LayoutDashboard, Package, ShoppingCart, 
-  Settings, TrendingUp, LogOut, Menu, Bell, Search, User, X, Pill
+  Settings, TrendingUp, LogOut, Menu, Bell, User, X, Pill
 } from 'lucide-react';
 import { message } from 'antd';
 import { pharmacyAPI } from '../../services/pharmacyAPI';
 import { API_BASE_URL } from '../../apiConfig.js';
+import { PharmacyProvider } from '../../contexts/PharmacyContext';
 import logo from "../../images/logo.png";
 
 const PharmacyDashboardLayout = () => {
@@ -15,6 +16,8 @@ const PharmacyDashboardLayout = () => {
   const [pharmacy, setPharmacy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState(null); // New state for dashboard-specific errors
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [lastOrderCheck, setLastOrderCheck] = useState(Date.now());
   const navigate = useNavigate();
   const location = useLocation();
   const { id: pharmacyId } = useParams(); // ✅ Get pharmacyId from URL (route param is :id)
@@ -169,6 +172,47 @@ const PharmacyDashboardLayout = () => {
     }
   };
 
+  // Check for new orders periodically
+  useEffect(() => {
+    if (!pharmacyId || !pharmacy) return;
+
+    const checkForNewOrders = async () => {
+      try {
+        const response = await pharmacyAPI.getRecentOrders(pharmacyId, 10);
+        if (response.data?.success) {
+          const recentOrders = response.data.data || [];
+          const newOrders = recentOrders.filter(order => {
+            const orderTime = new Date(order.createdAt).getTime();
+            return orderTime > lastOrderCheck && order.status === 'pending';
+          });
+          
+          if (newOrders.length > 0) {
+            setNewOrdersCount(prev => prev + newOrders.length);
+            message.info({
+              content: `🔔 ${newOrders.length} new order${newOrders.length > 1 ? 's' : ''} received!`,
+              duration: 5,
+              style: {
+                marginTop: '20px',
+              }
+            });
+          }
+          
+          setLastOrderCheck(Date.now());
+        }
+      } catch (error) {
+        console.error('Error checking for new orders:', error);
+      }
+    };
+
+    // Check immediately
+    checkForNewOrders();
+
+    // Then check every 30 seconds
+    const interval = setInterval(checkForNewOrders, 30000);
+
+    return () => clearInterval(interval);
+  }, [pharmacyId, pharmacy, lastOrderCheck]);
+
   useEffect(() => {
     checkAuth();
   }, [pharmacyId]); // ✅ Re-run when pharmacyId changes
@@ -321,20 +365,20 @@ const PharmacyDashboardLayout = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search Bar */}
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-sm focus:bg-white focus:border-[#2c6774] focus:ring-4 focus:ring-[#2c6774]/5 w-48 lg:w-80 transition-all outline-none"
-              />
-            </div>
-
             {/* Notifications */}
-            <button className="p-2.5 text-gray-500 hover:bg-gray-100 rounded-xl relative transition-colors">
+            <button 
+              onClick={() => {
+                setNewOrdersCount(0);
+                navigate(`/pharmacy/dashboard/${pharmacyId}/orders`);
+              }}
+              className="p-2.5 text-gray-500 hover:bg-gray-100 rounded-xl relative transition-colors"
+            >
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+              {newOrdersCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full border-2 border-white flex items-center justify-center animate-bounce">
+                  {newOrdersCount}
+                </span>
+              )}
             </button>
 
             {/* User Profile */}
@@ -370,7 +414,9 @@ const PharmacyDashboardLayout = () => {
         {/* Dynamic Content - Scrollable */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
           <div className="p-4 lg:p-6">
-            <Outlet context={{ pharmacy, pharmacyId, refetchPharmacy: checkAuth }} />
+            <PharmacyProvider>
+              <Outlet context={{ pharmacy, pharmacyId, refetchPharmacy: checkAuth }} />
+            </PharmacyProvider>
           </div>
         </main>
       </div>

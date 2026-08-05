@@ -640,11 +640,11 @@ useEffect(() => {
                 <option key={city} value={city}>{city}</option>
               ))}
             </select>
-            {selectedCity && (
+            {/* {selectedCity && (
               <span className="text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
-              {/* Service available in {selectedCity} */}
+               Service available in {selectedCity} 
               </span>
-            )}
+            )} */}
           </div>
         </div>
       )}

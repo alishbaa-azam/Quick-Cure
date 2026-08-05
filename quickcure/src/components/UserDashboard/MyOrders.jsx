@@ -15,6 +15,22 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
     fetchOrders();
   }, [refreshTrigger]);
 
+  // Listen for payment success events to refresh orders
+  useEffect(() => {
+    const handlePaymentSuccess = () => {
+      console.log('Payment success event received, refreshing orders...');
+      fetchOrders();
+    };
+
+    window.addEventListener('ordersUpdated', handlePaymentSuccess);
+    window.addEventListener('bookingsUpdated', handlePaymentSuccess);
+
+    return () => {
+      window.removeEventListener('ordersUpdated', handlePaymentSuccess);
+      window.removeEventListener('bookingsUpdated', handlePaymentSuccess);
+    };
+  }, []);
+
   // Get the storage key — always use the same key format
   const getOrdersKey = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -85,7 +101,9 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
 
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`${API_BASE_URL}/medicine-orders?userId=${userId}`, {
+      // Use email-based endpoint for fetching orders
+      const userEmail = (user?.email || '').toLowerCase().trim();
+      const response = await fetch(`${API_BASE_URL}/medicine-orders/patient/${encodeURIComponent(userEmail)}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -175,26 +193,31 @@ const MyOrders = ({ refreshTrigger, onStatsUpdate }) => {
   const mergeOrders = (apiOrders, localOrders) => {
     const mergedMap = new Map();
 
-    // Add local orders first (they have more detail)
-    localOrders.forEach(order => {
-      const key = order.orderNumber || order._id || order.orderId;
-      if (key) mergedMap.set(key, order);
+    // Helper to generate consistent key
+    const getOrderKey = (order) => {
+      return order.orderNumber || order._id || order.orderId;
+    };
+
+    // Add API orders first (they have the latest status from server)
+    apiOrders.forEach(order => {
+      const key = getOrderKey(order);
+      if (key) {
+        mergedMap.set(key, {
+          ...order,
+          cart: order.cart || order.items || order.medicines || []
+        });
+      }
     });
 
-    // Override/merge with API orders (they have latest status)
-    apiOrders.forEach(order => {
-      const key = order.orderNumber || order._id || order.orderId;
-      if (key) {
-        const existing = mergedMap.get(key);
-        if (existing) {
-          mergedMap.set(key, {
-            ...existing,
-            ...order,
-            cart: existing.cart || existing.items || existing.medicines || order.cart || order.items || order.medicines || []
-          });
-        } else {
-          mergedMap.set(key, order);
-        }
+    // Merge local orders only if they don't exist in API response
+    // This prevents duplicates while preserving local details
+    localOrders.forEach(order => {
+      const key = getOrderKey(order);
+      if (key && !mergedMap.has(key)) {
+        mergedMap.set(key, {
+          ...order,
+          cart: order.cart || order.items || order.medicines || []
+        });
       }
     });
 

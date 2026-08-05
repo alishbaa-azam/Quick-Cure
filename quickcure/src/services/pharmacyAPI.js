@@ -289,7 +289,19 @@ export const pharmacyAPI = {
     }
   }
 };
-
+// In pharmacyAPI.js
+getSalesAnalytics: async (pharmacyId, range) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/api/pharmacies/${pharmacyId}/sales/analytics`,
+      { params: { range } }
+    );
+    return response;
+  } catch (error) {
+    console.error('Error fetching sales analytics:', error);
+    throw error;
+  }
+}
 // Also export the axios instance for direct use
 export default api;
 

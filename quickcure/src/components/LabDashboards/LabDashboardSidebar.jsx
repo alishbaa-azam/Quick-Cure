@@ -29,8 +29,8 @@ export default function LabDashboardSidebar({ activeTab, setActiveTab, lab, stat
   ];
 
   return (
-    <div className="w-64 flex-shrink-0 min-h-screen flex flex-col shadow-lg" style={{ backgroundColor: theme.secondary }}>
-      <div className="p-6 border-b" style={{ borderColor: theme.primary }}>
+    <div className="w-64 flex-shrink-0 h-screen flex flex-col shadow-lg" style={{ backgroundColor: theme.secondary }}>
+      <div className="p-6 border-b flex-shrink-0" style={{ borderColor: theme.primary }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
             {lab?.logo ? (
@@ -48,7 +48,7 @@ export default function LabDashboardSidebar({ activeTab, setActiveTab, lab, stat
         </div>
       </div>
 
-      <nav className="flex-1 py-6 overflow-y-auto">
+      <nav className="flex-1 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -64,13 +64,15 @@ export default function LabDashboardSidebar({ activeTab, setActiveTab, lab, stat
               {item.id === 'bookings' && stats.pendingBookings > 0 && (
                 <span className="ml-auto bg-yellow-500 text-white text-xs rounded-full px-2 py-0.5">
                   {stats.pendingBookings}
+
+            
                 </span>
               )}
-              {item.id === 'technicians' && stats.activeTechnicians > 0 && (
+              {/* {item.id === 'technicians' && stats.activeTechnicians > 0 && (
                 <span className="ml-auto bg-green-500 text-white text-xs rounded-full px-2 py-0.5">
                   {stats.activeTechnicians}
                 </span>
-              )}
+              )} */}
             </button>
           );
         })}

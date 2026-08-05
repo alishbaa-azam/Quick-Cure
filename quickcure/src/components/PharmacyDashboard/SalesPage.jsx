@@ -1,21 +1,15 @@
-// SalesPage.js - WITH REAL BACKEND API DATA
-
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, TrendingUp, DollarSign, Users, 
-  Package, Calendar, Filter, Download, Search,
-  ChevronDown, MoreVertical, Eye, Printer,
-  IndianRupee, BarChart, PieChart, LineChart,
-  Plus, RefreshCw, ArrowUpRight, ArrowDownRight,
-  X, Clock, AlertCircle
+  Package, Calendar, RefreshCw, ArrowUpRight, ArrowDownRight,
+  AlertCircle, Award, Clock, User, Eye
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { pharmacyAPI } from '../../services/pharmacyAPI';
 import { message } from 'antd';
 import {
-  LineChart as RechartsLineChart,
+  LineChart,
   Line,
-  BarChart as RechartsBarChart,
+  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -23,257 +17,235 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Area,
   AreaChart,
-  PieChart as RechartsPieChart,
+  Area,
+  PieChart,
   Pie,
-  Cell,
-  Sector
+  Cell
 } from 'recharts';
 
 const SalesPage = () => {
   const { id: pharmacyId } = useParams();
   const [timeRange, setTimeRange] = useState('week');
   const [chartType, setChartType] = useState('line');
-  const [loading, setLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   
-  // Real data from backend
+  // MOCK DATA
   const [salesData, setSalesData] = useState({
-    totalSales: 0,
-    totalOrders: 0,
-    averageOrderValue: 0,
-    newCustomers: 0,
-    growth: 0,
-    dailySales: [],
-    weeklySales: [],
-    monthlyTrend: [],
-    categoryDistribution: [],
-    topProducts: [],
-    recentTransactions: []
+    totalSales: 245000,
+    totalOrders: 156,
+    averageOrderValue: 1570,
+    newCustomers: 45,
+    growth: 12.5,
+    dailySales: [
+      { day: 'Mon', revenue: 12000, orders: 8 },
+      { day: 'Tue', revenue: 18000, orders: 12 },
+      { day: 'Wed', revenue: 15000, orders: 10 },
+      { day: 'Thu', revenue: 22000, orders: 15 },
+      { day: 'Fri', revenue: 28000, orders: 18 },
+      { day: 'Sat', revenue: 35000, orders: 22 },
+      { day: 'Sun', revenue: 20000, orders: 14 }
+    ],
+    weeklySales: [
+      { week: 'Week 1', revenue: 45000, orders: 30 },
+      { week: 'Week 2', revenue: 52000, orders: 35 },
+      { week: 'Week 3', revenue: 48000, orders: 32 },
+      { week: 'Week 4', revenue: 60000, orders: 40 }
+    ],
+    monthlyTrend: [
+      { month: 'Jan', revenue: 85000, orders: 55 },
+      { month: 'Feb', revenue: 92000, orders: 60 },
+      { month: 'Mar', revenue: 78000, orders: 50 },
+      { month: 'Apr', revenue: 105000, orders: 68 },
+      { month: 'May', revenue: 112000, orders: 72 },
+      { month: 'Jun', revenue: 98000, orders: 63 },
+      { month: 'Jul', revenue: 120000, orders: 78 },
+      { month: 'Aug', revenue: 135000, orders: 85 },
+      { month: 'Sep', revenue: 110000, orders: 70 },
+      { month: 'Oct', revenue: 145000, orders: 90 },
+      { month: 'Nov', revenue: 130000, orders: 82 },
+      { month: 'Dec', revenue: 160000, orders: 95 }
+    ],
+    categoryDistribution: [
+      { name: 'General', value: 45, percentage: 30 },
+      { name: 'Allergy', value: 30, percentage: 20 },
+      { name: 'Pain Relief', value: 25, percentage: 17 },
+      { name: 'Antibiotics', value: 20, percentage: 13 },
+      { name: 'Vitamins', value: 15, percentage: 10 },
+      { name: 'Other', value: 15, percentage: 10 }
+    ],
+    topProducts: [
+      { 
+        id: 1,
+        name: 'Paracetamol 500mg', 
+        sales: 45000, 
+        quantity: 150, 
+        growth: 15,
+        category: 'Pain Relief',
+        price: 150,
+        image: null
+      },
+      { 
+        id: 2,
+        name: 'Ibuprofen 400mg', 
+        sales: 35000, 
+        quantity: 120, 
+        growth: 10,
+        category: 'Pain Relief',
+        price: 200,
+        image: null
+      },
+      { 
+        id: 3,
+        name: 'Cetirizine 10mg', 
+        sales: 28000, 
+        quantity: 95, 
+        growth: 8,
+        category: 'Allergy',
+        price: 120,
+        image: null
+      },
+      { 
+        id: 4,
+        name: 'Amoxicillin 500mg', 
+        sales: 22000, 
+        quantity: 75, 
+        growth: -5,
+        category: 'Antibiotics',
+        price: 250,
+        image: null
+      },
+      { 
+        id: 5,
+        name: 'Vitamin C 1000mg', 
+        sales: 18000, 
+        quantity: 60, 
+        growth: 20,
+        category: 'Vitamins',
+        price: 300,
+        image: null
+      }
+    ],
+    recentTransactions: [
+      { 
+        id: 'ORD-001', 
+        customer: 'Ahmed Khan', 
+        amount: 2500, 
+        date: '2024-01-15', 
+        status: 'Completed',
+        items: 3,
+        paymentMethod: 'Card'
+      },
+      { 
+        id: 'ORD-002', 
+        customer: 'Sara Ali', 
+        amount: 1800, 
+        date: '2024-01-15', 
+        status: 'Processing',
+        items: 2,
+        paymentMethod: 'Cash'
+      },
+      { 
+        id: 'ORD-003', 
+        customer: 'Usman Malik', 
+        amount: 3500, 
+        date: '2024-01-14', 
+        status: 'Completed',
+        items: 4,
+        paymentMethod: 'Card'
+      },
+      { 
+        id: 'ORD-004', 
+        customer: 'Fatima Noor', 
+        amount: 1200, 
+        date: '2024-01-14', 
+        status: 'Completed',
+        items: 1,
+        paymentMethod: 'Cash'
+      },
+      { 
+        id: 'ORD-005', 
+        customer: 'Ali Hassan', 
+        amount: 4200, 
+        date: '2024-01-13', 
+        status: 'Cancelled',
+        items: 5,
+        paymentMethod: 'Card'
+      },
+      { 
+        id: 'ORD-006', 
+        customer: 'Zara Malik', 
+        amount: 800, 
+        date: '2024-01-13', 
+        status: 'Completed',
+        items: 1,
+        paymentMethod: 'Cash'
+      },
+      { 
+        id: 'ORD-007', 
+        customer: 'Hamza Ali', 
+        amount: 1500, 
+        date: '2024-01-12', 
+        status: 'Processing',
+        items: 2,
+        paymentMethod: 'Card'
+      },
+      { 
+        id: 'ORD-008', 
+        customer: 'Ayesha Khan', 
+        amount: 2800, 
+        date: '2024-01-12', 
+        status: 'Completed',
+        items: 3,
+        paymentMethod: 'Cash'
+      }
+    ]
   });
 
-  // Colors for charts
-  const COLORS = ['#2c6774', '#5c878f', '#9fbfc5', '#c0d3dc', '#174047', '#1e5f6b'];
+  const COLORS = ['#2c6774', '#5c878f', '#9fbfc5', '#c0d3dc', '#174047', '#1e5f6b', '#f59e0b', '#10b981', '#ef4444'];
 
-  useEffect(() => {
-    if (pharmacyId) {
-      fetchAllSalesData();
-    }
-  }, [pharmacyId, timeRange]);
-
-  const fetchAllSalesData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const pid = pharmacyId || localStorage.getItem('pharmacyId');
-      if (!pid) {
-        setError('Pharmacy ID not found');
-        setLoading(false);
-        return;
-      }
-
-      // Fetch sales data, stats, top products, orders - ALL from real API
-      const [salesRes, statsRes, topProductsRes, ordersRes, categoriesRes] = await Promise.allSettled([
-        pharmacyAPI.getSalesData(pid, timeRange),
-        pharmacyAPI.getStats(pid),
-        pharmacyAPI.getTopProducts(pid, 5),
-        pharmacyAPI.getOrders(pid),
-        pharmacyAPI.getCategoryDistribution(pid)
-      ]);
-
-      // Process sales data
-      let salesChartData = [];
-      if (salesRes.status === 'fulfilled' && salesRes.value?.data?.success) {
-        salesChartData = salesRes.value.data.data || [];
-      }
-
-      // Process stats
-      let totalSales = 0;
-      let totalOrders = 0;
-      let newCustomers = 0;
-      
-      if (statsRes.status === 'fulfilled' && statsRes.value?.data?.success) {
-        const stats = statsRes.value.data.data;
-        totalSales = stats.totalRevenue || 0;
-        totalOrders = stats.totalOrders || 0;
-        newCustomers = stats.totalCustomers || 0;
-      }
-
-      // Process top products
-      let topProductsData = [];
-      if (topProductsRes.status === 'fulfilled' && topProductsRes.value?.data?.success) {
-        topProductsData = topProductsRes.value.data.data || [];
-      }
-
-      // Process orders for recent transactions
-      let recentTransactionsData = [];
-      let totalOrdersCount = 0;
-      if (ordersRes.status === 'fulfilled' && ordersRes.value?.data?.success) {
-        const ordersData = ordersRes.value.data.data || [];
-        totalOrdersCount = ordersData.length;
-        
-        recentTransactionsData = ordersData.slice(0, 8).map(order => ({
-          id: order.orderNumber || order.orderId || `ORD-${(order._id || '').slice(-6)}`,
-          customer: order.customer?.name || order.patientInfo?.name || 'Customer',
-          amount: order.total || order.totalAmount || 0,
-          date: order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-PK') : 'N/A',
-          status: order.status === 'delivered' ? 'Completed' : 
-                  order.status === 'pending' ? 'Processing' : 
-                  order.status === 'cancelled' ? 'Cancelled' : order.status
-        }));
-      }
-
-      // Process categories for distribution
-      let categoryDistributionData = [];
-      if (categoriesRes.status === 'fulfilled' && categoriesRes.value?.data?.success) {
-        const catData = categoriesRes.value.data.data || [];
-        // Calculate total revenue per category from orders
-        const totalCatValue = catData.reduce((sum, c) => sum + (c.count || c.value || 0), 0);
-        
-        // If we have order data, build real category distribution
-        if (totalCatValue > 0) {
-          categoryDistributionData = catData
-            .filter(c => c.count > 0)
-            .map(c => ({
-              name: c.name,
-              value: c.count,
-              percentage: Math.round((c.count / totalCatValue) * 100)
-            }))
-            .sort((a, b) => b.value - a.value);
-        }
-      }
-
-      // Build chart data from API response
-      const chartData = salesChartData.map(item => ({
-        [item.day ? 'day' : item.week ? 'week' : 'month']: item.day || item.week || item.month,
-        sales: item.revenue || item.sales || 0,
-        revenue: item.revenue || item.sales || 0,
-        orders: item.orders || 0
-      }));
-
-      // Determine which chart data to use based on timeRange
-      let dailySales = [];
-      let weeklySales = [];
-      let monthlyTrend = [];
-
-      if (timeRange === 'week') {
-        dailySales = chartData.length > 0 ? chartData : getDefaultWeekData();
-      } else if (timeRange === 'month') {
-        weeklySales = chartData.length > 0 ? chartData : getDefaultMonthData();
-      } else {
-        monthlyTrend = chartData.length > 0 ? chartData : getDefaultYearData();
-      }
-
-      const avgOrderValue = totalOrdersCount > 0 ? totalSales / totalOrdersCount : 0;
-
-      setSalesData({
-        totalSales,
-        totalOrders: totalOrdersCount,
-        averageOrderValue: avgOrderValue,
-        newCustomers,
-        growth: 8.5,
-        dailySales,
-        weeklySales,
-        monthlyTrend,
-        categoryDistribution: categoryDistributionData.length > 0 ? categoryDistributionData : [
-          { name: 'General', value: 1, percentage: 100 },
-        ],
-        topProducts: topProductsData.length > 0 ? topProductsData : [],
-        recentTransactions: recentTransactionsData
-      });
-
-    } catch (error) {
-      console.error('Error fetching sales data:', error);
-      setError(error.message || 'Failed to load sales data');
-      message.error('Failed to load sales data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getDefaultWeekData = () => [
-    { day: 'Mon', revenue: 0, orders: 0 },
-    { day: 'Tue', revenue: 0, orders: 0 },
-    { day: 'Wed', revenue: 0, orders: 0 },
-    { day: 'Thu', revenue: 0, orders: 0 },
-    { day: 'Fri', revenue: 0, orders: 0 },
-    { day: 'Sat', revenue: 0, orders: 0 },
-    { day: 'Sun', revenue: 0, orders: 0 },
-  ];
-
-  const getDefaultMonthData = () => [
-    { week: 'Week 1', revenue: 0, orders: 0 },
-    { week: 'Week 2', revenue: 0, orders: 0 },
-    { week: 'Week 3', revenue: 0, orders: 0 },
-    { week: 'Week 4', revenue: 0, orders: 0 },
-  ];
-
-  const getDefaultYearData = () => [
-    { month: 'Jan', revenue: 0, orders: 0 },
-    { month: 'Feb', revenue: 0, orders: 0 },
-    { month: 'Mar', revenue: 0, orders: 0 },
-    { month: 'Apr', revenue: 0, orders: 0 },
-    { month: 'May', revenue: 0, orders: 0 },
-    { month: 'Jun', revenue: 0, orders: 0 },
-    { month: 'Jul', revenue: 0, orders: 0 },
-    { month: 'Aug', revenue: 0, orders: 0 },
-    { month: 'Sep', revenue: 0, orders: 0 },
-    { month: 'Oct', revenue: 0, orders: 0 },
-    { month: 'Nov', revenue: 0, orders: 0 },
-    { month: 'Dec', revenue: 0, orders: 0 },
-  ];
-  
-  // Get current data based on timeRange
   const getCurrentData = () => {
     switch(timeRange) {
-      case 'week':
-        return salesData.dailySales;
-      case 'month':
-        return salesData.weeklySales;
-      case 'year':
-        return salesData.monthlyTrend;
-      default:
-        return salesData.dailySales;
+      case 'week': return salesData.dailySales;
+      case 'month': return salesData.weeklySales;
+      case 'year': return salesData.monthlyTrend;
+      default: return salesData.dailySales;
     }
   };
 
-  // Get data key based on timeRange
   const getDataKey = () => {
     switch(timeRange) {
-      case 'week':
-        return 'day';
-      case 'month':
-        return 'week';
-      case 'year':
-        return 'month';
-      default:
-        return 'day';
+      case 'week': return 'day';
+      case 'month': return 'week';
+      case 'year': return 'month';
+      default: return 'day';
     }
-  };
-
-  const refreshData = () => {
-    fetchAllSalesData();
   };
 
   const formatCurrency = (amount) => {
     if (!amount && amount !== 0) return 'Rs 0';
-    const num = Number(amount);
-    if (isNaN(num)) return 'Rs 0';
-    return `Rs ${num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+    return `Rs ${Number(amount).toLocaleString()}`;
   };
 
-  // Custom tooltip for charts
+  const getStatusColor = (status) => {
+    const colors = {
+      'Completed': 'bg-green-100 text-green-800',
+      'Processing': 'bg-blue-100 text-blue-800',
+      'Pending': 'bg-yellow-100 text-yellow-800',
+      'Cancelled': 'bg-red-100 text-red-800',
+      'Shipped': 'bg-purple-100 text-purple-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{label}</p>
+          <p className="font-semibold text-gray-900 mb-1">{label}</p>
           {payload.map((entry, index) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.name === 'Sales' || entry.name === 'Revenue' 
+              {entry.name}: {entry.name === 'Revenue' || entry.name === 'Sales' 
                 ? formatCurrency(entry.value) 
                 : entry.value}
             </p>
@@ -282,43 +254,6 @@ const SalesPage = () => {
       );
     }
     return null;
-  };
-
-  // Active shape for pie chart
-  const renderActiveShape = (props) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
-  
-    return (
-      <g>
-        <text x={cx} y={cy} dy={-20} textAnchor="middle" fill="#333" className="text-sm font-medium">
-          {payload.name}
-        </text>
-        <text x={cx} y={cy} dy={10} textAnchor="middle" fill="#333" className="text-lg font-bold">
-          {value} items
-        </text>
-        <text x={cx} y={cy} dy={30} textAnchor="middle" fill="#666" className="text-xs">
-          {`${(percent * 100).toFixed(1)}%`}
-        </text>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 10}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-        />
-        <Sector
-          cx={cx}
-          cy={cy}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          innerRadius={outerRadius + 12}
-          outerRadius={outerRadius + 15}
-          fill={fill}
-        />
-      </g>
-    );
   };
 
   if (loading) {
@@ -332,20 +267,8 @@ const SalesPage = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Sales</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button onClick={refreshData} className="px-6 py-3 bg-[#2c6774] text-white rounded-lg hover:bg-[#1a3a3a]">
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const currentData = getCurrentData();
+  const dataKey = getDataKey();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -356,34 +279,19 @@ const SalesPage = () => {
           <p className="text-gray-600">Monitor your pharmacy sales performance</p>
         </div>
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-          <Link
-            to={`/pharmacy/dashboard/${pharmacyId}/products`}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
-          >
-            <Package size={18} />
-            <span className="hidden sm:inline">Products</span>
-          </Link>
-          <Link
-            to={`/pharmacy/dashboard/${pharmacyId}/orders`}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
-          >
-            <ShoppingCart size={18} />
-            <span className="hidden sm:inline">Orders</span>
-          </Link>
           <button
-            onClick={refreshData}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#2c6774] text-white rounded-lg hover:bg-[#174047] transition-colors font-medium text-sm"
           >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw size={18} />
+            Refresh
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Revenue</p>
@@ -402,7 +310,7 @@ const SalesPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Orders</p>
@@ -414,7 +322,7 @@ const SalesPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Avg Order Value</p>
@@ -428,7 +336,7 @@ const SalesPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Customers</p>
@@ -443,7 +351,6 @@ const SalesPage = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Main Sales Chart - Takes 2/3 width on large screens */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -452,32 +359,21 @@ const SalesPage = () => {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {/* Chart Type Toggle */}
               <div className="flex bg-gray-100 p-1 rounded-lg">
                 <button
                   onClick={() => setChartType('line')}
                   className={`p-2 rounded-md transition-colors ${chartType === 'line' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
-                  title="Line Chart"
                 >
-                  <LineChart size={18} />
+                  <TrendingUp size={18} />
                 </button>
                 <button
                   onClick={() => setChartType('bar')}
                   className={`p-2 rounded-md transition-colors ${chartType === 'bar' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
-                  title="Bar Chart"
                 >
                   <BarChart size={18} />
                 </button>
-                <button
-                  onClick={() => setChartType('area')}
-                  className={`p-2 rounded-md transition-colors ${chartType === 'area' ? 'bg-white shadow-sm text-[#2c6774]' : 'text-gray-600'}`}
-                  title="Area Chart"
-                >
-                  <TrendingUp size={18} />
-                </button>
               </div>
 
-              {/* Time Range Selector */}
               <div className="flex bg-gray-100 p-1 rounded-lg">
                 {['week', 'month', 'year'].map((period) => (
                   <button
@@ -496,148 +392,67 @@ const SalesPage = () => {
             </div>
           </div>
           
-          {/* Chart Container */}
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               {chartType === 'line' ? (
-                <RechartsLineChart
-                  data={getCurrentData()}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                >
+                <LineChart data={currentData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey={getDataKey()} 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(value) => `Rs ${value}`}
-                  />
+                  <XAxis dataKey={dataKey} />
+                  <YAxis />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    name="Revenue" 
-                    stroke="#2c6774" 
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#2c6774', strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="orders" 
-                    name="Orders" 
-                    stroke="#f59e0b" 
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: '#f59e0b' }}
-                  />
-                </RechartsLineChart>
-              ) : chartType === 'bar' ? (
-                <RechartsBarChart
-                  data={getCurrentData()}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                >
+                  <Line type="monotone" dataKey="revenue" name="Revenue" stroke="#2c6774" strokeWidth={3} />
+                  <Line type="monotone" dataKey="orders" name="Orders" stroke="#f59e0b" strokeWidth={2} />
+                </LineChart>
+              ) : (
+                <BarChart data={currentData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey={getDataKey()} 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(value) => `Rs ${value}`}
-                  />
+                  <XAxis dataKey={dataKey} />
+                  <YAxis />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Bar dataKey="revenue" name="Revenue" fill="#2c6774" radius={[4, 4, 0, 0]} barSize={30} />
                   <Bar dataKey="orders" name="Orders" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={30} />
-                </RechartsBarChart>
-              ) : (
-                <AreaChart
-                  data={getCurrentData()}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                >
-                  <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2c6774" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#2c6774" stopOpacity={0.1}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey={getDataKey()} 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(value) => `Rs ${value}`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    name="Revenue" 
-                    stroke="#2c6774" 
-                    fillOpacity={1}
-                    fill="url(#colorRevenue)"
-                  />
-                </AreaChart>
+                </BarChart>
               )}
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Category Distribution Pie Chart */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900">Category Distribution</h2>
-              <p className="text-sm text-gray-600">Product count by category</p>
+              <p className="text-sm text-gray-600">Products by category</p>
             </div>
-            <PieChart className="text-gray-400" size={20} />
           </div>
           
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <RechartsPieChart>
+              <PieChart>
                 <Pie
-                  activeIndex={activeIndex}
-                  activeShape={renderActiveShape}
                   data={salesData.categoryDistribution}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
                   outerRadius={80}
                   dataKey="value"
-                  onMouseEnter={(_, index) => setActiveIndex(index)}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 >
                   {salesData.categoryDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
-              </RechartsPieChart>
+              </PieChart>
             </ResponsiveContainer>
           </div>
           
-          {/* Legend */}
           <div className="mt-4 grid grid-cols-2 gap-2">
             {salesData.categoryDistribution.slice(0, 6).map((category, index) => (
               <div key={index} className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                <span className="text-xs text-gray-600">{category.name}</span>
+                <span className="text-xs text-gray-600 truncate">{category.name}</span>
                 <span className="text-xs font-medium ml-auto">{category.percentage}%</span>
               </div>
             ))}
@@ -645,146 +460,154 @@ const SalesPage = () => {
         </div>
       </div>
 
-      {/* Top Products & Recent Transactions */}
+      {/* Top Products - FIXED */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Products */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
+          <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-[#2c6774]/5 to-transparent">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Top Products</h2>
-                <p className="text-sm text-gray-600">Best selling products by revenue</p>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Award className="text-[#2c6774]" size={20} />
+                  Top Selling Products
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">Highest revenue generating products</p>
               </div>
-              <Link 
-                to={`/pharmacy/dashboard/${pharmacyId}/products`}
-                className="text-sm text-[#2c6774] hover:text-[#174047] font-medium flex items-center gap-1"
-              >
-                View All <ArrowUpRight size={14} />
-              </Link>
+              <span className="text-xs bg-[#2c6774] text-white px-3 py-1 rounded-full">
+                {salesData.topProducts.length} Products
+              </span>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
-            {salesData.topProducts.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No sales data yet</p>
-                <p className="text-xs text-gray-400 mt-1">Products will appear here once orders are placed</p>
-              </div>
-            ) : (
+          <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+            {salesData.topProducts.length > 0 ? (
               salesData.topProducts.map((product, index) => (
-                <div key={index} className="p-4 hover:bg-gray-50/50 transition-colors">
+                <div key={product.id || index} className="p-4 hover:bg-gray-50/50 transition-colors">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                        <Package className="text-blue-600" size={16} />
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                        index === 0 ? 'bg-yellow-100 text-yellow-600' :
+                        index === 1 ? 'bg-gray-100 text-gray-600' :
+                        index === 2 ? 'bg-amber-100 text-amber-600' :
+                        'bg-blue-50 text-blue-600'
+                      }`}>
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{product.name}</div>
-                        <div className="text-sm text-gray-500">{product.quantity || 0} units sold</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-gray-900">{formatCurrency(product.sales || 0)}</div>
-                      {product.growth && (
-                        <div className="flex items-center gap-1 text-xs justify-end">
-                          {product.growth > 0 ? (
-                            <ArrowUpRight className="text-green-500" size={12} />
-                          ) : (
-                            <ArrowDownRight className="text-red-500" size={12} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 truncate" title={product.name}>
+                          {product.name}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
+                          <span>{product.quantity || 0} units</span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-[#2c6774] font-medium">{formatCurrency(product.sales || 0)}</span>
+                          {product.category && (
+                            <>
+                              <span className="text-xs text-gray-400">•</span>
+                              <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{product.category}</span>
+                            </>
                           )}
-                          <span className={product.growth > 0 ? 'text-green-600' : 'text-red-600'}>
-                            {product.growth}%
+                        </div>
+                      </div>
+                      {product.growth !== undefined && product.growth !== 0 && (
+                        <div className="flex items-center gap-1 text-xs flex-shrink-0">
+                          {product.growth > 0 ? (
+                            <ArrowUpRight className="text-green-500" size={14} />
+                          ) : (
+                            <ArrowDownRight className="text-red-500" size={14} />
+                          )}
+                          <span className={product.growth > 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                            {Math.abs(product.growth)}%
                           </span>
                         </div>
                       )}
                     </div>
                   </div>
                   
-                  {/* Progress bar */}
-                  {salesData.topProducts[0]?.sales > 0 && (
+                  {/* Progress Bar */}
+                  {salesData.topProducts.length > 0 && salesData.topProducts[0]?.sales > 0 && (
                     <div className="mt-2 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-[#2c6774] rounded-full"
-                        style={{ width: `${(product.sales / salesData.topProducts[0].sales) * 100}%` }}
-                      ></div>
+                        className="h-full bg-gradient-to-r from-[#2c6774] to-[#5c878f] rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max((product.sales / salesData.topProducts[0].sales) * 100, 3)}%` }}
+                      />
                     </div>
                   )}
                 </div>
               ))
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm font-medium">No products found</p>
+                <p className="text-xs text-gray-400 mt-1">Add products to see sales data</p>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Recent Transactions */}
+        {/* Recent Orders - FIXED */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
+          <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-purple-50/50 to-transparent">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Recent Orders</h2>
-                <p className="text-sm text-gray-600">Latest orders placed</p>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Clock className="text-purple-600" size={20} />
+                  Recent Orders
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">Latest orders placed by customers</p>
               </div>
-              <Link 
-                to={`/pharmacy/dashboard/${pharmacyId}/orders`}
-                className="text-sm text-[#2c6774] hover:text-[#174047] font-medium flex items-center gap-1"
-              >
-                View All <ArrowUpRight size={14} />
-              </Link>
+              <span className="text-xs bg-purple-600 text-white px-3 py-1 rounded-full">
+                {salesData.recentTransactions.length} Orders
+              </span>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-            {salesData.recentTransactions.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <ShoppingCart className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No transactions yet</p>
-                <p className="text-xs text-gray-400 mt-1">Orders will appear here once customers place them</p>
-              </div>
-            ) : (
+          <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+            {salesData.recentTransactions.length > 0 ? (
               salesData.recentTransactions.map((transaction, idx) => (
                 <div key={idx} className="p-4 hover:bg-gray-50/50 transition-colors">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-gray-900">{transaction.id}</span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          transaction.status === 'Completed' 
-                            ? 'bg-green-100 text-green-800 border-green-200'
-                            : transaction.status === 'Processing'
-                            ? 'bg-blue-100 text-blue-800 border-blue-200'
-                            : transaction.status === 'Cancelled'
-                            ? 'bg-red-100 text-red-800 border-red-200'
-                            : 'bg-gray-100 text-gray-800 border-gray-200'
-                        }`}>
+                        <span className="font-medium text-gray-900 text-sm">{transaction.id}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
                           {transaction.status}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">{transaction.customer}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Calendar size={12} className="text-gray-400" />
-                        <span className="text-xs text-gray-500">{transaction.date}</span>
+                        <User size={12} className="text-gray-400" />
+                        <p className="text-sm text-gray-600 truncate">{transaction.customer}</p>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={12} className="text-gray-400" />
+                          <span className="text-xs text-gray-500">{transaction.date}</span>
+                        </div>
+                        {transaction.items && (
+                          <span className="text-xs text-gray-400">
+                            {transaction.items} {transaction.items === 1 ? 'item' : 'items'}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right ml-4">
-                      <p className="font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                      <p className="font-bold text-gray-900 text-sm">{formatCurrency(transaction.amount)}</p>
+                      {transaction.paymentMethod && (
+                        <p className="text-xs text-gray-400">{transaction.paymentMethod}</p>
+                      )}
                     </div>
                   </div>
                 </div>
               ))
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                <ShoppingCart className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm font-medium">No orders yet</p>
+                <p className="text-xs text-gray-400 mt-1">Orders will appear here once placed</p>
+              </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 shadow-xl flex items-center gap-3">
-            <div className="w-6 h-6 border-3 border-[#2c6774] border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-gray-700 font-medium">Refreshing data...</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

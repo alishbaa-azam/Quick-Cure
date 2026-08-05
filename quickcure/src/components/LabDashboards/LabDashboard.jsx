@@ -505,6 +505,27 @@ export default function LabDashboard() {
     fetchLabData();
   }, []);
 
+  // Listen for payment success events to refresh dashboard data
+  useEffect(() => {
+    const handlePaymentSuccess = () => {
+      console.log('Payment success event received, refreshing lab dashboard...');
+      if (lab?._id) {
+        fetchBookings(lab._id);
+        fetchLabData();
+      }
+    };
+
+    window.addEventListener('ordersUpdated', handlePaymentSuccess);
+    window.addEventListener('labTestsUpdated', handlePaymentSuccess);
+    window.addEventListener('bookingsUpdated', handlePaymentSuccess);
+
+    return () => {
+      window.removeEventListener('ordersUpdated', handlePaymentSuccess);
+      window.removeEventListener('labTestsUpdated', handlePaymentSuccess);
+      window.removeEventListener('bookingsUpdated', handlePaymentSuccess);
+    };
+  }, [lab]);
+
   const deleteBooking = async (id) => {
     try {
       await axios.delete(`/bookings/${id}`);
@@ -660,17 +681,21 @@ export default function LabDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <LabDashboardSidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        lab={lab}
-        stats={stats}
-        theme={theme}
-        onLogout={handleLogout}
-      />
+    <div className="min-h-screen bg-gray-50">
+      {/* Static Sidebar */}
+      <div className="fixed left-0 top-0 h-screen z-40">
+        <LabDashboardSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          lab={lab}
+          stats={stats}
+          theme={theme}
+          onLogout={handleLogout}
+        />
+      </div>
       
-      <div className="flex-1">
+      {/* Main Content Area with left margin for fixed sidebar */}
+      <div className="ml-64">
         {/* Header */}
         <header className="bg-white px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
           <div>

@@ -50,8 +50,13 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
     };
 
     window.addEventListener('labTestsUpdated', handleLabTestsUpdated);
+    window.addEventListener('ordersUpdated', handleLabTestsUpdated);
+    window.addEventListener('bookingsUpdated', handleLabTestsUpdated);
+    
     return () => {
       window.removeEventListener('labTestsUpdated', handleLabTestsUpdated);
+      window.removeEventListener('ordersUpdated', handleLabTestsUpdated);
+      window.removeEventListener('bookingsUpdated', handleLabTestsUpdated);
     };
   }, []);
 
@@ -190,14 +195,22 @@ const MyLabTests = ({ refreshTrigger, onStatsUpdate }) => {
           // both exist for the same reference/id.
           const localBookings = JSON.parse(localStorage.getItem(`labTests_${userKey}`) || '[]');
           const mergedMap = new Map();
-          localBookings.forEach((b) => {
-            const key = b.bookingReference || b._id;
-            if (key) mergedMap.set(key, b);
-          });
+          
+          // Add API bookings first (they have the latest status)
           transformedBookings.forEach((b) => {
             const key = b.bookingReference || b._id;
             if (key) mergedMap.set(key, b);
           });
+          
+          // Add local bookings only if they don't exist in API response
+          // This prevents duplicates
+          localBookings.forEach((b) => {
+            const key = b.bookingReference || b._id;
+            if (key && !mergedMap.has(key)) {
+              mergedMap.set(key, b);
+            }
+          });
+          
           const mergedBookings = Array.from(mergedMap.values());
           
           setLabTests(mergedBookings);

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Truck, 
   Phone, Mail, Building, CheckCircle,
-  Save, AlertCircle, ExternalLink, Loader
+  Save, AlertCircle, ExternalLink, Loader, Upload, X
 } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { pharmacyAPI } from '../../services/pharmacyAPI';
+import axios from 'axios';
 import { message } from 'antd';
 
 const SettingsPage = () => {
@@ -27,6 +27,10 @@ const SettingsPage = () => {
     deliveryFee: 0,
     freeDeliveryThreshold: 0,
   });
+
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const getGoogleMapsEmbedUrl = (address) => {
     if (!address) return '';
@@ -54,6 +58,11 @@ const SettingsPage = () => {
         deliveryFee: pharmacy.deliveryFee || 0,
         freeDeliveryThreshold: pharmacy.freeDeliveryThreshold || 0,
       });
+      
+      // Set logo preview if exists - like LabsPage
+      if (pharmacy.logo) {
+        setLogoPreview(`http://localhost:5000/uploads/${pharmacy.logo}`);
+      }
     } else {
       setLoading(true);
     }
@@ -65,6 +74,202 @@ const SettingsPage = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      console.log('File selected:', file.name, file.type, file.size);
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        message.error('Only JPEG, PNG, and WEBP images are allowed');
+        e.target.value = '';
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        message.error('Image size must be less than 5MB');
+        e.target.value = '';
+        return;
+      }
+      
+      setLogoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile) {
+      message.error('Please select an image first');
+      return;
+    }
+
+    if (!pharmacyId) {
+      message.error('Pharmacy ID not found');
+      console.error('Pharmacy ID is missing:', pharmacyId);
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    
+    try {
+      console.log('Uploading logo for pharmacy:', pharmacyId);
+      
+      const formData = new FormData();
+      formData.append('image', logoFile);
+      formData.append('type', 'logo');
+      
+      // Try different endpoints
+      let response;
+      let uploaded = false;
+      
+      // Try first endpoint
+      try {
+        response = await axios.post(
+          `http://localhost:5000/api/pharmacies/${pharmacyId}/upload-image`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+        uploaded = true;
+      } catch (error) {
+        console.log('First endpoint failed, trying second...');
+        
+        // Try second endpoint
+        try {
+          const formData2 = new FormData();
+          formData2.append('logo', logoFile);
+          
+          response = await axios.post(
+            `http://localhost:5000/api/pharmacies/${pharmacyId}/upload`,
+            formData2,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+          uploaded = true;
+        } catch (error2) {
+          console.log('Second endpoint failed, trying third...');
+          
+          // Try third endpoint - update pharmacy with logo
+          const reader = new FileReader();
+          const base64Promise = new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(logoFile);
+          });
+          
+          const base64Image = await base64Promise;
+          
+          response = await axios.put(
+            `http://localhost:5000/api/pharmacies/${pharmacyId}`,
+            {
+              ...pharmacySettings,
+              logo: base64Image
+            }
+          );
+          uploaded = true;
+        }
+      }
+      
+      console.log('Upload response:', response?.data);
+      
+      if (response?.data?.success) {
+        message.success('Logo uploaded successfully!');
+        setLogoFile(null);
+        
+        // Update logo preview
+        if (response.data.data?.logo) {
+          setLogoPreview(`http://localhost:5000/uploads/${response.data.data.logo}`);
+        }
+        
+        // Refetch pharmacy data
+        if (refetchPharmacy) {
+          await refetchPharmacy();
+        }
+      } else {
+        message.error(response?.data?.message || 'Failed to upload logo');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      
+      if (error.code === 'ERR_NETWORK') {
+        message.error('Cannot connect to server. Please check your connection.');
+      } else if (error.response?.status === 404) {
+        message.error('Upload endpoint not found. Please contact support.');
+      } else if (error.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else {
+        message.error('Failed to upload logo. Please try again.');
+      }
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!pharmacyId) {
+      message.error('Pharmacy ID not found');
+      return;
+    }
+
+    try {
+      let response;
+      
+      // Try different delete endpoints
+      try {
+        response = await axios.delete(
+          `http://localhost:5000/api/pharmacies/${pharmacyId}/image?type=logo`
+        );
+      } catch (error) {
+        console.log('First delete endpoint failed, trying second...');
+        
+        try {
+          response = await axios.delete(
+            `http://localhost:5000/api/pharmacies/${pharmacyId}/logo`
+          );
+        } catch (error2) {
+          console.log('Second delete endpoint failed, trying update...');
+          
+          // Update pharmacy without logo
+          response = await axios.put(
+            `http://localhost:5000/api/pharmacies/${pharmacyId}`,
+            {
+              ...pharmacySettings,
+              logo: null
+            }
+          );
+        }
+      }
+      
+      if (response?.data?.success) {
+        message.success('Logo removed successfully!');
+        setLogoPreview(null);
+        setLogoFile(null);
+        
+        if (refetchPharmacy) {
+          await refetchPharmacy();
+        }
+      } else {
+        message.error(response?.data?.message || 'Failed to remove logo');
+      }
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      message.error('Failed to remove logo');
+    }
   };
 
   const handleSave = async () => {
@@ -102,7 +307,12 @@ const SettingsPage = () => {
       
       console.log('Saving settings with data:', updateData);
       
-      const response = await pharmacyAPI.updatePharmacyProfile(pharmacyId, updateData);
+      const response = await axios.put(
+        `http://localhost:5000/api/pharmacies/${pharmacyId}`,
+        updateData
+      );
+      
+      console.log('Save response:', response.data);
       
       if (response.data?.success) {
         setSaveSuccess(true);
@@ -129,7 +339,6 @@ const SettingsPage = () => {
       setIsSaving(false);
     }
   };
-
 
   if (loading) {
     return (
@@ -186,6 +395,87 @@ const SettingsPage = () => {
             <div className="flex items-center gap-2 mb-6">
               <Building className="text-[#2c6774]" size={20} />
               <h2 className="text-lg font-semibold text-gray-900">Pharmacy Information</h2>
+            </div>
+            
+            {/* Logo Upload Section */}
+            <div className="mb-6 pb-6 border-b border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Pharmacy Logo
+              </label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {/* Logo Preview */}
+                <div className="relative">
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img
+                        src={logoPreview}
+                        alt="Pharmacy Logo"
+                        className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://cdn-icons-png.flaticon.com/512/2965/2965358.png";
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveLogo}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        title="Remove logo"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                      <div className="text-center">
+                        <Upload className="mx-auto text-gray-400 mb-1" size={32} />
+                        <p className="text-xs text-gray-500">No logo</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Upload Controls */}
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    id="logo-upload"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleLogoChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="logo-upload"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer font-medium text-sm"
+                  >
+                    <Upload size={18} />
+                    Choose Image
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Supported formats: JPEG, PNG, WEBP (Max 5MB)
+                  </p>
+                  {logoFile && (
+                    <button
+                      type="button"
+                      onClick={handleLogoUpload}
+                      disabled={isUploadingLogo}
+                      className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-[#2c6774] text-white rounded-lg hover:bg-[#174047] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUploadingLogo ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={18} />
+                          Upload Logo
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -395,7 +685,6 @@ const SettingsPage = () => {
 
         {/* Right Column - Info Box */}
         <div className="space-y-6">
-          {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="text-blue-600 mt-0.5 flex-shrink-0" size={18} />
@@ -404,6 +693,19 @@ const SettingsPage = () => {
                 <p className="text-xs text-blue-600 mt-1">
                   Your address is constant and will only change when you manually update it. 
                   Click "Show Map" to preview your location on Google Maps.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Upload className="text-green-600 mt-0.5 flex-shrink-0" size={18} />
+              <div>
+                <p className="text-sm font-medium text-green-800">Logo Guidelines</p>
+                <p className="text-xs text-green-600 mt-1">
+                  Upload a high-quality logo that represents your pharmacy. 
+                  Recommended size: 500x500 pixels. This will be displayed on your pharmacy profile.
                 </p>
               </div>
             </div>
