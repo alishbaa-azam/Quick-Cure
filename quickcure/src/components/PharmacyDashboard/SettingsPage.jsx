@@ -672,7 +672,7 @@ const SettingsPage = () => {
                   value={pharmacySettings.freeDeliveryThreshold}
                   onChange={handleInputChange}
                   min="0"
-                  step="100"
+                  step="50"
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2c6774]/30 focus:border-[#2c6774] transition-colors"
                 />
                 <p className="text-xs text-gray-500 mt-1">

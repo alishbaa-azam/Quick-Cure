@@ -173,10 +173,10 @@ export default function ViewProfile() {
 
   // Available tags for reviews
   const availableTags = [
-    "Less Than 10 mins wait time",
+    // "Less Than 10 mins wait time",
     "Great Experience",
-    "30 min meetup",
-    "10 min meetup",
+    // "30 min meetup",
+    // "10 min meetup",
     "Friendly Doctor",
     "Good Listener",
     "Excellent Diagnosis",

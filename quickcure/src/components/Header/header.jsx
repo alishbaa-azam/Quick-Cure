@@ -183,6 +183,7 @@ export default function Header() {
   const ALNOOR_LAB_ID = "69b19a26243075f1d6068c8b";
   
   const menus = {
+    
     doctor: [
       { label: "Dermatologist", to: "/specialities/dermatologist" },
       { label: "Gynecologist", to: "/specialities/gynecologist" },
@@ -238,7 +239,7 @@ export default function Header() {
             style={{ color: "var(--primary-color)" }}
             aria-label="Primary"
           >
-            {(["doctor", "medicines", "labs"]).map((menuKey) => {
+            {(["doctor", "medicines", "labs",]).map((menuKey) => {
               const isOpen = activeDropdown === menuKey;
               const label = menuKey === "doctor" ? "Doctors" : menuKey === "medicines" ? "Medicines" : "Labs";
               

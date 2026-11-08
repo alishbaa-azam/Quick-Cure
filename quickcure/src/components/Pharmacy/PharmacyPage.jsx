@@ -490,14 +490,14 @@ const PharmacyPage = () => {
                 {/* Content - Responsive padding */}
                 <div className="p-3 sm:p-4 flex flex-col flex-1">
                   {/* Header with name and rating */}
-                  <div className="flex items-start justify-between gap-2 mb-2 flex-shrink-0">
+                  {/* <div className="flex items-start justify-between gap-2 mb-2 flex-shrink-0">
                     <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight line-clamp-1 flex-1">
                       {pharmacy.name}
                     </h3>
                     <div className="flex-shrink-0">
                       {renderStars(rating)}
                     </div>
-                  </div>
+                  </div> */}
                   
                   {/* Address */}
                   <div className="mb-2 sm:mb-3 flex-shrink-0">

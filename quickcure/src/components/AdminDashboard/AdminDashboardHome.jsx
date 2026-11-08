@@ -137,7 +137,7 @@ export default function AdminDashboardHome() {
           title="Total Users" 
           value={userStats.total || 0}
           subtitle={`${userStats.recent?.length || 0} new this month`}
-          icon={<Users size={24} />}
+          icon={<Users size={24} color='black'/>}
           color="bg-blue-500"
           trend="up"
         />
@@ -145,21 +145,21 @@ export default function AdminDashboardHome() {
           title="Doctors" 
           value={userStats.doctors || 0}
           subtitle="Registered professionals"
-          icon={<Stethoscope size={24} />}
+          icon={<Stethoscope size={24} color='black'/>}
           color="bg-emerald-500"
         />
         <StatCard 
           title="Laboratories" 
           value={userStats.labs || 0}
           subtitle="Active labs"
-          icon={<Microscope size={24} />}
+          icon={<Microscope size={24} color='black' />}
           color="bg-purple-500"
         />
         <StatCard 
           title="Pharmacies" 
           value={userStats.pharmacies || 0}
           subtitle="Registered pharmacies"
-          icon={<Pill size={24} />}
+          icon={<Pill size={24} color='black'/>}
           color="bg-amber-500"
         />
       </div>
@@ -170,21 +170,21 @@ export default function AdminDashboardHome() {
           title="Appointments" 
           value={apptStats.total || 0}
           subtitle={`${apptStats.pending || 0} pending`}
-          icon={<Calendar size={24} />}
+          icon={<Calendar size={24} color='black' />}
           color="bg-rose-500"
         />
         <StatCard 
           title="Medicine Orders" 
           value={orderStats.total || 0}
           subtitle={`${orderStats.pending || 0} pending`}
-          icon={<ShoppingCart size={24} />}
+          icon={<ShoppingCart size={24} color='black'/>}
           color="bg-indigo-500"
         />
         <StatCard 
           title="Monthly Revenue" 
           value={formatCurrency(totalRevenue)}
           subtitle="This month"
-          icon={<DollarSign size={24} />}
+          icon={<DollarSign size={24} color='black'/>}
           color="bg-green-600"
           trend="up"
         />
@@ -192,7 +192,7 @@ export default function AdminDashboardHome() {
           title="Yearly Revenue" 
           value={formatCurrency(totalYearlyRevenue)}
           subtitle="This year"
-          icon={<TrendingUp size={24} />}
+          icon={<TrendingUp size={24} color='black' />}
           color="bg-cyan-600"
           trend="up"
         />
